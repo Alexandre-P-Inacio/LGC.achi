@@ -48,9 +48,7 @@ nav {
     transition: color 0.3s ease;
 }
 
-.nav-links a:hover {
-    color: #666;
-}
+    
 
 /* Auth Buttons in Navbar */
 .auth-buttons {
@@ -68,23 +66,16 @@ nav {
     transition: all 0.3s ease;
 }
 
-.login-button {
+.login-button,
+.register-button {
     color: #333;
     border: 1px solid #333;
 }
 
-.login-button:hover {
-    background: #333;
-    color: white;
-}
-
-.register-button {
-    background: #333;
-    color: white;
-}
-
+.login-button:hover,
 .register-button:hover {
-    background: #444;
+    background: #570000;
+    color: rgb(255, 255, 255);
 }
 
 /* Hero Section */

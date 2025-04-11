@@ -14,33 +14,32 @@ supabase.auth.onAuthStateChange((event, session) => {
 });
 
 // Register function
-async function register(email, password) {
+async function register(username, password) {
     try {
-        const { data, error } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-        });
-        
+        // Inserir o usuário na tabela sem autenticação
+        const { error } = await supabase
+            .from('Users') // Certifique-se de que o nome da tabela está correto
+            .insert([{ username: username, password: password }]); // Armazene a senha de forma segura!
+
         if (error) throw error;
-        return { success: true, data };
+
+        return { success: true };
     } catch (error) {
         return { success: false, error: error.message };
     }
 }
 
-// Login function
-async function login(email, password) {
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
-        
-        if (error) throw error;
-        return { success: true, data };
-    } catch (error) {
-        return { success: false, error: error.message };
+// Função para login sem autenticação
+async function login() {
+    // Lógica para permitir acesso sem autenticação
+    const result = { success: true, message: "Login bem-sucedido sem autenticação." };
+
+    // Exibir pop-up de sucesso
+    if (result.success) {
+        alert(result.message);
     }
+
+    return result;
 }
 
 // Logout function
@@ -60,11 +59,37 @@ async function isAdmin() {
     if (!user) return false;
     
     const { data, error } = await supabase
-        .from('profiles')
+        .from('Users')
         .select('is_admin')
         .eq('id', user.id)
         .single();
         
     if (error) return false;
     return data?.is_admin || false;
-} 
+}
+
+// Função para criar um novo usuário
+async function createUser(email, password) {
+    // Lógica para inserir um novo usuário na tabela
+    const query = 'INSERT INTO users (email, password) VALUES ($1, $2)';
+    await db.query(query, [email, password]);
+}
+
+// Função para autenticar um usuário sem e-mail
+async function authenticate(username, password) {
+    try {
+        // Lógica para autenticar um usuário
+        const { data, error } = await supabase
+            .from('Users')
+            .select('*')
+            .eq('username', username)
+            .eq('password', password); // Armazene a senha de forma segura!
+
+        if (error) throw error;
+
+        return data.length > 0; // Retorna true se o usuário existir
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
