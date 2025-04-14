@@ -1081,4 +1081,16 @@ footer {
         width: 100%;
         justify-content: center;
     }
+}
+
+/* Animation Classes */
+.section-hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s, transform 0.8s;
+}
+
+.animated {
+    opacity: 1;
+    transform: translateY(0);
 } 

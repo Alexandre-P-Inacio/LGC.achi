@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Form - Architecture Portfolio</title>
+    <link rel="icon" type="image/png" href="assets/logo(2).png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Load Supabase first -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client only once
+        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase initialized in project-form.html');
+    </script>
+    <!-- Then load other scripts -->
+    <script src="auth.js" defer></script>
+    <script src="project-form.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <i class="fas fa-drafting-compass"></i>
+                PROJECT FORM
+            </div>
+            <ul class="nav-links">
+                <li><a href="admin.html"><i class="fas fa-arrow-left"></i> Back to Dashboard</a></li>
+                <li><span id="admin-name"></span></li>
+                <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        <section class="admin-section">
+            <div class="dashboard-header">
+                <h2 id="form-title"><i class="fas fa-plus-circle"></i> Add New Project</h2>
+            </div>
+            
+            <div class="project-form">
+                <form id="project-form">
+                    <div class="form-group">
+                        <label for="project-title">Project Title*</label>
+                        <input type="text" id="project-title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="project-description">Description*</label>
+                        <textarea id="project-description" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project-location">Location*</label>
+                        <input type="text" id="project-location" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="project-year">Year Completed*</label>
+                            <input type="number" id="project-year" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="project-area">Area (sqm)*</label>
+                            <input type="number" id="project-area" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="project-type">Project Type*</label>
+                            <select id="project-type" required>
+                                <option value="">Select type...</option>
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="institutional">Institutional</option>
+                                <option value="industrial">Industrial</option>
+                                <option value="mixed-use">Mixed-Use</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="project-status">Status*</label>
+                            <select id="project-status" required>
+                                <option value="">Select status...</option>
+                                <option value="completed">Completed</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="planning">Planning</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project-main-image">Main Image URL*</label>
+                        <input type="url" id="project-main-image" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project-gallery">Gallery Images (URLs, comma-separated)</label>
+                        <textarea id="project-gallery" placeholder="Enter image URLs separated by commas"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="project-client">Client Name</label>
+                            <input type="text" id="project-client">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="project-budget">Budget</label>
+                            <input type="number" id="project-budget" placeholder="Enter amount">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="project-duration">Duration (months)</label>
+                        <input type="number" id="project-duration">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="cancel-button" onclick="window.location.href='admin.html'">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="submit-button" id="save-button">
+                            <i class="fas fa-save"></i> Save Project
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Architecture Portfolio Admin. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html> 

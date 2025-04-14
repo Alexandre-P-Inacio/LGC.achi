@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Architecture Portfolio</title>
+    <link rel="icon" type="image/png" href="assets/logo(2).png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        window.supabase = supabase;
+    </script>
+    <script src="auth.js" defer></script>
+    <script src="admin.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <i class="fas fa-drafting-compass"></i>
+                ADMIN DASHBOARD
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fas fa-home"></i> Back to Site</a></li>
+                <li><span id="admin-name"></span></li>
+                <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        <section class="admin-section">
+            <div class="dashboard-header">
+                <h2><i class="fas fa-tasks"></i> Project Management</h2>
+                <a href="project-form.html" class="add-project-button">
+                    <i class="fas fa-plus"></i> Add New Project
+                </a>
+            </div>
+
+            <div class="projects-list">
+                <h3><i class="fas fa-list"></i> All Projects</h3>
+                <div class="projects-table-container">
+                    <table class="projects-table">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Location</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Year</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projects-container">
+                            <!-- Projects will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 Architecture Portfolio Admin. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html> 
