@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co;">
     <title>Register - Architecture Portfolio</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -17,8 +18,8 @@
             <h2>Register</h2>
             <form id="registerForm" class="auth-form">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -37,7 +38,7 @@
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
@@ -47,7 +48,7 @@
             }
             
             try {
-                const result = await register(email, password);
+                const result = await register(username, password);
                 if (result.success) {
                     alert('Registration successful! Please login with your credentials.');
                     window.location.href = 'login.html';

@@ -30,27 +30,103 @@ async function register(username, password) {
 }
 
 // Função para login sem autenticação
-async function login() {
-    // Lógica para permitir acesso sem autenticação
-    const result = { success: true, message: "Login bem-sucedido sem autenticação." };
+async function login(username, password) {
+    try {
+        // Verificar se o usuário existe
+        const { data, error } = await supabase
+            .from('Users')
+            .select('*')
+            .eq('username', username)
+            .eq('password', password);
 
-    // Exibir pop-up de sucesso
-    if (result.success) {
-        alert(result.message);
+        if (error) throw error;
+
+        const userExists = data && data.length > 0;
+        
+        if (userExists) {
+            // Armazenar o nome do usuário no localStorage
+            localStorage.setItem('currentUser', username);
+            
+            // Exibir pop-up de sucesso
+            alert("Login bem-sucedido!");
+            
+            // Atualizar a UI
+            updateUserInterface(username);
+            
+            // Retornar sucesso
+            return { success: true, message: "Login bem-sucedido." };
+        } else {
+            return { success: false, error: "Usuário ou senha incorretos." };
+        }
+    } catch (error) {
+        return { success: false, error: error.message };
     }
-
-    return result;
 }
+
+// Função para atualizar a interface do usuário
+function updateUserInterface(username) {
+    // Ocultar os botões de autenticação
+    const authButtons = document.querySelector('.auth-buttons');
+    if (authButtons) {
+        authButtons.style.display = 'none';
+    }
+    
+    // Criar um elemento para mostrar o nome do usuário
+    const navLinks = document.querySelector('.nav-links');
+    if (navLinks) {
+        // Verificar se já existe um elemento para o usuário
+        let userElement = document.getElementById('user-display');
+        
+        // Se não existir, criar um novo
+        if (!userElement) {
+            userElement = document.createElement('li');
+            userElement.id = 'user-display';
+            userElement.className = 'user-display';
+            navLinks.appendChild(userElement);
+        }
+        
+        // Definir o conteúdo do elemento
+        userElement.innerHTML = `<span>Olá, ${username}</span> | <a href="#" id="logout-link">Sair</a>`;
+        
+        // Adicionar evento de logout
+        document.getElementById('logout-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            logout();
+        });
+    }
+}
+
+// Verificar se o usuário já está logado ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+        updateUserInterface(currentUser);
+    }
+});
 
 // Logout function
 async function logout() {
-    try {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        window.location.href = '/login.html';
-    } catch (error) {
-        console.error('Error logging out:', error.message);
+    console.log('Iniciando logout...');
+    // Remover o usuário do localStorage
+    localStorage.removeItem('currentUser');
+    console.log('Usuário removido do localStorage.');
+    
+    // Atualizar a UI - Isso precisa ser feito antes do redirecionamento
+    const authButtons = document.querySelector('.auth-buttons');
+    if (authButtons) {
+        authButtons.style.display = 'block';
+        console.log('Botões de autenticação exibidos.');
     }
+    
+    const userElement = document.getElementById('user-display');
+    if (userElement) {
+        userElement.remove();
+        console.log('Elemento de usuário removido.');
+    }
+    
+    // Redirecionar para a página de index - Usar caminho relativo sem a barra no início
+    console.log('Redirecionando para a página de index...');
+    window.location.href = 'index.html';
 }
 
 // Check if user is admin

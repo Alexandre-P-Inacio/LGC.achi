@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co;">
     <title>Login - Architecture Portfolio</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -17,8 +18,8 @@
             <h2>Login</h2>
             <form id="loginForm" class="auth-form">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -33,11 +34,11 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
             try {
-                const result = await login(email, password);
+                const result = await login(username, password);
                 if (result.success) {
                     // Check if we're already on the home page
                     if (window.location.pathname !== '/index.html' && window.location.pathname !== '/') {

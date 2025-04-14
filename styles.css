@@ -37,6 +37,7 @@ nav {
 
 .nav-links {
     display: flex;
+    align-items: center;
     list-style: none;
     gap: 2rem;
 }
@@ -76,6 +77,28 @@ nav {
 .register-button:hover {
     background: #570000;
     color: rgb(255, 255, 255);
+}
+
+/* User Display */
+.user-display {
+    display: flex;
+    align-items: center;
+    margin-left: 2rem;
+}
+
+.user-display span {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.user-display a {
+    color: #570000;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.user-display a:hover {
+    text-decoration: underline;
 }
 
 /* Hero Section */
