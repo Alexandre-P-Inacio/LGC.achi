@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfólios - Architecture Portfolio</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        window.supabase = supabase;
+    </script>
+    <script src="animation.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">ARCHITECT</div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="portfolios.html">Portfólios</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li class="auth-buttons">
+                    <a href="login.html" class="login-button">Sign In</a>
+                    <a href="register.html" class="register-button">Register</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="portfolios">
+            <h2>Nossos Portfólios</h2>
+            <div class="portfolio-grid">
+                <div class="portfolio-card">
+                    <div class="portfolio-image" style="background-image: url('assets/portfolio1.jpg');"></div>
+                    <h3>Projeto 1</h3>
+                    <p>Descrição breve do projeto 1.</p>
+                    <a href="portfolio1.html" class="view-button">Ver Detalhes</a>
+                </div>
+                <div class="portfolio-card">
+                    <div class="portfolio-image" style="background-image: url('assets/portfolio2.jpg');"></div>
+                    <h3>Projeto 2</h3>
+                    <p>Descrição breve do projeto 2.</p>
+                    <a href="portfolio2.html" class="view-button">Ver Detalhes</a>
+                </div>
+                <div class="portfolio-card">
+                    <div class="portfolio-image" style="background-image: url('assets/portfolio3.jpg');"></div>
+                    <h3>Projeto 3</h3>
+                    <p>Descrição breve do projeto 3.</p>
+                    <a href="portfolio3.html" class="view-button">Ver Detalhes</a>
+                </div>
+                <!-- Adicione mais cards conforme necessário -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-links">
+                <a href="https://www.instagram.com/lgcarchi/"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+            </div>
+            <p>&copy; 2024 Architecture Portfolio. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

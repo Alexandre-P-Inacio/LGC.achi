@@ -632,4 +632,453 @@ footer {
 
 .auth-link a:hover {
     text-decoration: underline;
+}
+
+/* Estilos para a página de Contato */
+.contact-hero {
+    height: 50vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('assets/home image.png') center/cover fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    padding-top: 80px;
+}
+
+.contact-hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    animation: slideInFromBottom 0.8s ease-out;
+}
+
+.contact-hero p {
+    font-size: 1.2rem;
+    animation: slideInFromBottom 0.8s ease-out;
+    animation-delay: 0.2s;
+    animation-fill-mode: both;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Seção de informações de contato */
+.contact-info {
+    padding: 5rem 0;
+    background: white;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.contact-card {
+    background: #f9f9f9;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.contact-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.contact-card .icon {
+    font-size: 2.5rem;
+    color: #570000;
+    margin-bottom: 1.5rem;
+}
+
+.contact-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.contact-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.contact-card a {
+    color: #570000;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.contact-card a:hover {
+    text-decoration: underline;
+}
+
+/* Seção de formulário e mapa */
+.contact-form-section {
+    padding: 5rem 0;
+    background: #f9f9f9;
+}
+
+.form-map-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+}
+
+.form-container, .map-container {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.form-container h2, .map-container h2 {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #333;
+    position: relative;
+}
+
+.form-container h2::after, .map-container h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: #570000;
+}
+
+.map {
+    height: 450px;
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.map iframe {
+    width: 100%;
+    height: 100%;
+}
+
+/* Seção de conexão social */
+.social-connect {
+    padding: 5rem 0;
+    background: white;
+    text-align: center;
+}
+
+.social-connect h2 {
+    margin-bottom: 3rem;
+    font-size: 2.5rem;
+    color: #333;
+    position: relative;
+}
+
+.social-connect h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: #570000;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.social-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-icon i {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+    color: #570000;
+}
+
+.social-icon:hover i {
+    transform: scale(1.2) rotate(5deg);
+}
+
+/* Footer melhorado */
+.footer-logo {
+    margin-bottom: 1.5rem;
+}
+
+.footer-info {
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.footer-info p {
+    margin-bottom: 0.5rem;
+}
+
+.copyright {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .form-map-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .map-container {
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .contact-hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Map Controls and Street View Button */
+.map-controls {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.streetview-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #4285F4;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.streetview-button:hover {
+    background-color: #3367D6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.streetview-button i {
+    margin-right: 8px;
+}
+
+/* Enhanced map styling */
+.map {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.map:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced Map Styles for Contact Page */
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    margin-bottom: 15px;
+}
+
+.map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.map.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.map iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Map Toggle Controls */
+.map-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.map-toggle {
+    display: flex;
+    background-color: #f5f5f5;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 3px;
+}
+
+.map-toggle button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    border-radius: 25px;
+}
+
+.map-toggle button.active {
+    background-color: #3C3C3C;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.map-toggle button:focus {
+    outline: none;
+}
+
+/* Map Info Section */
+.map-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f8f8;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.map-address {
+    display: flex;
+    align-items: center;
+    color: #333;
+}
+
+.map-address i {
+    color: #3C3C3C;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.directions-button {
+    display: inline-flex;
+    align-items: center;
+    background-color: #3C3C3C;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.directions-button:hover {
+    background-color: #1f1f1f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.directions-button i {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* Improve Map Container Design */
+.map-container h2 {
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    color: #333;
+    position: relative;
+}
+
+.map-container h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: #3C3C3C;
+}
+
+/* Form Container Enhancement */
+.form-container {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.form-container h2::after {
+    background: #3C3C3C;
+}
+
+/* Submit Button Enhancement */
+.submit-button {
+    background: #3C3C3C;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 12px;
+}
+
+.submit-button:hover {
+    background: #1a1a1a;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+    .map-info {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .map-address {
+        text-align: center;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+    
+    .directions-button {
+        width: 100%;
+        justify-content: center;
+    }
 } 
