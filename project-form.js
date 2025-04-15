@@ -43,7 +43,7 @@ async function loadProjectData(projectId) {
     console.log('Loading project data for ID:', projectId);
     
     const { data, error } = await supabase
-        .from('architecture_projects')
+        .from('projects')
         .select('*')
         .eq('id', projectId)
         .single();
@@ -61,24 +61,13 @@ async function loadProjectData(projectId) {
     document.getElementById('form-title').innerHTML = '<i class="fas fa-edit"></i> Edit Project';
     
     // Populate form with project data
-    document.getElementById('project-title').value = data.title;
-    document.getElementById('project-description').value = data.description;
-    document.getElementById('project-location').value = data.location;
-    document.getElementById('project-year').value = data.year_completed;
-    document.getElementById('project-area').value = data.area_sqm;
-    document.getElementById('project-type').value = data.project_type;
-    document.getElementById('project-status').value = data.status;
-    document.getElementById('project-main-image').value = data.main_image_url;
-    document.getElementById('project-gallery').value = data.gallery_images?.join(', ') || '';
-    document.getElementById('project-client').value = data.client_name || '';
-    document.getElementById('project-budget').value = data.budget || '';
-    document.getElementById('project-duration').value = data.duration_months || '';
+    document.getElementById('project-title').value = data.name;
     
     // Update save button text
     document.getElementById('save-button').innerHTML = '<i class="fas fa-save"></i> Update Project';
 }
 
-// Save project (add or update)
+// Save project with file upload
 async function saveProject(event) {
     console.log('Save project function called');
     event.preventDefault();
@@ -88,20 +77,53 @@ async function saveProject(event) {
     console.log('Is edit mode:', isEdit, 'Project ID:', projectId);
     
     try {
-        // Build the projectData object with form values
+        // Get form values
+        const projectName = document.getElementById('project-title').value;
+        const projectFile = document.getElementById('project-file').files[0];
+        
+        if (!projectName) {
+            alert('Project name is required!');
+            return;
+        }
+        
+        if (!isEdit && !projectFile) {
+            alert('Project file is required!');
+            return;
+        }
+        
+        let fileUrl = null;
+        
+        // Upload file if exists
+        if (projectFile) {
+            // Create a random file name to avoid collisions
+            const fileExt = projectFile.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+            const filePath = `project-files/${fileName}`;
+            
+            // Upload file to Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('projects')
+                .upload(filePath, projectFile);
+                
+            if (uploadError) {
+                console.error('Error uploading file:', uploadError);
+                alert(`Error uploading file: ${uploadError.message}`);
+                return;
+            }
+            
+            // Get the public URL for the file
+            const { data: { publicUrl } } = supabase.storage
+                .from('projects')
+                .getPublicUrl(filePath);
+                
+            fileUrl = publicUrl;
+        }
+        
+        // Create project data object
         const projectData = {
-            title: document.getElementById('project-title').value,
-            description: document.getElementById('project-description').value,
-            location: document.getElementById('project-location').value,
-            year_completed: parseInt(document.getElementById('project-year').value),
-            area_sqm: parseFloat(document.getElementById('project-area').value),
-            project_type: document.getElementById('project-type').value,
-            status: document.getElementById('project-status').value,
-            main_image_url: document.getElementById('project-main-image').value,
-            gallery_images: document.getElementById('project-gallery').value.split(',').map(url => url.trim()).filter(url => url),
-            client_name: document.getElementById('project-client').value || null,
-            budget: document.getElementById('project-budget').value ? parseFloat(document.getElementById('project-budget').value) : null,
-            duration_months: document.getElementById('project-duration').value ? parseInt(document.getElementById('project-duration').value) : null,
+            name: projectName,
+            file_url: fileUrl,
+            created_at: new Date().toISOString(),
         };
         
         console.log('Project data to save:', projectData);
@@ -112,22 +134,21 @@ async function saveProject(event) {
             // Update existing project
             projectData.updated_at = new Date().toISOString();
             
+            // Only update file_url if a new file was uploaded
+            if (!fileUrl) {
+                delete projectData.file_url;
+            }
+            
             console.log('Updating existing project with ID:', projectId);
-            // Simplified update operation
             result = await supabase
-                .from('architecture_projects')
+                .from('projects')
                 .update(projectData)
                 .eq('id', projectId);
         } else {
-            // Add new project - following the same pattern as the register function
-            // Adding timestamps
-            projectData.created_at = new Date().toISOString();
-            projectData.updated_at = new Date().toISOString();
-            
+            // Add new project
             console.log('Inserting new project with data:', projectData);
-            // Simplified insert operation that matches register function pattern
             result = await supabase
-                .from('architecture_projects')
+                .from('projects')
                 .insert([projectData]);
         }
         
@@ -155,6 +176,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
         await checkAdminAccess();
+        
+        // Create the projects table if it doesn't exist
+        // Note: This is not the ideal way to create tables, but it works for this example
+        // In a production environment, you would use Supabase migrations or Admin UI
+        const { error: tableError } = await supabase.rpc('create_projects_table_if_not_exists');
+        if (tableError) {
+            console.error('Error ensuring projects table exists:', tableError);
+        }
+        
+        // Create storage bucket if it doesn't exist
+        const { error: bucketError } = await supabase.storage.createBucket('projects', {
+            public: true,
+            fileSizeLimit: 52428800, // 50MB limit
+            allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                              'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                              'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']
+        });
+        if (bucketError && bucketError.code !== '23505') { // Ignore duplicate bucket error
+            console.error('Error ensuring storage bucket exists:', bucketError);
+        }
         
         const projectId = getProjectIdFromUrl();
         console.log('Project ID from URL:', projectId);

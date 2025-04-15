@@ -43,83 +43,16 @@
             </div>
             
             <div class="project-form">
-                <form id="project-form">
+                <form id="project-form" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="project-title">Project Title*</label>
+                        <label for="project-title">Project Name*</label>
                         <input type="text" id="project-title" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="project-description">Description*</label>
-                        <textarea id="project-description" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="project-location">Location*</label>
-                        <input type="text" id="project-location" required>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="project-year">Year Completed*</label>
-                            <input type="number" id="project-year" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="project-area">Area (sqm)*</label>
-                            <input type="number" id="project-area" required>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="project-type">Project Type*</label>
-                            <select id="project-type" required>
-                                <option value="">Select type...</option>
-                                <option value="residential">Residential</option>
-                                <option value="commercial">Commercial</option>
-                                <option value="institutional">Institutional</option>
-                                <option value="industrial">Industrial</option>
-                                <option value="mixed-use">Mixed-Use</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="project-status">Status*</label>
-                            <select id="project-status" required>
-                                <option value="">Select status...</option>
-                                <option value="completed">Completed</option>
-                                <option value="in-progress">In Progress</option>
-                                <option value="planning">Planning</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="project-main-image">Main Image URL*</label>
-                        <input type="url" id="project-main-image" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="project-gallery">Gallery Images (URLs, comma-separated)</label>
-                        <textarea id="project-gallery" placeholder="Enter image URLs separated by commas"></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="project-client">Client Name</label>
-                            <input type="text" id="project-client">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="project-budget">Budget</label>
-                            <input type="number" id="project-budget" placeholder="Enter amount">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="project-duration">Duration (months)</label>
-                        <input type="number" id="project-duration">
+                        <label for="project-file">Project File* (PDF, Word, etc.)</label>
+                        <input type="file" id="project-file" required accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx">
+                        <small>Supported formats: PDF, Word, PowerPoint, Excel</small>
                     </div>
 
                     <div class="form-actions">

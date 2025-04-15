@@ -10,7 +10,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        window.supabase = supabase;
+        // Inicializar o cliente Supabase corretamente
+        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase client initialized in admin.html');
     </script>
     <script src="auth.js" defer></script>
     <script src="admin.js" defer></script>
@@ -24,47 +28,122 @@
             </div>
             <ul class="nav-links">
                 <li><a href="index.html"><i class="fas fa-home"></i> Back to Site</a></li>
-                <li><span id="admin-name"></span></li>
+                <li><span id="admin-name">Welcome, admin</span></li>
                 <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
     </header>
 
     <main class="admin-main">
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="total-projects">0</div>
+                    <div class="stat-label">Total Projects</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="completed-projects">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="in-progress-projects">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" id="total-documents">0</div>
+                    <div class="stat-label">Documents</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons-container">
+            <a href="project-form.html" class="action-button">
+                <i class="fas fa-plus"></i> New Project
+            </a>
+            <button class="action-button" id="refresh-data-btn">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+        </div>
+
+        <!-- Project Management Section -->
         <section class="admin-section">
-            <div class="dashboard-header">
-                <h2><i class="fas fa-tasks"></i> Project Management</h2>
+            <div class="section-header">
+                <div class="section-title">
+                    <i class="fas fa-tasks"></i> Project Management
+                </div>
                 <a href="project-form.html" class="add-project-button">
                     <i class="fas fa-plus"></i> Add New Project
                 </a>
             </div>
 
-            <div class="projects-list">
-                <h3><i class="fas fa-list"></i> All Projects</h3>
-                <div class="projects-table-container">
-                    <table class="projects-table">
-                        <thead>
-                            <tr>
-                                <th>Project</th>
-                                <th>Location</th>
-                                <th>Type</th>
-                                <th>Status</th>
-                                <th>Year</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="projects-container">
-                            <!-- Projects will be loaded here -->
-                        </tbody>
-                    </table>
+            <!-- Search and filters -->
+            <div class="search-filter-container">
+                <div class="search-container">
+                    <input type="text" id="search-projects" placeholder="Search projects...">
+                    <button id="search-button" class="search-button">
+                        <i class="fas fa-search"></i>
+                    </button>
                 </div>
+            </div>
+
+            <!-- Projects Table -->
+            <div class="projects-table-container">
+                <table class="projects-table">
+                    <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Date Added</th>
+                            <th>File</th>
+                            <th>Status</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projects-container">
+                        <!-- Projects will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <button class="pagination-button" id="prev-page"><i class="fas fa-chevron-left"></i></button>
+                <div class="page-numbers" id="page-numbers">
+                    <button class="page-number active">1</button>
+                    <button class="page-number">2</button>
+                    <button class="page-number">3</button>
+                </div>
+                <button class="pagination-button" id="next-page"><i class="fas fa-chevron-right"></i></button>
             </div>
         </section>
     </main>
 
     <footer>
         <div class="footer-content">
-            <p>&copy; 2024 Architecture Portfolio Admin. All rights reserved.</p>
+            <p>&copy; 2025 Architecture Portfolio Admin. All rights reserved.</p>
         </div>
     </footer>
 </body>
