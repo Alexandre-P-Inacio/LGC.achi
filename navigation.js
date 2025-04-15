@@ -1,4 +1,3 @@
-
 // Script que insere automaticamente a mesma barra de navegação em todas as páginas HTML
 document.addEventListener('DOMContentLoaded', function() {
     // Estrutura da barra de navegação (upperbar)
@@ -9,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <ul class="nav-links">
                 <li><a href="index.html" id="nav-home">Home</a></li>
                 <li><a href="portfolios.html" id="nav-portfolios">Portfólios</a></li>
+                <li><a href="chat.html" id="nav-chat">Chat</a></li>
                 <li><a href="#about" id="nav-about">About</a></li>
                 <li><a href="contact.html" id="nav-contact">Contactos</a></li>
                 <li class="auth-buttons">
@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('nav-home')?.classList.add('active');
     } else if (currentPage === 'portfolios.html') {
         document.getElementById('nav-portfolios')?.classList.add('active');
+    } else if (currentPage === 'chat.html') {
+        document.getElementById('nav-chat')?.classList.add('active');
     } else if (currentPage === 'contact.html') {
         document.getElementById('nav-contact')?.classList.add('active');
     } else if (currentPage.includes('about')) {
@@ -74,6 +76,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('currentUser');
                 window.location.reload();
             });
+        }
+    }
+
+    // Add a chat link to the navigation
+    const navLinks = document.querySelector('.nav-links');
+    if (navLinks) {
+        // Find the About link
+        const aboutLink = document.getElementById('nav-about');
+        if (aboutLink) {
+            // Create a new li element for the chat link
+            const chatLi = document.createElement('li');
+            const chatLink = document.createElement('a');
+            chatLink.href = 'chat.html';
+            chatLink.id = 'nav-chat';
+            chatLink.textContent = 'Chat';
+            
+            // Add the link to the li
+            chatLi.appendChild(chatLink);
+            
+            // Insert before the About link
+            navLinks.insertBefore(chatLi, aboutLink.parentNode);
+            
+            // Mark as active if on chat page
+            if (window.location.pathname.includes('chat.html')) {
+                chatLink.classList.add('active');
+            }
         }
     }
 });
