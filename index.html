@@ -81,7 +81,7 @@
         // Verificar o status de login ao carregar a página
         document.addEventListener('DOMContentLoaded', function() {
             const currentUser = localStorage.getItem('currentUser');
-            console.log('Status de login atual:', currentUser ? 'Logado como ' + currentUser : 'Não logado');
+            console.log('status de login atual:', currentUser ? 'Logado como ' + currentUser : 'Não logado');
             
             // Se o usuário estiver logado, certifique-se de que a UI está atualizada
             if (currentUser && typeof updateUserInterface === 'function') {

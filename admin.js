@@ -11,6 +11,28 @@ let allProjects = [];
 let currentPage = 1;
 const projectsPerPage = 10;
 
+// Função de logout para substituir a que estava em auth.js
+async function logout() {
+    try {
+        console.log('Logging out user...');
+        localStorage.removeItem('currentUser');
+        
+        // Tentar logout do Supabase se necessário
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) console.error('Error in Supabase signOut:', error);
+        } catch (e) {
+            console.error('Exception in Supabase signOut:', e);
+        }
+        
+        // Redirecionar para a página inicial
+        window.location.href = 'index.html';
+    } catch (e) {
+        console.error('Error in logout function:', e);
+        alert('Ocorreu um erro ao fazer logout. Por favor, tente novamente.');
+    }
+}
+
 // Create projects in database directly
 async function ensureProjectsTable() {
     console.log('Ensuring projects table exists...');
@@ -82,35 +104,93 @@ async function checkAdminAccess() {
     document.getElementById('admin-name').textContent = `Welcome, ${currentUser}`;
 }
 
+// Update the last updated timestamp
+function updateTimestamp() {
+    const updateTimeElement = document.getElementById('update-time');
+    if (updateTimeElement) {
+        updateTimeElement.textContent = new Date().toLocaleString();
+    }
+}
+
 // Update stats
 async function updateStats() {
     try {
         const { data, error } = await supabase
-            .from('architecture_projects')
+            .from('projects')
             .select('status');
         
         if (error) throw error;
         
-        // Calcular estatísticas baseadas nos valores booleanos
+        // Calculate statistics based on status values
         const totalProjects = data.length;
-        const completedProjects = data.filter(p => p.status === true).length;
-        const inProgressProjects = data.filter(p => p.status === null).length;
-        const uncompletedProjects = data.filter(p => p.status === false).length;
+        
+        // Count completed projects (status true or "Completed")
+        const completedProjects = data.filter(p => 
+            p.status === true || 
+            p.status === true || 
+            p.status === 'Completed' || 
+            p.status === 'completed').length;
+        
+        // Count in-progress projects (status null or "In Progress")
+        const inProgressProjects = data.filter(p => 
+            p.status === null || 
+            p.status === null || 
+            p.status === 'In Progress' || 
+            p.status === 'in progress').length;
+        
+        // Count incompleted projects (status false or "Incompleted")
+        const incompletedProjects = data.filter(p => 
+            p.status === false || 
+            p.status === false || 
+            p.status === 'Incompleted' || 
+            p.status === 'incompleted').length;
         
         // Update UI
         document.getElementById('total-projects').textContent = totalProjects;
         document.getElementById('completed-projects').textContent = completedProjects;
         document.getElementById('in-progress-projects').textContent = inProgressProjects;
-        document.getElementById('uncompleted-projects').textContent = uncompletedProjects;
+        document.getElementById('uncompleted-projects').textContent = incompletedProjects;
+        
+        // Update the timestamp
+        updateTimestamp();
         
     } catch (error) {
         console.error('Error updating stats:', error);
     }
 }
 
+// Get current filters from the UI
+function getCurrentFilters() {
+    return {
+        searchTerm: document.getElementById('search-projects').value,
+        statusFilter: document.getElementById('status-filter').value
+    };
+}
+
 // Load projects
 async function loadProjects(page = 1, filters = {}) {
     try {
+        // Update timestamp
+        updateTimestamp();
+        
+        // Set current page
+        currentPage = page;
+        
+        // Get filters
+        const currentFilters = {...getCurrentFilters(), ...filters};
+        console.log('Loading projects with filters:', currentFilters);
+        
+        // If status filter is set, use filterProjects instead
+        if (currentFilters.statusFilter && currentFilters.statusFilter !== 'all') {
+            // Set the select to match the filter if not already set
+            const statusFilter = document.getElementById('status-filter');
+            if (statusFilter.value !== currentFilters.statusFilter) {
+                statusFilter.value = currentFilters.statusFilter;
+            }
+            return filterProjects(page);
+        }
+        
+        // Normal loading without status filter
         // Ensure the projects table exists
         try {
             const { error: tableError } = await supabase.rpc('create_projects_table_if_not_exists');
@@ -120,14 +200,6 @@ async function loadProjects(page = 1, filters = {}) {
         } catch (e) {
             console.warn('Could not create table if not exists, may already exist:', e);
         }
-        
-        // DEBUG: Try a direct query without RPC
-        console.log('Attempting to load projects directly...');
-        const { data: directData, error: directError } = await supabase
-            .from('projects')
-            .select('*');
-        
-        console.log('Direct query results:', { data: directData, error: directError });
         
         // Get all projects first (for filtering client-side)
         const { data, error } = await supabase
@@ -161,11 +233,17 @@ async function loadProjects(page = 1, filters = {}) {
         let filteredProjects = allProjects;
         
         // Filter by search term
-        if (filters.searchTerm) {
-            const searchTerm = filters.searchTerm.toLowerCase();
+        if (currentFilters.searchTerm) {
+            const searchTerm = currentFilters.searchTerm.toLowerCase();
             filteredProjects = filteredProjects.filter(project => 
                 project.name?.toLowerCase().includes(searchTerm)
             );
+            
+            // Update search input if needed
+            const searchInput = document.getElementById('search-projects');
+            if (searchInput.value !== currentFilters.searchTerm) {
+                searchInput.value = currentFilters.searchTerm;
+            }
         }
         
         // Calculate pagination
@@ -264,22 +342,30 @@ function updateProjectsTable(projects) {
                 }
             }
             
-            // Usar o valor exato da coluna status
-            const statusValue = project.status;
-            console.log('Status value:', statusValue); // Debug
+            // Get the status directly from the status column
+            const statusValue = project.status || project.status;
+            console.log('status value:', statusValue); // Debug
             
             let statusText, statusClass;
             
-            // Mapear os valores booleanos para os textos corretos
-            if (statusValue === true) {
+            // Map status values to appropriate text and class
+            if (statusValue === true || statusValue === 'Completed' || statusValue === 'completed') {
                 statusText = 'Completed';
                 statusClass = 'status-completed';
-            } else if (statusValue === false) {
-                statusText = 'Uncompleted';
-                statusClass = 'status-uncompleted';
-            } else if (statusValue === null) {
+            } else if (statusValue === false || statusValue === 'Incompleted' || statusValue === 'incompleted') {
+                statusText = 'Incompleted';
+                statusClass = 'status-incompleted';
+            } else if (statusValue === null || statusValue === 'In Progress' || statusValue === 'in progress') {
                 statusText = 'In Progress';
                 statusClass = 'status-in-progress';
+            } else if (typeof statusValue === 'string') {
+                // For any other string status values
+                statusText = statusValue;
+                statusClass = `status-${statusValue.toLowerCase().replace(/\s+/g, '-')}`;
+            } else {
+                // Default fallback
+                statusText = 'Unknown';
+                statusClass = 'status-unknown';
             }
             
             // Create table row with basic data
@@ -351,13 +437,6 @@ function updatePagination(currentPage, totalPages) {
     document.getElementById('next-page').disabled = currentPage === totalPages;
 }
 
-// Get current filters from the UI
-function getCurrentFilters() {
-    return {
-        searchTerm: document.getElementById('search-projects').value
-    };
-}
-
 // Delete project
 async function deleteProject(projectId) {
     if (!confirm('Are you sure you want to delete this project?')) {
@@ -420,46 +499,117 @@ async function deleteProject(projectId) {
 
 // Search projects
 function searchProjects() {
-    const searchTerm = document.getElementById('search-projects').value;
-    loadProjects(1, { ...getCurrentFilters(), searchTerm });
+    const searchTerm = document.getElementById('search-projects').value.trim();
+    console.log('Searching for:', searchTerm);
+    
+    // Reset to first page when searching
+    loadProjects(1, {searchTerm: searchTerm});
 }
 
 // Filter projects
-async function filterProjects() {
-    const searchTerm = document.getElementById('search-projects').value.toLowerCase();
-    const statusFilter = document.getElementById('status-filter').value;
-    
+async function filterProjects(page = 1) {
     try {
+        console.log('Filtering projects...');
+        // Update timestamp
+        updateTimestamp();
+        
+        // Set current page
+        currentPage = page || 1;
+        
+        const searchTerm = document.getElementById('search-projects').value.toLowerCase();
+        const statusFilter = document.getElementById('status-filter').value;
+        
+        console.log(`Filter values: searchTerm="${searchTerm}", status="${statusFilter}"`);
+        
+        // Show loading state
+        const projectsContainer = document.getElementById('projects-container');
+        if (projectsContainer) {
+            projectsContainer.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #3a7bd5;"></i>
+                        <p style="margin-top: 1rem;">Loading projects...</p>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        // Build query
         let query = supabase
-            .from('architecture_projects')
+            .from('projects')
             .select('*');
         
-        // Aplicar filtro baseado nos valores booleanos
-        if (statusFilter !== 'all') {
-            if (statusFilter === 'true') {
-                query = query.eq('status', true);  // Completed
-            } else if (statusFilter === 'false') {
-                query = query.eq('status', false); // Uncompleted
-            } else if (statusFilter === 'null') {
-                query = query.is('status', null);  // In Progress
+        // Apply status filter
+        if (statusFilter && statusFilter !== 'all') {
+            console.log(`Applying status filter: ${statusFilter}`);
+            if (statusFilter === 'true' || statusFilter === 'Completed') {
+                // Try different ways to match "Completed" status
+                query = query.or('status.eq.true,status.eq.Completed');
+            } else if (statusFilter === 'false' || statusFilter === 'Incompleted') {
+                // Try different ways to match "Incompleted" status
+                query = query.or('status.eq.false,status.eq.Incompleted');
+            } else if (statusFilter === 'null' || statusFilter === 'In Progress') {
+                // Try different ways to match "In Progress" status
+                query = query.or('status.is.null,status.eq.In Progress');
             }
         }
         
+        // Execute query and sort by created date
         const { data, error } = await query.order('created_at', { ascending: false });
         
-        if (error) throw error;
+        if (error) {
+            console.error('Error filtering projects:', error);
+            if (projectsContainer) {
+                projectsContainer.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                            <p>Nenhum projeto encontrado com este status.</p>
+                            <button onclick="resetFilters()" class="reset-filters-button">
+                                <i class="fas fa-undo"></i> Limpar Filtros
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+            return;
+        }
         
-        // Store all projects for filtering
+        console.log(`Filtered data: ${data?.length || 0} projects found`);
+        
+        // Store filtered projects
         allProjects = data || [];
         
-        // Apply filters if any
+        // Apply search term filter client-side
         let filteredProjects = allProjects;
-        
-        // Filter by search term
         if (searchTerm) {
             filteredProjects = filteredProjects.filter(project => 
-                project.name?.toLowerCase().includes(searchTerm)
+                (project.name && project.name.toLowerCase().includes(searchTerm))
             );
+            console.log(`Search filtered to ${filteredProjects.length} projects`);
+        }
+        
+        // If no projects found after filtering
+        if (filteredProjects.length === 0) {
+            if (projectsContainer) {
+                projectsContainer.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                            <p>Nenhum projeto encontrado com este status.</p>
+                            <button onclick="resetFilters()" class="reset-filters-button">
+                                <i class="fas fa-undo"></i> Limpar Filtros
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            // Update pagination to hide it
+            const paginationContainer = document.querySelector('.pagination-container');
+            if (paginationContainer) {
+                paginationContainer.style.display = 'none';
+            }
+            
+            return;
         }
         
         // Calculate pagination
@@ -468,30 +618,157 @@ async function filterProjects() {
         const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
         const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
         
-        // Update the projects table
+        // Update UI
         updateProjectsTable(paginatedProjects);
-        
-        // Update pagination controls
         updatePagination(currentPage, totalPages);
-
+        
     } catch (error) {
-        console.error('Error filtering projects:', error);
+        console.error('Error in filterProjects:', error);
+        const projectsContainer = document.getElementById('projects-container');
+        if (projectsContainer) {
+            projectsContainer.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                        <p>Nenhum projeto encontrado com este status.</p>
+                        <button onclick="resetFilters()" class="reset-filters-button">
+                            <i class="fas fa-undo"></i> Limpar Filtros
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
     }
 }
 
-// Initialize admin dashboard
-document.addEventListener('DOMContentLoaded', function() {
-    loadProjects();
-    updateStats();
+// Reset all filters
+function resetFilters() {
+    const searchInput = document.getElementById('search-projects');
+    const statusFilter = document.getElementById('status-filter');
     
-    // Manter apenas os event listeners necessários
-    document.getElementById('search-button').addEventListener('click', filterProjects);
+    if (searchInput) searchInput.value = '';
+    if (statusFilter) statusFilter.value = 'all';
     
-    document.getElementById('search-projects').addEventListener('keyup', function(e) {
-        if (e.key === 'Enter') {
-            filterProjects();
+    // Load all projects
+    loadProjects(1);
+}
+
+// Make sure the admin email stays visible by keeping it separate from the project loading process
+// Add this near the beginning of your script or in the document ready function:
+function loadAdminInfo() {
+    const user = supabase.auth.user();
+    if (user) {
+        const adminNameElement = document.getElementById('admin-name');
+        if (adminNameElement) {
+            adminNameElement.textContent = user.email || 'Admin';
         }
-    });
-    
-    document.getElementById('status-filter').addEventListener('change', filterProjects);
+    }
+}
+
+// Call this function when the page loads and never reset it during filtering
+document.addEventListener('DOMContentLoaded', function() {
+    loadAdminInfo();
+    // Other initialization code...
+});
+
+// Initialize admin dashboard
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        console.log('Initializing admin dashboard...');
+        
+        // Check Supabase connection
+        const { data: versionData, error: versionError } = await supabase.rpc('version');
+        console.log('Supabase connection test:', versionData || 'unavailable', versionError);
+        
+        await checkAdminAccess();
+        
+        // Ensure projects table exists
+        const tableExists = await ensureProjectsTable();
+        
+        if (tableExists) {
+            console.log('Projects table exists, checking for data...');
+            // Check if there are any projects
+            const { count, error: countError } = await supabase
+                .from('projects')
+                .select('*', { count: 'exact', head: true });
+                
+            console.log('Projects count:', count, 'Error:', countError);
+                
+            if (!countError && count === 0) {
+                console.log('No projects found, creating test project...');
+                await createTestProject();
+            }
+        } else {
+            console.log('Projects table does not exist, creating test project anyway...');
+            await createTestProject();
+        }
+        
+        // Load initial data
+        await updateStats();
+        await loadProjects();
+        
+        // Add event listeners for search and filter
+        const searchButton = document.querySelector('.search-button');
+        if (searchButton) {
+            searchButton.addEventListener('click', searchProjects);
+        }
+        
+        const searchInput = document.getElementById('search-projects');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchProjects();
+                }
+            });
+        }
+        
+        const statusFilter = document.getElementById('status-filter');
+        if (statusFilter) {
+            statusFilter.addEventListener('change', () => {
+                filterProjects(1); // Reset to first page when changing filter
+            });
+        }
+        
+        // Add pagination event listeners
+        const prevPage = document.getElementById('prev-page');
+        if (prevPage) {
+            prevPage.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    loadProjects(--currentPage, getCurrentFilters());
+                }
+            });
+        }
+        
+        const nextPage = document.getElementById('next-page');
+        if (nextPage) {
+            nextPage.addEventListener('click', () => {
+                loadProjects(++currentPage, getCurrentFilters());
+            });
+        }
+        
+        // Logout button
+        const logoutButton = document.getElementById('logout-button');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        }
+        
+    } catch (err) {
+        console.error('Error initializing admin dashboard:', err);
+        
+        // Create a visible error message for the user
+        const adminMain = document.querySelector('.admin-main');
+        if (adminMain) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `
+                <h3>Error Initializing Dashboard</h3>
+                <p>${err.message}</p>
+                <p>Please check the console for more details.</p>
+                <button onclick="location.reload()">Retry</button>
+            `;
+            adminMain.prepend(errorDiv);
+        }
+    }
 }); 
