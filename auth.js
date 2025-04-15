@@ -2,22 +2,22 @@
 const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
 
-// Inicializar Supabase corretamente
+// Initialize Supabase correctly
 let supabase;
 try {
-    // Verifica se o objeto window.supabase já existe e é acessível
+    // Check if window.supabase object already exists and is accessible
     if (typeof window !== 'undefined' && window.supabase && typeof window.supabase.createClient === 'function') {
         supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Cliente Supabase inicializado via window.supabase');
+        console.log('Supabase client initialized via window.supabase');
     } else {
-        // Tenta acessar o construtor do cliente de outra forma
+        // Try to access the client constructor in another way
         supabase = window.supabaseClient.createClient(supabaseUrl, supabaseKey);
-        console.log('Cliente Supabase inicializado via window.supabaseClient');
+        console.log('Supabase client initialized via window.supabaseClient');
     }
 } catch (error) {
-    console.error('Erro ao inicializar Supabase:', error);
+    console.error('Error initializing Supabase:', error);
     
-    // Se falhar, cria um cliente fictício para evitar erros fatais na página
+    // If it fails, create a dummy client to avoid fatal errors on the page
     supabase = {
         auth: {
             onAuthStateChange: () => {},
@@ -26,7 +26,7 @@ try {
         from: (table) => {
             return {
                 select: () => {
-                    console.error(`Erro: Cliente Supabase não inicializado corretamente. Tentando acessar tabela ${table}`);
+                    console.error(`Error: Supabase client not properly initialized. Trying to access table ${table}`);
                     return {
                         eq: () => ({
                             eq: () => ({
@@ -41,9 +41,9 @@ try {
                     };
                 },
                 insert: () => {
-                    console.error(`Erro: Cliente Supabase não inicializado corretamente. Tentando inserir na tabela ${table}`);
+                    console.error(`Error: Supabase client not properly initialized. Trying to insert into table ${table}`);
                     return {
-                        then: (cb) => cb({ error: new Error('Cliente Supabase não inicializado corretamente') })
+                        then: (cb) => cb({ error: new Error('Supabase client not properly initialized') })
                     };
                 }
             };
@@ -64,25 +64,25 @@ supabase.auth.onAuthStateChange((event, session) => {
 // Register function
 async function register(username, password) {
     try {
-        console.log('Tentando registrar usuário:', username);
+        console.log('Attempting to register user:', username);
         
-        // Verificar se o usuário já existe
+        // Check if user already exists (case insensitive)
         const { data: existingUsers, error: checkError } = await supabase
             .from('Users')
             .select('*')
-            .eq('username', username);
+            .ilike('username', username);
             
         if (checkError) {
-            console.error('Erro ao verificar usuário existente:', checkError);
+            console.error('Error checking existing user:', checkError);
             throw checkError;
         }
         
         if (existingUsers && existingUsers.length > 0) {
-            console.log('Usuário já existe');
-            return { success: false, error: 'Este nome de usuário já está em uso' };
+            console.log('User already exists');
+            return { success: false, error: 'This username is already in use' };
         }
 
-        // Inserir o usuário na tabela
+        // Insert user into the table
         const { error } = await supabase
             .from('Users')
             .insert([{ 
@@ -92,88 +92,88 @@ async function register(username, password) {
             }]);
 
         if (error) {
-            console.error('Erro ao inserir usuário:', error);
+            console.error('Error inserting user:', error);
             throw error;
         }
 
-        console.log('Usuário registrado com sucesso');
+        console.log('User registered successfully');
         return { success: true };
     } catch (error) {
-        console.error('Erro durante o registro:', error);
-        return { success: false, error: error.message || 'Erro ao registrar usuário' };
+        console.error('Error during registration:', error);
+        return { success: false, error: error.message || 'Error registering user' };
     }
 }
 
-// Função para login sem autenticação
+// Login function without authentication
 async function login(username, password) {
     try {
-        console.log('Tentando login com usuário:', username);
+        console.log('Attempting login with user:', username);
         
-        // Verificar primeiro se o usuário existe
+        // First check if the user exists
         const { data: users, error: userError } = await supabase
             .from('Users')
             .select('*')
             .eq('username', username);
             
         if (userError) {
-            console.error('Erro ao buscar usuário:', userError);
+            console.error('Error fetching user:', userError);
             throw userError;
         }
         
-        console.log('Resultado da busca de usuário:', users);
+        console.log('User search result:', users);
         
-        // Verificar se o usuário existe
+        // Check if user exists
         if (!users || users.length === 0) {
-            console.log('Usuário não encontrado');
-            return { success: false, error: 'Usuário ou senha incorretos' };
+            console.log('User not found');
+            return { success: false, error: 'Incorrect username or password' };
         }
         
-        // Verificar a senha
+        // Check password
         const user = users[0];
         if (user.password === password) {
-            console.log('Senha correta, login bem-sucedido');
+            console.log('Password correct, login successful');
             
-            // Armazenar o nome do usuário no localStorage
+            // Store username in localStorage
             localStorage.setItem('currentUser', username);
             
-            // Atualizar a UI
+            // Update UI
             await updateUserInterface(username);
             
-            // Retornar sucesso
-            return { success: true, message: "Login bem-sucedido" };
+            // Return success
+            return { success: true, message: "Login successful" };
         } else {
-            console.log('Senha incorreta');
-            return { success: false, error: 'Usuário ou senha incorretos' };
+            console.log('Incorrect password');
+            return { success: false, error: 'Incorrect username or password' };
         }
     } catch (error) {
-        console.error('Erro durante o login:', error);
-        return { success: false, error: error.message || 'Erro ao fazer login' };
+        console.error('Error during login:', error);
+        return { success: false, error: error.message || 'Error during login' };
     }
 }
 
-// Função para atualizar a interface do usuário
+// Function to update user interface
 async function updateUserInterface(username) {
     try {
-        // Ocultar os botões de autenticação
+        // Hide authentication buttons
         const authButtons = document.querySelector('.auth-buttons');
         if (authButtons) {
             authButtons.style.display = 'none';
         }
         
-        // Verificar se o usuário é admin
+        // Check if user is admin
         const { data, error } = await supabase
             .from('Users')
             .select('is_admin')
             .eq('username', username)
             .single();
 
-        // Criar um elemento para mostrar o nome do usuário
+        // Create element to display user name
         const navLinks = document.querySelector('.nav-links');
         if (navLinks) {
-            // Verificar se já existe um elemento para o usuário
+            // Check if user element already exists
             let userElement = document.getElementById('user-display');
             
-            // Se não existir, criar um novo
+            // If it doesn't exist, create a new one
             if (!userElement) {
                 userElement = document.createElement('li');
                 userElement.id = 'user-display';
@@ -184,21 +184,21 @@ async function updateUserInterface(username) {
             // Add admin dashboard link if user is admin
             const adminLink = (data && data.is_admin) ? `<a href="admin.html">Admin Dashboard</a> | ` : '';
             
-            // Definir o conteúdo do elemento
-            userElement.innerHTML = `<span>Olá, ${username}</span> | ${adminLink}<a href="#" id="logout-link">Sair</a>`;
+            // Set element content
+            userElement.innerHTML = `<span>Hello, ${username}</span> | ${adminLink}<a href="#" id="logout-link">Logout</a>`;
             
-            // Adicionar evento de logout
+            // Add logout event
             document.getElementById('logout-link').addEventListener('click', (e) => {
                 e.preventDefault();
                 logout();
             });
         }
     } catch (error) {
-        console.error('Erro ao atualizar interface:', error);
+        console.error('Error updating interface:', error);
     }
 }
 
-// Verificar se o usuário já está logado ao carregar a página
+// Check if user is already logged in when loading the page
 document.addEventListener('DOMContentLoaded', () => {
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
@@ -218,26 +218,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Logout function
 async function logout() {
-    console.log('Iniciando logout...');
-    // Remover o usuário do localStorage
+    console.log('Starting logout...');
+    // Remove user from localStorage
     localStorage.removeItem('currentUser');
-    console.log('Usuário removido do localStorage.');
+    console.log('User removed from localStorage.');
     
-    // Atualizar a UI - Isso precisa ser feito antes do redirecionamento
+    // Update UI - This needs to be done before redirection
     const authButtons = document.querySelector('.auth-buttons');
     if (authButtons) {
         authButtons.style.display = 'block';
-        console.log('Botões de autenticação exibidos.');
+        console.log('Authentication buttons displayed.');
     }
     
     const userElement = document.getElementById('user-display');
     if (userElement) {
         userElement.remove();
-        console.log('Elemento de usuário removido.');
+        console.log('User element removed.');
     }
     
-    // Redirecionar para a página de index
-    console.log('Redirecionando para a página de index...');
+    // Redirect to index page
+    console.log('Redirecting to index page...');
     window.location.href = 'index.html';
 }
 
@@ -256,7 +256,7 @@ async function isAdmin() {
         if (error) return false;
         return data?.is_admin || false;
     } catch (error) {
-        console.error('Erro ao verificar admin:', error);
+        console.error('Error checking admin status:', error);
         return false;
     }
 }
@@ -271,12 +271,12 @@ async function createAdminAccount(username, password) {
             .eq('is_admin', true);
 
         if (checkError) {
-            console.error('Erro ao verificar admin existente:', checkError);
+            console.error('Error checking existing admin:', checkError);
             throw checkError;
         }
 
         if (existingAdmin && existingAdmin.length > 0) {
-            console.log('Conta admin já existe');
+            console.log('Admin account already exists');
             return { success: false, error: 'Admin account already exists' };
         }
 
@@ -292,15 +292,15 @@ async function createAdminAccount(username, password) {
             ]);
 
         if (error) {
-            console.error('Erro ao criar admin:', error);
+            console.error('Error creating admin:', error);
             throw error;
         }
 
-        console.log('Conta admin criada com sucesso');
+        console.log('Admin account created successfully');
         return { success: true };
     } catch (error) {
-        console.error('Erro durante criação do admin:', error);
-        return { success: false, error: error.message || 'Erro ao criar admin' };
+        console.error('Error during admin creation:', error);
+        return { success: false, error: error.message || 'Error creating admin' };
     }
 }
 

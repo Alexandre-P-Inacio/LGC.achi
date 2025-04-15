@@ -1,6 +1,6 @@
 // Script que insere automaticamente a mesma barra de navegação em todas as páginas HTML
 document.addEventListener('DOMContentLoaded', function() {
-    // Estrutura da barra de navegação (upperbar)
+    // Navigation bar structure (upperbar)
     const navHTML = `
     <header>
         <nav>
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <li><a href="portfolios.html" id="nav-portfolios">Portfólios</a></li>
                 <li><a href="chat.html" id="nav-chat">Chat</a></li>
                 <li><a href="#about" id="nav-about">About</a></li>
-                <li><a href="contact.html" id="nav-contact">Contactos</a></li>
+                <li><a href="contact.html" id="nav-contact">Contact</a></li>
                 <li class="auth-buttons">
                     <a href="login.html" class="login-button">Sign In</a>
                     <a href="register.html" class="register-button">Register</a>
@@ -20,26 +20,26 @@ document.addEventListener('DOMContentLoaded', function() {
     </header>
     `;
  
-    // Verifica se já existe uma tag header
+    // Check if a header tag already exists
     const existingHeader = document.querySelector('header');
    
     if (existingHeader) {
-        // Se já existir um header, substitui pelo novo
+        // If header already exists, replace with the new one
         existingHeader.outerHTML = navHTML;
     } else {
-        // Se não existir, insere no início do body
+        // If it doesn't exist, insert at the beginning of the body
         document.body.insertAdjacentHTML('afterbegin', navHTML);
     }
  
-    // Marca o link ativo na navegação com base na URL atual
+    // Mark the active link in navigation based on current URL
     const currentPage = window.location.pathname.split('/').pop();
    
-    // Remove a classe 'active' de todos os links
+    // Remove the 'active' class from all links
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.classList.remove('active');
     });
    
-    // Adiciona a classe 'active' ao link correspondente à página atual
+    // Add the 'active' class to the link corresponding to the current page
     if (currentPage === '' || currentPage === 'index.html') {
         document.getElementById('nav-home')?.classList.add('active');
     } else if (currentPage === 'portfolios.html') {
@@ -52,25 +52,25 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('nav-about')?.classList.add('active');
     }
  
-    // Verifica se o usuário está logado (integração com o sistema de autenticação existente)
+    // Check if user is logged in (integration with existing authentication system)
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
-        // Ocultar os botões de autenticação
+        // Hide the authentication buttons
         const authButtons = document.querySelector('.auth-buttons');
         if (authButtons) {
             authButtons.style.display = 'none';
         }
        
-        // Mostrar o nome do usuário e link de logout
+        // Show username and logout link
         const navLinks = document.querySelector('.nav-links');
         if (navLinks) {
             const userElement = document.createElement('li');
             userElement.id = 'user-display';
             userElement.className = 'user-display';
-            userElement.innerHTML = `<span>Olá, ${currentUser}</span> | <a href="#" id="logout-link">Sair</a>`;
+            userElement.innerHTML = `<span>Hello, ${currentUser}</span> | <a href="#" id="logout-link">Logout</a>`;
             navLinks.appendChild(userElement);
            
-            // Adicionar evento de logout
+            // Add logout event
             document.getElementById('logout-link').addEventListener('click', function(e) {
                 e.preventDefault();
                 localStorage.removeItem('currentUser');

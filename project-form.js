@@ -63,6 +63,39 @@ async function loadProjectData(projectId) {
     // Populate form with project data
     document.getElementById('project-title').value = data.name;
     
+    // Set the status dropdown value if it exists
+    const statusSelect = document.getElementById('project-status');
+    if (statusSelect && data.status) {
+        // Find and select the matching option
+        for (let i = 0; i < statusSelect.options.length; i++) {
+            if (statusSelect.options[i].value === data.status) {
+                statusSelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+    
+    // Display current file name if exists
+    if (data.file_url) {
+        // Extract filename from URL
+        const fileName = data.file_url.split('/').pop().split('-').pop();
+        const fileInput = document.getElementById('project-file');
+        
+        // Create a display element for current file
+        const currentFileDisplay = document.createElement('div');
+        currentFileDisplay.className = 'current-file-display';
+        currentFileDisplay.innerHTML = `
+            <p>Current file: <a href="${data.file_url}" target="_blank">${fileName}</a></p>
+            <p><small>Upload a new file only if you want to replace the current one</small></p>
+        `;
+        
+        // Insert the display before the file input
+        fileInput.parentNode.insertBefore(currentFileDisplay, fileInput.nextSibling);
+        
+        // Make file input optional when editing
+        fileInput.removeAttribute('required');
+    }
+    
     // Update save button text
     document.getElementById('save-button').innerHTML = '<i class="fas fa-save"></i> Update Project';
 }
@@ -80,6 +113,7 @@ async function saveProject(event) {
         // Get form values
         const projectName = document.getElementById('project-title').value;
         const projectFile = document.getElementById('project-file').files[0];
+        const projectStatus = document.getElementById('project-status').value;
         
         if (!projectName) {
             alert('Project name is required!');
@@ -87,7 +121,7 @@ async function saveProject(event) {
         }
         
         if (!isEdit && !projectFile) {
-            alert('Project file is required!');
+            alert('Project file is required for new projects!');
             return;
         }
         
@@ -122,9 +156,21 @@ async function saveProject(event) {
         // Create project data object
         const projectData = {
             name: projectName,
-            file_url: fileUrl,
-            created_at: new Date().toISOString(),
+            status: projectStatus
         };
+        
+        if (isEdit) {
+            // For updates, only set updated_at
+            projectData.updated_at = new Date().toISOString();
+        } else {
+            // For new projects, set created_at
+            projectData.created_at = new Date().toISOString();
+        }
+        
+        // Add file URL if a new file was uploaded
+        if (fileUrl) {
+            projectData.file_url = fileUrl;
+        }
         
         console.log('Project data to save:', projectData);
         
@@ -132,13 +178,6 @@ async function saveProject(event) {
         
         if (isEdit) {
             // Update existing project
-            projectData.updated_at = new Date().toISOString();
-            
-            // Only update file_url if a new file was uploaded
-            if (!fileUrl) {
-                delete projectData.file_url;
-            }
-            
             console.log('Updating existing project with ID:', projectId);
             result = await supabase
                 .from('projects')

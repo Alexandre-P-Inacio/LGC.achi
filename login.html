@@ -6,19 +6,19 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Login - Architecture Portfolio</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Carregar o Supabase -->
+    <!-- Load Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Garantir que o Supabase seja acessível globalmente
+        // Ensure Supabase is globally accessible
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Verificando supabase:', typeof supabase);
+            console.log('Checking supabase:', typeof supabase);
             if (typeof supabase !== 'undefined') {
                 window.supabase = supabase;
-                console.log('Supabase disponibilizado globalmente');
+                console.log('Supabase made available globally');
             }
         });
     </script>
-    <!-- Carregar auth.js após o Supabase -->
+    <!-- Load auth.js after Supabase -->
     <script src="auth.js" defer></script>
     
     <style>
@@ -72,7 +72,7 @@
                     <input type="password" id="password" name="password" required>
                 </div>
                 <div class="button-group">
-                    <a href="index.html" class="back-button">Voltar</a>
+                    <a href="index.html" class="back-button">Back</a>
                     <button type="submit" class="submit-button">Login</button>
                 </div>
             </form>
@@ -85,13 +85,13 @@
             const loginForm = document.getElementById('loginForm');
             const errorMessage = document.getElementById('error-message');
             
-            // Teste de login com admin
-            console.log('Você pode usar admin/admin123 para teste se o login normal falhar');
+            // Test login with admin
+            console.log('You can use admin/admin123 for testing if normal login fails');
             
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                // Limpar mensagem de erro anterior
+                // Clear previous error message
                 errorMessage.style.display = 'none';
                 errorMessage.textContent = '';
                 
@@ -99,39 +99,39 @@
                 const password = document.getElementById('password').value;
                 
                 if (!username || !password) {
-                    showError('Por favor, preencha todos os campos');
+                    showError('Please fill in all fields');
                     return;
                 }
                 
                 try {
-                    // Verificar se a função login está disponível
+                    // Check if login function is available
                     if (typeof login !== 'function') {
-                        console.error('Função login não disponível!');
-                        // Opção alternativa: login direto como admin para teste
+                        console.error('Login function not available!');
+                        // Alternative option: direct login as admin for testing
                         if (username === 'admin' && password === 'admin123') {
                             localStorage.setItem('currentUser', 'admin');
                             window.location.href = 'index.html';
                             return;
                         }
-                        showError('Erro no sistema de login. Por favor, tente novamente mais tarde.');
+                        showError('Error in the login system. Please try again later.');
                         return;
                     }
                     
-                    // Tentar fazer login
+                    // Try to login
                     const result = await login(username, password);
-                    console.log('Resultado do login:', result);
+                    console.log('Login result:', result);
                     
                     if (result.success) {
-                        // Login bem-sucedido
-                        alert('Login bem-sucedido!');
+                        // Login successful
+                        alert('Login successful!');
                         window.location.href = 'index.html';
                     } else {
-                        // Login falhou
-                        showError(result.error || 'Usuário ou senha incorretos');
+                        // Login failed
+                        showError(result.error || 'Incorrect username or password');
                     }
                 } catch (error) {
-                    console.error('Erro durante login:', error);
-                    showError('Ocorreu um erro durante o login: ' + (error.message || 'Erro desconhecido'));
+                    console.error('Error during login:', error);
+                    showError('An error occurred during login: ' + (error.message || 'Unknown error'));
                 }
             });
             
