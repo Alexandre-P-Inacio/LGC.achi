@@ -2,6 +2,7 @@
 let currentUser;
 let currentChatUser = null;
 let messageSubscription = null;
+let globalChatSubscription = null; // Nova variável para monitorar todos os chats
 let editingMessageId = null;
 
 // Check if user is logged in
@@ -22,6 +23,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Set up event listeners
     setupEventListeners();
+    
+    // Configurar assinatura global para monitorar todas as mensagens deste usuário
+    setupGlobalChatSubscription();
 });
 
 // Set up event listeners
@@ -577,8 +581,134 @@ async function loadMessages(otherUser) {
     }
 }
 
-// Set up real-time updates for messages
+// Set up real-time updates for all chats for current user
+function setupGlobalChatSubscription() {
+    // Unsubscribe from previous subscription if any
+    if (globalChatSubscription) {
+        globalChatSubscription.unsubscribe();
+    }
+    
+    console.log("Configurando assinatura global para o usuário:", currentUser);
+    
+    // Subscribe to all new messages where current user is either sender or receiver
+    globalChatSubscription = supabase
+        .channel('global-chat-messages')
+        .on('postgres_changes', 
+            { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'chat_messages'
+            },
+            (payload) => {
+                console.log("Nova mensagem detectada:", payload);
+                const message = payload.new;
+                
+                // Se a mensagem for enviada pelo usuário atual
+                if (message.sender === currentUser) {
+                    console.log("Mensagem enviada pelo usuário atual");
+                    // Atualizar lista de usuários
+                    loadUsers();
+                    
+                    // Se a mensagem for para o usuário atual do chat, atualizar o chat
+                    if (currentChatUser && message.receiver === currentChatUser) {
+                        loadMessages(currentChatUser);
+                    }
+                }
+                // Se a mensagem for para o usuário atual
+                else if (message.receiver === currentUser) {
+                    console.log("Mensagem recebida para o usuário atual, de:", message.sender);
+                    // Atualizar lista de usuários
+                    loadUsers();
+                    
+                    // Se tivermos um chat aberto com o remetente, atualizar o chat
+                    if (currentChatUser && message.sender === currentChatUser) {
+                        loadMessages(currentChatUser);
+                        
+                        // Marcar mensagem como lida
+                        markMessageAsRead(message.id);
+                    } else {
+                        // Mostrar notificação para mensagens de outros usuários
+                        showNotification(message.sender, message.content);
+                    }
+                }
+            }
+        )
+        .on('postgres_changes',
+            {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'chat_messages'
+            },
+            (payload) => {
+                console.log("Mensagem atualizada:", payload);
+                const message = payload.new;
+                
+                // Verificar se a mensagem atualizada é relevante para a conversa atual
+                if ((message.sender === currentUser && message.receiver === currentChatUser) ||
+                    (message.receiver === currentUser && message.sender === currentChatUser)) {
+                    if (currentChatUser) {
+                        loadMessages(currentChatUser);
+                    }
+                }
+                
+                // Atualizar a lista de usuários para refletir possíveis alterações em mensagens
+                loadUsers();
+            }
+        )
+        .subscribe((status) => {
+            console.log("Status da assinatura global:", status);
+        });
+}
+
+// Mostrar notificação quando uma nova mensagem chega e o chat não está aberto
+function showNotification(sender, content) {
+    // Verificar se o navegador suporta notificações
+    if (!("Notification" in window)) {
+        console.log("Este navegador não suporta notificações desktop");
+        return;
+    }
+    
+    // Criar notificação se permissão concedida
+    if (Notification.permission === "granted") {
+        const notification = new Notification(`Nova mensagem de ${sender}`, {
+            body: content.substring(0, 60) + (content.length > 60 ? "..." : ""),
+            icon: "/assets/logo(2).png" // Ajustar para o caminho correto do ícone
+        });
+        
+        notification.onclick = function() {
+            window.focus();
+            selectUser(sender);
+        };
+    } 
+    // Pedir permissão se não foi decidido ainda
+    else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+            if (permission === "granted") {
+                showNotification(sender, content);
+            }
+        });
+    }
+}
+
+// Marcar mensagem como lida
+async function markMessageAsRead(messageId) {
+    try {
+        const { error } = await supabase
+            .from('chat_messages')
+            .update({ read: true })
+            .eq('id', messageId);
+            
+        if (error) {
+            console.error('Erro ao marcar mensagem como lida:', error);
+        }
+    } catch (error) {
+        console.error('Erro em markMessageAsRead:', error);
+    }
+}
+
+// Set up real-time updates for specific chat
 function setupMessagesSubscription(otherUser) {
+    // Esta função ainda é útil para monitorar atualizações específicas de um chat
     // Unsubscribe from previous subscription if any
     if (messageSubscription) {
         messageSubscription.unsubscribe();
@@ -586,21 +716,17 @@ function setupMessagesSubscription(otherUser) {
     
     // Subscribe to new messages for this chat
     messageSubscription = supabase
-        .channel('public:chat_messages')
+        .channel(`chat-${currentUser}-${otherUser}`)
         .on('postgres_changes', 
             { 
-                event: 'INSERT', 
+                event: 'UPDATE', 
                 schema: 'public', 
-                table: 'chat_messages' 
+                table: 'chat_messages',
+                filter: `or(and(sender.eq.${currentUser},receiver.eq.${otherUser}),and(sender.eq.${otherUser},receiver.eq.${currentUser}))` 
             },
             (payload) => {
-                // Check if the message is relevant to this chat
-                const message = payload.new;
-                if ((message.sender === currentUser && message.receiver === otherUser) ||
-                    (message.sender === otherUser && message.receiver === currentUser)) {
-                    // When a new relevant message is inserted, reload all messages
-                    loadMessages(otherUser);
-                }
+                // Quando uma mensagem é atualizada, recarregar mensagens
+                loadMessages(otherUser);
             }
         )
         .subscribe();
@@ -628,13 +754,20 @@ async function sendMessage() {
     tempMessageElement.setAttribute('data-temp-id', tempId);
     
     tempMessageElement.innerHTML = `
+        <div class="message-avatar">${currentUser.charAt(0).toUpperCase()}</div>
         <div class="message-bubble">
             <div class="message-content">${messageContent}</div>
             <div class="message-time">Enviando...</div>
         </div>
-        <div class="message-status"><i class="fas fa-circle-notch fa-spin"></i></div>
     `;
-    messagesElement.appendChild(tempMessageElement);
+    
+    // Encontrar o contêiner de mensagens
+    const messagesContainer = messagesElement.querySelector('.messages-container');
+    if (messagesContainer) {
+        messagesContainer.appendChild(tempMessageElement);
+    } else {
+        messagesElement.appendChild(tempMessageElement);
+    }
     
     // Scroll to bottom
     messagesElement.scrollTop = messagesElement.scrollHeight;
@@ -660,7 +793,6 @@ async function sendMessage() {
             tempMessageElement.classList.remove('message-sending');
             tempMessageElement.classList.add('message-error');
             tempMessageElement.querySelector('.message-time').textContent = 'Erro ao enviar';
-            tempMessageElement.querySelector('.message-status').innerHTML = '<i class="fas fa-exclamation-circle"></i>';
             
             // Add retry button
             const retryButton = document.createElement('button');
@@ -679,9 +811,11 @@ async function sendMessage() {
             return;
         }
         
-        // Message was sent successfully, remove the temporary message
-        // (it will be added back with the correct data via the subscription)
-        loadMessages(currentChatUser);
+        console.log("Mensagem enviada com sucesso:", data);
+        
+        // Remove a mensagem temporária após confirmação
+        // de que foi salva no banco (será exibida pela assinatura)
+        tempMessageElement.remove();
     } catch (error) {
         console.error('Erro em sendMessage:', error);
         
@@ -689,6 +823,5 @@ async function sendMessage() {
         tempMessageElement.classList.remove('message-sending');
         tempMessageElement.classList.add('message-error');
         tempMessageElement.querySelector('.message-time').textContent = 'Erro ao enviar';
-        tempMessageElement.querySelector('.message-status').innerHTML = '<i class="fas fa-exclamation-circle"></i>';
     }
 }

@@ -78,30 +78,4 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-
-    // Add a chat link to the navigation
-    const navLinks = document.querySelector('.nav-links');
-    if (navLinks) {
-        // Find the About link
-        const aboutLink = document.getElementById('nav-about');
-        if (aboutLink) {
-            // Create a new li element for the chat link
-            const chatLi = document.createElement('li');
-            const chatLink = document.createElement('a');
-            chatLink.href = 'chat.html';
-            chatLink.id = 'nav-chat';
-            chatLink.textContent = 'Chat';
-            
-            // Add the link to the li
-            chatLi.appendChild(chatLink);
-            
-            // Insert before the About link
-            navLinks.insertBefore(chatLi, aboutLink.parentNode);
-            
-            // Mark as active if on chat page
-            if (window.location.pathname.includes('chat.html')) {
-                chatLink.classList.add('active');
-            }
-        }
-    }
 });
