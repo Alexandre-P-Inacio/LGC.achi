@@ -150,39 +150,6 @@ nav {
     margin-top: 0.2rem;
 }
 
-/* Action Buttons */
-.action-buttons-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.action-button {
-    padding: 0.8rem 1.2rem;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
-    color: #333;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.action-button:hover {
-    background: #f8f9fa;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.action-button i {
-    color: #007bff;
-}
-
 /* Admin Section */
 .admin-section {
     background: white;
@@ -592,10 +559,6 @@ label[for="project-gallery"]:after {
     
     .stats-container {
         grid-template-columns: 1fr;
-    }
-    
-    .action-buttons-container {
-        flex-direction: column;
     }
     
     .search-filter-container {

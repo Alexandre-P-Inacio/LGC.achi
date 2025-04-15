@@ -15,51 +15,6 @@ const projectsPerPage = 10;
 async function ensureProjectsTable() {
     console.log('Ensuring projects table exists...');
     
-    try {
-        // Try direct SQL approach first
-        const { error: sqlError } = await supabase.rpc('exec_sql', {
-            sql_query: `
-            CREATE TABLE IF NOT EXISTS public.projects (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                name TEXT NOT NULL,
-                file_url TEXT,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-                updated_at TIMESTAMPTZ
-            );
-            
-            ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-            
-            -- Create policies
-            CREATE POLICY IF NOT EXISTS "Allow public select" ON "projects"
-            FOR SELECT USING (true);
-            
-            CREATE POLICY IF NOT EXISTS "Allow public insert" ON "projects"
-            FOR INSERT WITH CHECK (true);
-            
-            CREATE POLICY IF NOT EXISTS "Allow public update" ON "projects"
-            FOR UPDATE USING (true);
-            
-            CREATE POLICY IF NOT EXISTS "Allow public delete" ON "projects"
-            FOR DELETE USING (true);
-            `
-        });
-        
-        if (sqlError) {
-            console.warn('Error creating table with SQL RPC:', sqlError);
-            // Fallback to basic SQL
-            try {
-                // Manual table creation if needed
-                console.log('Attempting direct SQL execution...');
-                // This is just a placeholder as direct SQL execution is usually not available
-                // would normally use Supabase dashboard for this
-            } catch (e) {
-                console.error('Failed to create table directly:', e);
-            }
-        }
-    } catch (e) {
-        console.warn('RPC not available, trying alternative approach:', e);
-        // Try creating test data directly
-    }
     
     // Check if table exists
     try {
@@ -130,22 +85,26 @@ async function checkAdminAccess() {
 // Update stats
 async function updateStats() {
     try {
-        // Get total projects
-        const { count: totalProjects, error: countError } = await supabase
-            .from('projects')
-            .select('*', { count: 'exact', head: true });
-            
-        if (!countError) {
-            document.getElementById('total-projects').textContent = totalProjects || 0;
-            document.getElementById('total-documents').textContent = totalProjects || 0; // Using same count for documents for now
-        }
-            
-        // For now, just set some placeholder values for the other stats
-        // In a real app, you'd calculate these based on your actual data
-        document.getElementById('completed-projects').textContent = totalProjects || 0;
-        document.getElementById('in-progress-projects').textContent = '0';
-    } catch (err) {
-        console.error('Error updating stats:', err);
+        const { data, error } = await supabase
+            .from('architecture_projects')
+            .select('status');
+        
+        if (error) throw error;
+        
+        // Calcular estatísticas baseadas nos valores booleanos
+        const totalProjects = data.length;
+        const completedProjects = data.filter(p => p.status === true).length;
+        const inProgressProjects = data.filter(p => p.status === null).length;
+        const uncompletedProjects = data.filter(p => p.status === false).length;
+        
+        // Update UI
+        document.getElementById('total-projects').textContent = totalProjects;
+        document.getElementById('completed-projects').textContent = completedProjects;
+        document.getElementById('in-progress-projects').textContent = inProgressProjects;
+        document.getElementById('uncompleted-projects').textContent = uncompletedProjects;
+        
+    } catch (error) {
+        console.error('Error updating stats:', error);
     }
 }
 
@@ -305,6 +264,24 @@ function updateProjectsTable(projects) {
                 }
             }
             
+            // Usar o valor exato da coluna status
+            const statusValue = project.status;
+            console.log('Status value:', statusValue); // Debug
+            
+            let statusText, statusClass;
+            
+            // Mapear os valores booleanos para os textos corretos
+            if (statusValue === true) {
+                statusText = 'Completed';
+                statusClass = 'status-completed';
+            } else if (statusValue === false) {
+                statusText = 'Uncompleted';
+                statusClass = 'status-uncompleted';
+            } else if (statusValue === null) {
+                statusText = 'In Progress';
+                statusClass = 'status-in-progress';
+            }
+            
             // Create table row with basic data
             row.innerHTML = `
                 <td>
@@ -316,7 +293,7 @@ function updateProjectsTable(projects) {
                         ? `<a href="${project.file_url}" target="_blank">${fileInfo.name}</a>` 
                         : 'No file'}
                 </td>
-                <td><span class="status-badge status-completed">Completed</span></td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>${fileInfo.type}</td>
                 <td>
                     <div class="action-buttons">
@@ -448,93 +425,73 @@ function searchProjects() {
 }
 
 // Filter projects
-function filterProjects() {
-    loadProjects(1, getCurrentFilters());
+async function filterProjects() {
+    const searchTerm = document.getElementById('search-projects').value.toLowerCase();
+    const statusFilter = document.getElementById('status-filter').value;
+    
+    try {
+        let query = supabase
+            .from('architecture_projects')
+            .select('*');
+        
+        // Aplicar filtro baseado nos valores booleanos
+        if (statusFilter !== 'all') {
+            if (statusFilter === 'true') {
+                query = query.eq('status', true);  // Completed
+            } else if (statusFilter === 'false') {
+                query = query.eq('status', false); // Uncompleted
+            } else if (statusFilter === 'null') {
+                query = query.is('status', null);  // In Progress
+            }
+        }
+        
+        const { data, error } = await query.order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Store all projects for filtering
+        allProjects = data || [];
+        
+        // Apply filters if any
+        let filteredProjects = allProjects;
+        
+        // Filter by search term
+        if (searchTerm) {
+            filteredProjects = filteredProjects.filter(project => 
+                project.name?.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // Calculate pagination
+        const startIndex = (currentPage - 1) * projectsPerPage;
+        const endIndex = startIndex + projectsPerPage;
+        const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+        
+        // Update the projects table
+        updateProjectsTable(paginatedProjects);
+        
+        // Update pagination controls
+        updatePagination(currentPage, totalPages);
+
+    } catch (error) {
+        console.error('Error filtering projects:', error);
+    }
 }
 
 // Initialize admin dashboard
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        console.log('Initializing admin dashboard...');
-        
-        // Check Supabase connection
-        const { data: versionData, error: versionError } = await supabase.rpc('version');
-        console.log('Supabase connection test:', versionData || 'unavailable', versionError);
-        
-        await checkAdminAccess();
-        
-        // Ensure projects table exists
-        const tableExists = await ensureProjectsTable();
-        
-        if (tableExists) {
-            console.log('Projects table exists, checking for data...');
-            // Check if there are any projects
-            const { count, error: countError } = await supabase
-                .from('projects')
-                .select('*', { count: 'exact', head: true });
-                
-            console.log('Projects count:', count, 'Error:', countError);
-                
-            if (!countError && count === 0) {
-                console.log('No projects found, creating test project...');
-                await createTestProject();
-            }
-        } else {
-            console.log('Projects table does not exist, creating test project anyway...');
-            await createTestProject();
+document.addEventListener('DOMContentLoaded', function() {
+    loadProjects();
+    updateStats();
+    
+    // Manter apenas os event listeners necessários
+    document.getElementById('search-button').addEventListener('click', filterProjects);
+    
+    document.getElementById('search-projects').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            filterProjects();
         }
-        
-        // Load initial data
-        await updateStats();
-        await loadProjects();
-        
-        // Add event listeners for search
-        document.getElementById('search-button').addEventListener('click', searchProjects);
-        document.getElementById('search-projects').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchProjects();
-            }
-        });
-        
-        // Add pagination event listeners
-        document.getElementById('prev-page').addEventListener('click', () => {
-            if (currentPage > 1) {
-                loadProjects(--currentPage, getCurrentFilters());
-            }
-        });
-        
-        document.getElementById('next-page').addEventListener('click', () => {
-            loadProjects(++currentPage, getCurrentFilters());
-        });
-        
-        // Refresh data button
-        document.getElementById('refresh-data-btn').addEventListener('click', async () => {
-            await updateStats();
-            await loadProjects(currentPage, getCurrentFilters());
-            alert('Data refreshed successfully!');
-        });
-        
-        // Logout button
-        document.getElementById('logout-button').addEventListener('click', (e) => {
-            e.preventDefault();
-            logout();
-        });
-        
-    } catch (err) {
-        console.error('Error initializing admin dashboard:', err);
-        
-        // Create a visible error message for the user
-        const adminMain = document.querySelector('.admin-main');
-        if (adminMain) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.innerHTML = `
-                <h3>Error Initializing Dashboard</h3>
-                <p>${err.message}</p>
-                <p>Please check the console for more details.</p>
-                <button onclick="location.reload()">Retry</button>
-            `;
-            adminMain.prepend(errorDiv);
-        }
-    }
+    });
+    
+    document.getElementById('status-filter').addEventListener('change', filterProjects);
 }); 
