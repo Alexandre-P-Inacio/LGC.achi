@@ -78,12 +78,12 @@
     </footer>
     
     <script>
-        // Verificar o status de login ao carregar a página
+        // Check login status when loading the page
         document.addEventListener('DOMContentLoaded', function() {
             const currentUser = localStorage.getItem('currentUser');
-            console.log('status de login atual:', currentUser ? 'Logado como ' + currentUser : 'Não logado');
+            console.log('current login status:', currentUser ? 'Logged in as ' + currentUser : 'Not logged in');
             
-            // Se o usuário estiver logado, certifique-se de que a UI está atualizada
+            // If the user is logged in, make sure the UI is updated
             if (currentUser && typeof updateUserInterface === 'function') {
                 updateUserInterface(currentUser);
             }

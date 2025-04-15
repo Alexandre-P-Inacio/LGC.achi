@@ -802,25 +802,25 @@ label[for="project-gallery"]:after {
     .admin-main {
         padding: 1rem;
     }
-    
+
     .stats-container {
         grid-template-columns: 1fr;
     }
-    
+
     .search-filter-container {
         flex-direction: column;
     }
-    
+
     .search-container {
         max-width: 100%;
     }
-    
+
     .section-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
     }
-    
+
     .add-project-button {
         align-self: flex-start;
     }
@@ -835,18 +835,18 @@ label[for="project-gallery"]:after {
     .projects-table td:nth-child(4) {
         display: none;
     }
-    
+
     nav {
         flex-direction: column;
         padding: 1rem;
     }
-    
+
     .nav-links {
         flex-direction: column;
         width: 100%;
         margin-top: 1rem;
     }
-    
+
     .logo {
         margin-bottom: 0.5rem;
     }
@@ -864,8 +864,8 @@ label[for="project-gallery"]:after {
 
 .error-message h3 {
     margin-top: 0;
-    font-size: 1.2rem;
-}
+        font-size: 1.2rem;
+    }
 
 .error-message button {
     background-color: #d32f2f;

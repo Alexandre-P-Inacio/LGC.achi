@@ -6,19 +6,19 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Register - Architecture Portfolio</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Carregar o Supabase -->
+    <!-- Load Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Garantir que o Supabase seja acessível globalmente
+        // Ensure Supabase is globally accessible
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Verificando supabase:', typeof supabase);
+            console.log('Checking supabase:', typeof supabase);
             if (typeof supabase !== 'undefined') {
                 window.supabase = supabase;
-                console.log('Supabase disponibilizado globalmente');
+                console.log('Supabase made available globally');
             }
         });
     </script>
-    <!-- Carregar auth.js após o Supabase -->
+    <!-- Load auth.js after Supabase -->
     <script src="auth.js" defer></script>
     
     <style>
@@ -76,7 +76,7 @@
                     <input type="password" id="confirmPassword" name="confirmPassword" required>
                 </div>
                 <div class="button-group">
-                    <a href="index.html" class="back-button">Voltar</a>
+                    <a href="index.html" class="back-button">Back</a>
                     <button type="submit" class="submit-button">Register</button>
                 </div>
             </form>
@@ -92,7 +92,7 @@
             registerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                // Limpar mensagem de erro anterior
+                // Clear previous error message
                 errorMessage.style.display = 'none';
                 errorMessage.textContent = '';
                 
@@ -100,45 +100,45 @@
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 
-                // Validação básica
+                // Basic validation
                 if (!username || !password || !confirmPassword) {
-                    showError('Por favor, preencha todos os campos');
+                    showError('Please fill in all fields');
                     return;
                 }
                 
                 if (password !== confirmPassword) {
-                    showError('As senhas não coincidem');
+                    showError('Passwords do not match');
                     return;
                 }
                 
                 if (password.length < 6) {
-                    showError('A senha deve ter pelo menos 6 caracteres');
+                    showError('Password must be at least 6 characters long');
                     return;
                 }
                 
                 try {
-                    // Verificar se a função register está disponível
+                    // Check if register function is available
                     if (typeof register !== 'function') {
-                        console.error('Função register não disponível!');
-                        showError('Erro no sistema de registro. Por favor, tente novamente mais tarde.');
+                        console.error('Register function not available!');
+                        showError('Error in the registration system. Please try again later.');
                         return;
                     }
                     
-                    // Tentar registrar o usuário
+                    // Try to register the user
                     const result = await register(username, password);
-                    console.log('Resultado do registro:', result);
+                    console.log('Registration result:', result);
                     
                     if (result.success) {
-                        // Registro bem-sucedido
-                        alert('Registro realizado com sucesso! Faça login com suas credenciais.');
+                        // Registration successful
+                        alert('Registration successful! Please log in with your credentials.');
                         window.location.href = 'login.html';
                     } else {
-                        // Registro falhou
-                        showError(result.error || 'Erro ao criar conta. Tente novamente.');
+                        // Registration failed
+                        showError(result.error || 'Error creating account. Please try again.');
                     }
                 } catch (error) {
-                    console.error('Erro durante registro:', error);
-                    showError('Ocorreu um erro durante o registro: ' + (error.message || 'Erro desconhecido'));
+                    console.error('Error during registration:', error);
+                    showError('An error occurred during registration: ' + (error.message || 'Unknown error'));
                 }
             });
             

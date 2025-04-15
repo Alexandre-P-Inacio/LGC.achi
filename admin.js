@@ -17,7 +17,7 @@ async function logout() {
         console.log('Logging out user...');
         localStorage.removeItem('currentUser');
         
-        // Tentar logout do Supabase se necessário
+        // Try Supabase logout if necessary
         try {
             const { error } = await supabase.auth.signOut();
             if (error) console.error('Error in Supabase signOut:', error);
@@ -25,11 +25,11 @@ async function logout() {
             console.error('Exception in Supabase signOut:', e);
         }
         
-        // Redirecionar para a página inicial
+        // Redirect to home page
         window.location.href = 'index.html';
     } catch (e) {
         console.error('Error in logout function:', e);
-        alert('Ocorreu um erro ao fazer logout. Por favor, tente novamente.');
+        alert('An error occurred during logout. Please try again.');
     }
 }
 
@@ -115,35 +115,55 @@ function updateTimestamp() {
 // Update stats
 async function updateStats() {
     try {
+        // Fetch all projects to calculate stats
         const { data, error } = await supabase
             .from('projects')
-            .select('status');
+            .select('*');
         
         if (error) throw error;
         
-        // Calculate statistics based on status values
+        if (!data || data.length === 0) {
+            // No projects, set all counts to zero
+            document.getElementById('total-projects').textContent = '0';
+            document.getElementById('completed-projects').textContent = '0';
+            document.getElementById('in-progress-projects').textContent = '0';
+            document.getElementById('uncompleted-projects').textContent = '0';
+            return;
+        }
+        
+        // Determine what column is used for status
+        const firstProject = data[0];
+        const possibleStatusColumns = ['status', 'project_status', 'estado', 'state'];
+        const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
+        console.log(`Stats using status column: "${statusColumn}"`);
+        
+        // Calculate statistics based on status enum values
         const totalProjects = data.length;
         
-        // Count completed projects (status true or "Completed")
-        const completedProjects = data.filter(p => 
-            p.status === true || 
-            p.status === true || 
-            p.status === 'Completed' || 
-            p.status === 'completed').length;
+        // Count completed projects
+        const completedProjects = data.filter(p => {
+            const status = p[statusColumn];
+            return status === 'completed' || status === true || status === 'Completed';
+        }).length;
         
-        // Count in-progress projects (status null or "In Progress")
-        const inProgressProjects = data.filter(p => 
-            p.status === null || 
-            p.status === null || 
-            p.status === 'In Progress' || 
-            p.status === 'in progress').length;
+        // Count in-progress projects
+        const inProgressProjects = data.filter(p => {
+            const status = p[statusColumn];
+            return status === 'in_progress' || status === null || status === 'In Progress';
+        }).length;
         
-        // Count incompleted projects (status false or "Incompleted")
-        const incompletedProjects = data.filter(p => 
-            p.status === false || 
-            p.status === false || 
-            p.status === 'Incompleted' || 
-            p.status === 'incompleted').length;
+        // Count incompleted projects
+        const incompletedProjects = data.filter(p => {
+            const status = p[statusColumn];
+            return status === 'incompleted' || status === false || status === 'Incompleted';
+        }).length;
+        
+        console.log('Project statistics:', {
+            total: totalProjects,
+            completed: completedProjects,
+            inProgress: inProgressProjects,
+            incompleted: incompletedProjects
+        });
         
         // Update UI
         document.getElementById('total-projects').textContent = totalProjects;
@@ -159,7 +179,7 @@ async function updateStats() {
     }
 }
 
-// Get current filters from the UI
+// Get current filters for use in pagination
 function getCurrentFilters() {
     return {
         searchTerm: document.getElementById('search-projects').value,
@@ -208,7 +228,7 @@ async function loadProjects(page = 1, filters = {}) {
             .order('created_at', { ascending: false });
 
         console.log('Projects loaded:', { data, error, count: data?.length || 0 });
-        
+
         if (error) {
             console.error('Error loading projects:', error);
             
@@ -225,7 +245,7 @@ async function loadProjects(page = 1, filters = {}) {
             updateProjectsTable([]);
             return;
         }
-        
+
         // Store all projects for filtering
         allProjects = data || [];
         
@@ -315,6 +335,12 @@ function updateProjectsTable(projects) {
         return;
     }
 
+    // Determine what column is used for status
+    const firstProject = projects[0];
+    const possibleStatusColumns = ['status', 'project_status', 'estado', 'state'];
+    const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
+    console.log(`Table renderer using status column: "${statusColumn}"`);
+
     projects.forEach(project => {
         console.log('Processing project:', project);
         
@@ -342,30 +368,26 @@ function updateProjectsTable(projects) {
                 }
             }
             
-            // Get the status directly from the status column
-            const statusValue = project.status || project.status;
-            console.log('status value:', statusValue); // Debug
+            // Get the status from the correct column
+            const statusValue = project[statusColumn];
+            console.log(`Project ${project.id || project.name} status (${statusColumn}):`, statusValue);
             
             let statusText, statusClass;
             
             // Map status values to appropriate text and class
-            if (statusValue === true || statusValue === 'Completed' || statusValue === 'completed') {
+            if (statusValue === 'completed' || statusValue === true || statusValue === 'Completed') {
                 statusText = 'Completed';
                 statusClass = 'status-completed';
-            } else if (statusValue === false || statusValue === 'Incompleted' || statusValue === 'incompleted') {
+            } else if (statusValue === 'incompleted' || statusValue === false || statusValue === 'Incompleted') {
                 statusText = 'Incompleted';
                 statusClass = 'status-incompleted';
-            } else if (statusValue === null || statusValue === 'In Progress' || statusValue === 'in progress') {
+            } else if (statusValue === 'in_progress' || statusValue === null || statusValue === 'In Progress') {
                 statusText = 'In Progress';
                 statusClass = 'status-in-progress';
-            } else if (typeof statusValue === 'string') {
-                // For any other string status values
-                statusText = statusValue;
-                statusClass = `status-${statusValue.toLowerCase().replace(/\s+/g, '-')}`;
             } else {
                 // Default fallback
-                statusText = 'Unknown';
-                statusClass = 'status-unknown';
+                statusText = statusValue || 'Unknown';
+                statusClass = `status-${(statusValue || 'unknown').toLowerCase().replace(/\s+/g, '-')}`;
             }
             
             // Create table row with basic data
@@ -476,21 +498,21 @@ async function deleteProject(projectId) {
         }
 
         // Delete the project record
-        const { error } = await supabase
+    const { error } = await supabase
             .from('projects')
-            .delete()
-            .eq('id', projectId);
+        .delete()
+        .eq('id', projectId);
 
-        if (error) {
-            console.error('Error deleting project:', error);
+    if (error) {
+        console.error('Error deleting project:', error);
             alert('Error deleting project: ' + error.message);
-            return;
-        }
+        return;
+    }
 
         // Reload data
         await updateStats();
         await loadProjects(currentPage, getCurrentFilters());
-        alert('Project deleted successfully!');
+    alert('Project deleted successfully!');
     } catch (err) {
         console.error('Error in deleteProject:', err);
         alert('An unexpected error occurred while deleting the project.');
@@ -510,8 +532,6 @@ function searchProjects() {
 async function filterProjects(page = 1) {
     try {
         console.log('Filtering projects...');
-        // Update timestamp
-        updateTimestamp();
         
         // Set current page
         currentPage = page || 1;
@@ -527,46 +547,26 @@ async function filterProjects(page = 1) {
             projectsContainer.innerHTML = `
                 <tr>
                     <td colspan="6" style="text-align: center; padding: 2rem;">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #3a7bd5;"></i>
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #333;"></i>
                         <p style="margin-top: 1rem;">Loading projects...</p>
                     </td>
                 </tr>
             `;
         }
         
-        // Build query
-        let query = supabase
+        // First, fetch all projects to see what we're working with and filter on client side
+        const { data: allProjectsData, error: allProjectsError } = await supabase
             .from('projects')
-            .select('*');
-        
-        // Apply status filter
-        if (statusFilter && statusFilter !== 'all') {
-            console.log(`Applying status filter: ${statusFilter}`);
-            if (statusFilter === 'true' || statusFilter === 'Completed') {
-                // Try different ways to match "Completed" status
-                query = query.or('status.eq.true,status.eq.Completed');
-            } else if (statusFilter === 'false' || statusFilter === 'Incompleted') {
-                // Try different ways to match "Incompleted" status
-                query = query.or('status.eq.false,status.eq.Incompleted');
-            } else if (statusFilter === 'null' || statusFilter === 'In Progress') {
-                // Try different ways to match "In Progress" status
-                query = query.or('status.is.null,status.eq.In Progress');
-            }
-        }
-        
-        // Execute query and sort by created date
-        const { data, error } = await query.order('created_at', { ascending: false });
-        
-        if (error) {
-            console.error('Error filtering projects:', error);
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+        if (allProjectsError) {
+            console.error('Error fetching projects:', allProjectsError);
             if (projectsContainer) {
                 projectsContainer.innerHTML = `
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 2rem;">
-                            <p>Nenhum projeto encontrado com este status.</p>
-                            <button onclick="resetFilters()" class="reset-filters-button">
-                                <i class="fas fa-undo"></i> Limpar Filtros
-                            </button>
+                        <p>Error loading projects: ${allProjectsError.message}</p>
                         </td>
                     </tr>
                 `;
@@ -574,13 +574,56 @@ async function filterProjects(page = 1) {
             return;
         }
         
-        console.log(`Filtered data: ${data?.length || 0} projects found`);
+        if (!allProjectsData || allProjectsData.length === 0) {
+            console.log('No projects found in database');
+            if (projectsContainer) {
+                projectsContainer.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                            <p>No projects found. Add your first project by clicking the "Add New Project" button above.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+            return;
+        }
         
-        // Store filtered projects
-        allProjects = data || [];
+        // Debug: Log all projects and their status values
+        console.log('All projects:', allProjectsData);
+        console.log('Status values:', allProjectsData.map(p => p.status || p.project_status));
         
-        // Apply search term filter client-side
-        let filteredProjects = allProjects;
+        // IMPORTANT: Let's see what column is actually used for status
+        const firstProject = allProjectsData[0];
+        const possibleStatusColumns = ['status', 'project_status', 'estado', 'state'];
+        const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
+        console.log(`Using status column: "${statusColumn}"`);
+        
+        // Filter projects based on the status value
+        let filteredProjects = allProjectsData;
+        
+        if (statusFilter && statusFilter !== 'all') {
+            console.log(`Filtering by status: ${statusFilter}`);
+            
+            // Filter projects according to the specified status
+            filteredProjects = allProjectsData.filter(project => {
+                const projectStatus = project[statusColumn];
+                
+                if (statusFilter === 'completed') {
+                    return projectStatus === 'completed' || projectStatus === true || projectStatus === 'Completed';
+                } else if (statusFilter === 'incompleted') {
+                    return projectStatus === 'incompleted' || projectStatus === false || projectStatus === 'Incompleted';
+                } else if (statusFilter === 'in_progress') {
+                    return projectStatus === 'in_progress' || projectStatus === null || projectStatus === 'In Progress';
+                }
+                
+                // If the status doesn't match any expected value, keep the default
+                return true;
+            });
+            
+            console.log(`Filtered to ${filteredProjects.length} projects with status "${statusFilter}"`);
+        }
+        
+        // Apply search term filter if needed
         if (searchTerm) {
             filteredProjects = filteredProjects.filter(project => 
                 (project.name && project.name.toLowerCase().includes(searchTerm))
@@ -594,61 +637,44 @@ async function filterProjects(page = 1) {
                 projectsContainer.innerHTML = `
                     <tr>
                         <td colspan="6" style="text-align: center; padding: 2rem;">
-                            <p>Nenhum projeto encontrado com este status.</p>
+                            <p>No projects found matching your criteria.</p>
                             <button onclick="resetFilters()" class="reset-filters-button">
-                                <i class="fas fa-undo"></i> Limpar Filtros
+                                <i class="fas fa-undo"></i> Clear Filters
                             </button>
                         </td>
                     </tr>
                 `;
             }
-            
-            // Update pagination to hide it
-            const paginationContainer = document.querySelector('.pagination-container');
-            if (paginationContainer) {
-                paginationContainer.style.display = 'none';
-            }
-            
             return;
         }
         
         // Calculate pagination
+        const totalPages = Math.max(1, Math.ceil(filteredProjects.length / projectsPerPage));
         const startIndex = (currentPage - 1) * projectsPerPage;
-        const endIndex = startIndex + projectsPerPage;
+        const endIndex = Math.min(startIndex + projectsPerPage, filteredProjects.length);
         const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
         
-        // Update UI
+        // Update the projects table with the paginated results
         updateProjectsTable(paginatedProjects);
+        
+        // Update pagination controls
         updatePagination(currentPage, totalPages);
         
-    } catch (error) {
-        console.error('Error in filterProjects:', error);
-        const projectsContainer = document.getElementById('projects-container');
-        if (projectsContainer) {
-            projectsContainer.innerHTML = `
-                <tr>
-                    <td colspan="6" style="text-align: center; padding: 2rem;">
-                        <p>Nenhum projeto encontrado com este status.</p>
-                        <button onclick="resetFilters()" class="reset-filters-button">
-                            <i class="fas fa-undo"></i> Limpar Filtros
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }
+    } catch (err) {
+        console.error('Error in filterProjects:', err);
+        alert('Error filtering projects: ' + err.message);
     }
 }
 
-// Reset all filters
+// Reset all filters and reload projects
 function resetFilters() {
-    const searchInput = document.getElementById('search-projects');
-    const statusFilter = document.getElementById('status-filter');
+    // Reset search input
+    document.getElementById('search-projects').value = '';
     
-    if (searchInput) searchInput.value = '';
-    if (statusFilter) statusFilter.value = 'all';
+    // Reset status filter to "all"
+    document.getElementById('status-filter').value = 'all';
     
-    // Load all projects
+    // Reset to first page and reload projects
     loadProjects(1);
 }
 
@@ -679,7 +705,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: versionData, error: versionError } = await supabase.rpc('version');
         console.log('Supabase connection test:', versionData || 'unavailable', versionError);
         
-        await checkAdminAccess();
+    await checkAdminAccess();
         
         // Ensure projects table exists
         const tableExists = await ensureProjectsTable();
@@ -749,9 +775,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const logoutButton = document.getElementById('logout-button');
         if (logoutButton) {
             logoutButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                logout();
-            });
+        e.preventDefault();
+        logout();
+    });
         }
         
     } catch (err) {
@@ -771,4 +797,52 @@ document.addEventListener('DOMContentLoaded', async () => {
             adminMain.prepend(errorDiv);
         }
     }
-}); 
+});
+
+// Debug function to inspect projects data
+window.inspectProjects = async function() {
+    try {
+        const { data, error } = await supabase
+            .from('projects')
+            .select('*');
+            
+        if (error) {
+            console.error('Error fetching projects for inspection:', error);
+            return;
+        }
+        
+        if (!data || data.length === 0) {
+            console.log('No projects found in database');
+            return;
+        }
+        
+        // Log the first project to see its structure
+        console.log('First project structure:', data[0]);
+        
+        // List all available columns
+        const columns = Object.keys(data[0]);
+        console.log('Available columns:', columns);
+        
+        // Check status values
+        const statusValues = [...new Set(data.map(p => p.status))];
+        console.log('Unique status values in database:', statusValues);
+        
+        // Count projects by status
+        const statusCounts = statusValues.reduce((acc, status) => {
+            acc[status || 'null'] = data.filter(p => p.status === status).length;
+            return acc;
+        }, {});
+        console.log('Projects count by status:', statusCounts);
+        
+        return {
+            total: data.length,
+            structure: data[0],
+            columns,
+            statusValues,
+            statusCounts,
+            allProjects: data
+        };
+    } catch (err) {
+        console.error('Error in inspectProjects:', err);
+    }
+}; 
