@@ -21,6 +21,40 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load user list
     await loadUsers();
     
+    // Verificar se há um estado salvo do chat
+    const savedState = localStorage.getItem('chat_state');
+    if (savedState) {
+        try {
+            const state = JSON.parse(savedState);
+            
+            // Verificar se o estado não é muito antigo (2 minutos)
+            const now = new Date().getTime();
+            const stateAge = now - state.timestamp;
+            if (stateAge < 2 * 60 * 1000) { // 2 minutos em milissegundos
+                console.log("Restaurando estado do chat após reload:", state);
+                
+                // Se tínhamos um chat aberto, reabri-lo
+                if (state.currentChatUser) {
+                    // Pequeno atraso para garantir que elementos estão carregados
+                    setTimeout(() => {
+                        selectUser(state.currentChatUser);
+                        
+                        // Se tínhamos uma nova mensagem, marcá-la como lida
+                        if (state.newMessage && state.newMessage.id) {
+                            markMessageAsRead(state.newMessage.id);
+                        }
+                    }, 300);
+                }
+            }
+            
+            // Limpar o estado salvo
+            localStorage.removeItem('chat_state');
+        } catch (error) {
+            console.error("Erro ao restaurar estado do chat:", error);
+            localStorage.removeItem('chat_state');
+        }
+    }
+    
     // Set up event listeners
     setupEventListeners();
     
@@ -617,19 +651,20 @@ function setupGlobalChatSubscription() {
                 // Se a mensagem for para o usuário atual
                 else if (message.receiver === currentUser) {
                     console.log("Mensagem recebida para o usuário atual, de:", message.sender);
-                    // Atualizar lista de usuários
-                    loadUsers();
                     
-                    // Se tivermos um chat aberto com o remetente, atualizar o chat
-                    if (currentChatUser && message.sender === currentChatUser) {
-                        loadMessages(currentChatUser);
-                        
-                        // Marcar mensagem como lida
-                        markMessageAsRead(message.id);
-                    } else {
-                        // Mostrar notificação para mensagens de outros usuários
-                        showNotification(message.sender, message.content);
-                    }
+                    // Salvar o estado atual antes de recarregar
+                    localStorage.setItem('chat_state', JSON.stringify({
+                        currentChatUser: currentChatUser,
+                        timestamp: new Date().getTime(),
+                        newMessage: {
+                            from: message.sender,
+                            content: message.content,
+                            id: message.id
+                        }
+                    }));
+                    
+                    // Recarregar a página
+                    window.location.reload();
                 }
             }
         )
