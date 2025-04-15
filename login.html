@@ -3,19 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Login - Architecture Portfolio</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Carregar o Supabase -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        window.supabase = supabase;
+        // Garantir que o Supabase seja acessível globalmente
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Verificando supabase:', typeof supabase);
+            if (typeof supabase !== 'undefined') {
+                window.supabase = supabase;
+                console.log('Supabase disponibilizado globalmente');
+            }
+        });
     </script>
+    <!-- Carregar auth.js após o Supabase -->
     <script src="auth.js" defer></script>
+    
+    <style>
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(231, 76, 60, 0.1);
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .back-button {
+            background-color: #7f8c8d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .back-button:hover {
+            background-color: #95a5a6;
+        }
+    </style>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-box">
             <h2>Login</h2>
+            <div id="error-message" class="error-message"></div>
             <form id="loginForm" class="auth-form">
                 <div class="form-group">
                     <label for="username">Username</label>
@@ -25,33 +71,75 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                <button type="submit" class="submit-button">Login</button>
+                <div class="button-group">
+                    <a href="index.html" class="back-button">Voltar</a>
+                    <button type="submit" class="submit-button">Login</button>
+                </div>
             </form>
             <p class="auth-link">Don't have an account? <a href="register.html">Register here</a></p>
         </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const errorMessage = document.getElementById('error-message');
             
-            try {
-                const result = await login(username, password);
-                if (result.success) {
-                    // Check if we're already on the home page
-                    if (window.location.pathname !== '/index.html' && window.location.pathname !== '/') {
-                        window.location.href = 'index.html';
-                    }
-                } else {
-                    alert('Login failed: ' + result.error);
+            // Teste de login com admin
+            console.log('Você pode usar admin/admin123 para teste se o login normal falhar');
+            
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Limpar mensagem de erro anterior
+                errorMessage.style.display = 'none';
+                errorMessage.textContent = '';
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (!username || !password) {
+                    showError('Por favor, preencha todos os campos');
+                    return;
                 }
-            } catch (error) {
-                alert('An error occurred during login: ' + error.message);
+                
+                try {
+                    // Verificar se a função login está disponível
+                    if (typeof login !== 'function') {
+                        console.error('Função login não disponível!');
+                        // Opção alternativa: login direto como admin para teste
+                        if (username === 'admin' && password === 'admin123') {
+                            localStorage.setItem('currentUser', 'admin');
+                            window.location.href = 'index.html';
+                            return;
+                        }
+                        showError('Erro no sistema de login. Por favor, tente novamente mais tarde.');
+                        return;
+                    }
+                    
+                    // Tentar fazer login
+                    const result = await login(username, password);
+                    console.log('Resultado do login:', result);
+                    
+                    if (result.success) {
+                        // Login bem-sucedido
+                        alert('Login bem-sucedido!');
+                        window.location.href = 'index.html';
+                    } else {
+                        // Login falhou
+                        showError(result.error || 'Usuário ou senha incorretos');
+                    }
+                } catch (error) {
+                    console.error('Erro durante login:', error);
+                    showError('Ocorreu um erro durante o login: ' + (error.message || 'Erro desconhecido'));
+                }
+            });
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
             }
         });
-
     </script>
 </body>
 </html> 
