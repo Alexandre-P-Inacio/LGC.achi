@@ -4,7 +4,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Variáveis globais
-let currentUser = localStorage.getItem('currentUser');
+let currentUser = localStorage.getItem('currentUser'); // deve conter o username
 let currentChatUser = null;
 let subscription = null;
 
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// Carrega a lista de utilizadores
+// Carregar utilizadores da tabela Users (exceto o próprio)
 async function carregarUtilizadores() {
   const { data: users, error } = await supabaseClient
     .from('Users')
@@ -50,7 +50,7 @@ async function carregarUtilizadores() {
     });
 }
 
-// Selecionar um utilizador e iniciar o chat
+// Quando clicas num utilizador para conversar
 async function selecionarUtilizador(username) {
   currentChatUser = username;
   document.getElementById('chat-header').textContent = `Chat com ${username}`;
@@ -65,18 +65,19 @@ async function selecionarUtilizador(username) {
     subscription = null;
   }
 
+  // Subscrição em tempo real
   subscription = supabaseClient
     .channel(`chat-realtime-${currentUser}`)
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
-      table: 'chat_messages',
+      table: 'chat_messages'
     }, payload => {
       const msg = payload.new;
-      if (
-        (msg.sender === currentUser && msg.receiver === currentChatUser) ||
-        (msg.sender === currentChatUser && msg.receiver === currentUser)
-      ) {
+      const participantes = [msg.sender, msg.receiver];
+
+      // Só mostra a mensagem se for entre os 2 utilizadores atuais
+      if (participantes.includes(currentUser) && participantes.includes(currentChatUser)) {
         mostrarMensagem(msg);
       }
     })
@@ -87,12 +88,14 @@ async function selecionarUtilizador(username) {
     });
 }
 
-// Carregar as mensagens da conversa
+// Carregar todas as mensagens entre os 2 utilizadores
 async function carregarMensagens() {
   const { data: mensagens, error } = await supabaseClient
     .from('chat_messages')
     .select('*')
-    .or(`and(sender.eq.${currentUser},receiver.eq.${currentChatUser}),and(sender.eq.${currentChatUser},receiver.eq.${currentUser})`)
+    .or(
+      `and(sender.eq.${currentUser},receiver.eq.${currentChatUser}),and(sender.eq.${currentChatUser},receiver.eq.${currentUser})`
+    )
     .order('created_at', { ascending: true });
 
   const chat = document.getElementById('chat-messages');
@@ -107,7 +110,7 @@ async function carregarMensagens() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Mostrar uma mensagem na interface
+// Mostrar mensagem no ecrã
 function mostrarMensagem(msg) {
   const chat = document.getElementById('chat-messages');
   const div = document.createElement('div');
