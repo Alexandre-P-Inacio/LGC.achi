@@ -10,6 +10,7 @@ let currentChatUser = null;
 let messageSubscription = null; // Para guardar a subscrição atual
 let lastMessageCheck = Date.now(); // Para verificação de polling
 let isEditing = null; // Para controlar qual mensagem está sendo editada
+let isRefreshing = localStorage.getItem('refreshState') === 'true'; // Para controlar se é um refresh após edição/exclusão
 
 // === AO CARREGAR A PÁGINA ===
 document.addEventListener('DOMContentLoaded', async () => {
@@ -39,7 +40,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Restaurar o chat anterior se existir
   const lastChatUser = localStorage.getItem('lastChatUser');
   if (lastChatUser) {
-    setTimeout(() => selecionarUtilizador(lastChatUser), 500); // Pequeno atraso para garantir que a lista de usuários já foi carregada
+    setTimeout(() => selecionarUtilizador(lastChatUser), 300); // Atraso menor para carregamento mais rápido
+  }
+  
+  // Se foi um refresh após edição/exclusão, limpar o estado para futuros carregamentos
+  if (isRefreshing) {
+    localStorage.removeItem('refreshState');
+    // Eliminamos a animação de carregamento
+    document.documentElement.classList.add('no-transitions');
+    
+    // Removemos a classe após um breve período para permitir animações futuras
+    setTimeout(() => {
+      document.documentElement.classList.remove('no-transitions');
+    }, 1000);
   }
 });
 
@@ -273,6 +286,9 @@ async function enviarMensagem() {
         // Guardar o utilizador atual no localStorage antes de recarregar
         localStorage.setItem('lastChatUser', currentChatUser);
         
+        // Indicar que estamos fazendo um refresh após envio
+        localStorage.setItem('refreshState', 'true');
+        
         // Recarregar a página
         window.location.reload();
         
@@ -490,6 +506,9 @@ async function saveMessageEdit(messageId, newContent) {
         // Guardar o utilizador atual no localStorage antes de recarregar
         localStorage.setItem('lastChatUser', currentChatUser);
         
+        // Indicar que estamos fazendo um refresh após edição
+        localStorage.setItem('refreshState', 'true');
+        
         // Recarregar a página para mostrar as mudanças
         window.location.reload();
         
@@ -529,6 +548,9 @@ async function deleteMessage(messageId) {
         
         // Guardar o utilizador atual no localStorage antes de recarregar
         localStorage.setItem('lastChatUser', currentChatUser);
+        
+        // Indicar que estamos fazendo um refresh após exclusão
+        localStorage.setItem('refreshState', 'true');
         
         // Recarregar a página para mostrar as mudanças
         window.location.reload();

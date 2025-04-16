@@ -8,6 +8,29 @@
   <link rel="stylesheet" href="chat.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Estilo para desativar todas as transições/animações durante refresh */
+    .no-transitions * {
+      transition: none !important;
+      animation: none !important;
+      animation-delay: 0ms !important;
+    }
+    
+    /* Remove efeitos visuais de carregamento */
+    html.no-transitions .loading-indicator,
+    html.no-transitions .spinner {
+      display: none !important;
+    }
+    
+    /* Garantir que não haja atrasos ou transições */
+    html.no-transitions .user-item,
+    html.no-transitions .message,
+    html.no-transitions .chat-input-container,
+    html.no-transitions .action-button {
+      transition: none !important;
+      animation: none !important;
+    }
+  </style>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script defer src="chat.js"></script>
 </head>
