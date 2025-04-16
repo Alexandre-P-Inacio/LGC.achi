@@ -1,198 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
-    <title>Chat - Architecture Portfolio</title>
-    <link rel="icon" type="image/png" href="assets/logo(2).png">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="chat.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Verificando supabase:', typeof supabase);
-            if (typeof supabase !== 'undefined') {
-                window.supabase = supabase;
-                console.log('Supabase disponibilizado globalmente');
-            }
-        });
-    </script>
-    
-    <script src="auth.js" defer></script>
-    <script src="chat.js" defer></script>
-    
-    <style>
-        /* Estilos adicionais para corrigir a sobreposição do menu */
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding: 0;
-            margin: 0;
-        }
-        
-        header {
-            position: relative;
-            width: 100%;
-            z-index: 100;
-        }
-        
-        .navigation-container {
-            width: 100%;
-        }
-        
-        main.chat-container {
-            margin-top: 30px; /* Espaço para o menu de navegação */
-            height: calc(100vh - 180px);
-            z-index: 1;
-            position: relative;
-        }
-        
-        @media (max-width: 768px) {
-            main.chat-container {
-                margin-top: 120px; /* Mais espaço em telas menores */
-                height: calc(100vh - 220px);
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Chat em Tempo Real</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="chat.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="chat.js" defer></script>
 </head>
 <body>
-    <header>
-        <div class="navigation-container" id="navigation-container">
-            <!-- Navegação será inserida aqui pelo navigation.js -->
-        </div>
-    </header>
-    
-    <main class="chat-container">
-        <div class="chat-sidebar">
-            <div class="chat-header">
-                <h2>Conversas</h2>
-            </div>
-            <div class="user-search">
-                <input type="text" id="user-search" placeholder="Procurar usuário...">
-                <button id="search-button"><i class="fas fa-search"></i></button>
-            </div>
-            <div class="user-list" id="user-list">
-                <!-- A lista de usuários será preenchida dinamicamente -->
-                <div class="loading-users">
-                    <i class="fas fa-spinner fa-spin"></i> Carregando usuários...
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-main">
-            <div class="chat-header" id="chat-header">
-                <h2>Selecione um usuário para iniciar um chat</h2>
-            </div>
-            <div class="chat-messages" id="chat-messages">
-                <!-- As mensagens serão preenchidas dinamicamente -->
-                <div class="no-chat-selected">
-                    <i class="fas fa-comments"></i>
-                    <p>Selecione um usuário para iniciar uma conversa</p>
-                </div>
-            </div>
-            <div class="chat-input-container" id="chat-input-container" style="display: none;">
-                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
-                <button id="send-button" style="display: flex; justify-content: center; align-items: center; width: 40px; height: 40px; background: var(--primary-color); color: white; border: none; border-radius: 50%; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <div class="footer-content">
-            <div class="social-links">
-                <a href="https://www.instagram.com/lgcarchi/"><i class="fab fa-instagram"></i></a>
-                <a href="https://www.facebook.com/profile.php?id=100094347141527"><i class="fab fa-facebook"></i></a>
-                <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
-            </div>
-            <p>&copy; 2023 Architecture Portfolio. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- Add a modal for image preview -->
-    <div id="image-preview-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <img id="modal-image" src="" alt="Preview">
-            <div class="modal-buttons">
-                <a id="modal-download" href="" download class="modal-button">
-                    <i class="fas fa-download"></i> Download
-                </a>
-            </div>
-        </div>
+  <main class="chat-container">
+    <div class="chat-sidebar">
+      <div class="chat-header">
+        <h2>Conversas</h2>
+      </div>
+      <div class="user-search">
+        <input type="text" id="user-search" placeholder="Procurar usuário...">
+        <button id="search-button"><i class="fas fa-search"></i></button>
+      </div>
+      <div class="user-list" id="user-list">
+        <p>Carregando...</p>
+      </div>
     </div>
 
-    <!-- Add styles for the modal -->
-    <style>
-    .modal {
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .modal-content {
-        background-color: white;
-        padding: 1rem;
-        border-radius: 8px;
-        max-width: 90%;
-        max-height: 90%;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .modal-close {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: #666;
-        z-index: 10;
-    }
-
-    #modal-image {
-        max-width: 100%;
-        max-height: 80vh;
-        margin-bottom: 1rem;
-    }
-
-    .modal-buttons {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .modal-button {
-        background-color: var(--primary-color);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.2s;
-    }
-
-    .modal-button:hover {
-        background-color: var(--primary-dark);
-        transform: translateY(-2px);
-    }
-    </style>
-    
-    <!-- Carregamento do navigation.js no final do documento -->
-    <script src="navigation.js"></script>
+    <div class="chat-main">
+      <div class="chat-header" id="chat-header">
+        <h2>Seleciona um utilizador</h2>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <p>Sem mensagens...</p>
+      </div>
+      <div class="chat-input-container" id="chat-input-container" style="display: none;">
+        <input type="text" id="chat-input" placeholder="Escreve aqui...">
+        <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </main>
 </body>
 </html>
