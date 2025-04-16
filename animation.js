@@ -34,9 +34,58 @@ window.addEventListener('scroll', handleScrollAnimations);
 
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Find the "View Projects" button by its href attribute
+    // Slide animation for hero background
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.slideshow-dot');
+    let currentSlide = 0;
+    let slideInterval;
+    const slideIntervalTime = 5000; // Change slide every 5 seconds
+
+    function goToSlide(slideIndex) {
+        // Remove active class from all slides and dots
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        // Add active class to selected slide and dot
+        slides[slideIndex].classList.add('active');
+        dots[slideIndex].classList.add('active');
+        
+        // Update current slide
+        currentSlide = slideIndex;
+    }
+
+    function nextSlide() {
+        // Calculate next slide index
+        const nextIndex = (currentSlide + 1) % slides.length;
+        goToSlide(nextIndex);
+    }
+
+    // Set up dot navigation
+    dots.forEach(dot => {
+        dot.addEventListener('click', function() {
+            const slideIndex = parseInt(this.getAttribute('data-slide'));
+            
+            // Go to selected slide
+            goToSlide(slideIndex);
+            
+            // Reset interval timer
+            clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, slideIntervalTime);
+        });
+    });
+
+    // Start the slideshow
+    if (slides.length > 0) {
+        // Initialize with first slide
+        goToSlide(0);
+        
+        // Set interval for auto-sliding
+        slideInterval = setInterval(nextSlide, slideIntervalTime);
+    }
+
+    // Smooth scrolling for "View Projects" button
     const viewProjectsButton = document.querySelector('a[href="#projects"]');
-    
+     
     // Add click event listener to the button
     if (viewProjectsButton) {
         viewProjectsButton.addEventListener('click', function(e) {
@@ -89,9 +138,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Scroll animations for sections
+    const sections = document.querySelectorAll('section');
     
-    // Initialize other animations here
-    initializeAnimations();
+    function checkScroll() {
+        const triggerBottom = window.innerHeight * 0.8;
+        
+        sections.forEach(section => {
+            const sectionTop = section.getBoundingClientRect().top;
+            
+            if (sectionTop < triggerBottom) {
+                section.classList.add('visible');
+            }
+        });
+    }
+    
+    window.addEventListener('scroll', checkScroll);
+    
+    // Project card animations
+    const projectCards = document.querySelectorAll('.project-card');
+    
+    function animateCards() {
+        projectCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('visible');
+            }, 200 * index);
+        });
+    }
+    
+    document.getElementById('projects').addEventListener('animationend', animateCards);
+    
+    // Initial check
+    checkScroll();
 });
 
 // This function can contain other animations you might want to add

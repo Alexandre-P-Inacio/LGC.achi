@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add the 'active' class to the link corresponding to the current page
     if (currentPage === '' || currentPage === 'index.html') {
         document.getElementById('nav-home')?.classList.add('active');
+        
+        // Check if hash is dashboard to highlight dashboard link
+        if(window.location.hash === '#client-dashboard') {
+            document.getElementById('nav-dashboard')?.classList.add('active');
+            document.getElementById('nav-home')?.classList.remove('active');
+        }
     } else if (currentPage === 'portfolios.html') {
         document.getElementById('nav-portfolios')?.classList.add('active');
     } else if (currentPage === 'chat.html') {
@@ -54,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
  
     // Check if user is logged in (integration with existing authentication system)
     const currentUser = localStorage.getItem('currentUser');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    
     if (currentUser) {
         // Hide the authentication buttons
         const authButtons = document.querySelector('.auth-buttons');
@@ -61,19 +69,30 @@ document.addEventListener('DOMContentLoaded', function() {
             authButtons.style.display = 'none';
         }
        
-        // Show username and logout link
+        // Create user menu element
         const navLinks = document.querySelector('.nav-links');
         if (navLinks) {
             const userElement = document.createElement('li');
             userElement.id = 'user-display';
             userElement.className = 'user-display';
-            userElement.innerHTML = `<span>Hello, ${currentUser}</span> | <a href="#" id="logout-link">Logout</a>`;
+            
+            // Different menu options based on user role
+            let userMenu = '';
+            
+            if (isAdmin) {
+                userMenu = `<span>Hello, ${currentUser}</span> | <a href="admin.html">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+            } else {
+                userMenu = `<span>Hello, ${currentUser}</span> | <a href="#client-dashboard" id="nav-dashboard" onclick="showDashboard(); return false;">My Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+            }
+            
+            userElement.innerHTML = userMenu;
             navLinks.appendChild(userElement);
            
             // Add logout event
             document.getElementById('logout-link').addEventListener('click', function(e) {
                 e.preventDefault();
                 localStorage.removeItem('currentUser');
+                localStorage.removeItem('isAdmin');
                 window.location.reload();
             });
         }

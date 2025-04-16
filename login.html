@@ -85,6 +85,19 @@
             const loginForm = document.getElementById('loginForm');
             const errorMessage = document.getElementById('error-message');
             
+            // Check for redirect parameter and display a message
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect');
+            if (redirectUrl) {
+                const infoMessage = document.createElement('div');
+                infoMessage.className = 'info-message';
+                infoMessage.textContent = 'Please log in to access the client dashboard';
+                infoMessage.style.color = '#3498db';
+                infoMessage.style.marginBottom = '15px';
+                infoMessage.style.textAlign = 'center';
+                loginForm.insertBefore(infoMessage, loginForm.firstChild);
+            }
+            
             // Test login with admin
             console.log('You can use admin/admin123 for testing if normal login fails');
             
@@ -110,25 +123,29 @@
                         // Alternative option: direct login as admin for testing
                         if (username === 'admin' && password === 'admin123') {
                             localStorage.setItem('currentUser', 'admin');
-                            window.location.href = 'index.html';
+                            localStorage.setItem('isAdmin', 'true');
+                            
+                            // Handle redirect if exists
+                            if (redirectUrl) {
+                                window.location.href = redirectUrl;
+                            } else {
+                                window.location.href = 'admin.html';
+                            }
                             return;
                         }
                         showError('Error in the login system. Please try again later.');
                         return;
                     }
                     
-                    // Try to login
+                    // Try to login - the redirect will be handled in the login function
                     const result = await login(username, password);
                     console.log('Login result:', result);
                     
-                    if (result.success) {
-                        // Login successful
-                        alert('Login successful!');
-                        window.location.href = 'index.html';
-                    } else {
+                    if (!result.success) {
                         // Login failed
                         showError(result.error || 'Incorrect username or password');
                     }
+                    // No need for success case as the login function handles the redirect
                 } catch (error) {
                     console.error('Error during login:', error);
                     showError('An error occurred during login: ' + (error.message || 'Unknown error'));

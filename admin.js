@@ -327,7 +327,7 @@ function updateProjectsTable(projects) {
     if (!projects || projects.length === 0) {
         projectsContainer.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align: center; padding: 2rem;">
+                <td colspan="7" style="text-align: center; padding: 2rem;">
                     <p>No projects found. Add your first project by clicking the "Add New Project" button above.</p>
                 </td>
             </tr>
@@ -390,15 +390,27 @@ function updateProjectsTable(projects) {
                 statusClass = `status-${(statusValue || 'unknown').toLowerCase().replace(/\s+/g, '-')}`;
             }
             
+            // Format category name for display
+            let categoryDisplay = 'Uncategorized';
+            if (project.category) {
+                categoryDisplay = project.category
+                    .split('-')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+            }
+            
             // Create table row with basic data
             row.innerHTML = `
                 <td>
                     <div class="project-title">${project.name || 'Unnamed Project'}</div>
                 </td>
+                <td>
+                    <span class="category-badge">${categoryDisplay}</span>
+                </td>
                 <td>${createdDate}</td>
                 <td>
                     ${project.file_url 
-                        ? `<a href="${project.file_url}" target="_blank">${fileInfo.name}</a>` 
+                        ? `<a href="javascript:void(0)" class="file-link" onclick="showFileInModal('${project.file_url}', '${fileInfo.name}')">${fileInfo.name}</a>` 
                         : 'No file'}
                 </td>
                 <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -406,10 +418,10 @@ function updateProjectsTable(projects) {
                 <td>
                     <div class="action-buttons">
                         <a href="project-form.html?id=${project.id}" class="action-button edit-button" title="Edit">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-edit" style="font-size: 16px; color: white;"></i>
                         </a>
                         <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash-alt" style="font-size: 16px; color: white;"></i>
                         </button>
                     </div>
                 </td>
@@ -417,7 +429,7 @@ function updateProjectsTable(projects) {
         } catch (e) {
             console.error('Error creating row for project:', e, project);
             row.innerHTML = `
-                <td colspan="6">
+                <td colspan="7">
                     Error displaying project: ${e.message}
                 </td>
             `;
@@ -546,7 +558,7 @@ async function filterProjects(page = 1) {
         if (projectsContainer) {
             projectsContainer.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 2rem;">
+                    <td colspan="7" style="text-align: center; padding: 2rem;">
                         <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #333;"></i>
                         <p style="margin-top: 1rem;">Loading projects...</p>
                     </td>
@@ -565,7 +577,7 @@ async function filterProjects(page = 1) {
             if (projectsContainer) {
                 projectsContainer.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                        <td colspan="7" style="text-align: center; padding: 2rem;">
                         <p>Error loading projects: ${allProjectsError.message}</p>
                         </td>
                     </tr>
@@ -579,7 +591,7 @@ async function filterProjects(page = 1) {
             if (projectsContainer) {
                 projectsContainer.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                        <td colspan="7" style="text-align: center; padding: 2rem;">
                             <p>No projects found. Add your first project by clicking the "Add New Project" button above.</p>
                         </td>
                     </tr>
@@ -636,7 +648,7 @@ async function filterProjects(page = 1) {
             if (projectsContainer) {
                 projectsContainer.innerHTML = `
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                        <td colspan="7" style="text-align: center; padding: 2rem;">
                             <p>No projects found matching your criteria.</p>
                             <button onclick="resetFilters()" class="reset-filters-button">
                                 <i class="fas fa-undo"></i> Clear Filters

@@ -133,11 +133,23 @@ async function login(username, password) {
         if (user.password === password) {
             console.log('Password correct, login successful');
             
-            // Store username in localStorage
+            // Store username and admin status in localStorage
             localStorage.setItem('currentUser', username);
+            localStorage.setItem('isAdmin', user.is_admin ? 'true' : 'false');
             
             // Update UI
             await updateUserInterface(username);
+            
+            // Check for redirect parameter in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect');
+            
+            // Redirect user after successful login
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            } else {
+                window.location.href = 'index.html';
+            }
             
             // Return success
             return { success: true, message: "Login successful" };
@@ -167,6 +179,12 @@ async function updateUserInterface(username) {
             .eq('username', username)
             .single();
 
+        if (data && data.is_admin) {
+            localStorage.setItem('isAdmin', 'true');
+        } else {
+            localStorage.setItem('isAdmin', 'false');
+        }
+
         // Create element to display user name
         const navLinks = document.querySelector('.nav-links');
         if (navLinks) {
@@ -181,11 +199,17 @@ async function updateUserInterface(username) {
                 navLinks.appendChild(userElement);
             }
             
-            // Add admin dashboard link if user is admin
-            const adminLink = (data && data.is_admin) ? `<a href="admin.html">Admin Dashboard</a> | ` : '';
+            // Different menu options based on user role
+            let userMenu = '';
+            
+            if (data && data.is_admin) {
+                userMenu = `<span>Hello, ${username}</span> | <a href="admin.html">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+            } else {
+                userMenu = `<span>Hello, ${username}</span> | <a href="#client-dashboard" id="nav-dashboard" onclick="showDashboard(); return false;">My Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+            }
             
             // Set element content
-            userElement.innerHTML = `<span>Hello, ${username}</span> | ${adminLink}<a href="#" id="logout-link">Logout</a>`;
+            userElement.innerHTML = userMenu;
             
             // Add logout event
             document.getElementById('logout-link').addEventListener('click', (e) => {
@@ -221,6 +245,7 @@ async function logout() {
     console.log('Starting logout...');
     // Remove user from localStorage
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('isAdmin');
     console.log('User removed from localStorage.');
     
     // Update UI - This needs to be done before redirection

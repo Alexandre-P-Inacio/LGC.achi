@@ -7,6 +7,7 @@
     <title>Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/logo(2).png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Carregar o Supabase primeiro -->
@@ -26,15 +27,34 @@
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
     <script src="navigation.js"></script>
+    <script src="client-dashboard.js" defer></script>
 </head>
 <body>
     <header>   <script src="navigation.js"></script>    </header>
     <main>
         <section id="hero">
+            <div class="hero-slideshow">
+                <div class="hero-slide active"></div>
+                <div class="hero-slide"></div>
+                <div class="hero-slide"></div>
+                <div class="hero-slide"></div>
+                <div class="hero-slide"></div>
+                <div class="hero-slide"></div>
+            </div>
+            <div class="slideshow-dots">
+                <div class="slideshow-dot active" data-slide="0"></div>
+                <div class="slideshow-dot" data-slide="1"></div>
+                <div class="slideshow-dot" data-slide="2"></div>
+                <div class="slideshow-dot" data-slide="3"></div>
+                <div class="slideshow-dot" data-slide="4"></div>
+                <div class="slideshow-dot" data-slide="5"></div>
+            </div>
             <div class="hero-content">
                 <h1>Architecture Portfolio</h1>
                 <p></p>
-                <a href="#projects" class="cta-button">View Projects</a>
+                <div class="hero-buttons">
+                    <a href="#projects" class="cta-button">View Projects</a>
+                </div>
             </div>
         </section>
 
@@ -67,12 +87,166 @@
         </section>
     </main>
 
+    <!-- Client Dashboard Popup -->
+    <div id="client-dashboard-overlay" class="dashboard-overlay">
+        <div class="dashboard-popup">
+            <div class="dashboard-popup-header">
+                <h2>Industry Solutions</h2>
+                <button class="close-dashboard" onclick="closeDashboard()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="dashboard-popup-content">
+                <p>Explore our tailored solutions for your industry</p>
+                <div class="category-grid">
+                    <!-- RF Telecommunications -->
+                    <div class="category-card" data-category="rf-telecommunications">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>RF & Telecommunications</h3>
+                            <p>Advanced solutions for telecom infrastructure and RF optimization</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Energy -->
+                    <div class="category-card" data-category="energy">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Energy</h3>
+                            <p>Sustainable strategies for traditional and renewable energy sectors</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Construction -->
+                    <div class="category-card" data-category="construction">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Construction</h3>
+                            <p>Project management and efficiency solutions for construction firms</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Bank Insurance Office -->
+                    <div class="category-card" data-category="banking">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Banking & Finance</h3>
+                            <p>Strategic consulting for financial institutions and fintech companies</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Sand -->
+                    <div class="category-card" data-category="sand">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Sand & Mining</h3>
+                            <p>Operational excellence and sustainability for extraction industries</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Oil & Gas -->
+                    <div class="category-card" data-category="oil-gas">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Oil & Gas</h3>
+                            <p>Comprehensive solutions for upstream, midstream, and downstream operations</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Real Estate -->
+                    <div class="category-card" data-category="real-estate">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Real Estate</h3>
+                            <p>Market analysis and investment strategies for property development</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Nuclear -->
+                    <div class="category-card" data-category="nuclear">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Nuclear</h3>
+                            <p>Safety, compliance, and operational efficiency for nuclear facilities</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Industrial -->
+                    <div class="category-card" data-category="industrial">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Industrial</h3>
+                            <p>Process optimization and automation for manufacturing industries</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Naval -->
+                    <div class="category-card" data-category="naval">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Naval</h3>
+                            <p>Specialized consulting for shipbuilding and maritime operations</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- BPO -->
+                    <div class="category-card" data-category="bpo">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>BPO</h3>
+                            <p>Business process optimization and outsourcing strategies</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Automotive -->
+                    <div class="category-card" data-category="automotive">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Automotive</h3>
+                            <p>Innovation and efficiency solutions for the automotive value chain</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Aerospace -->
+                    <div class="category-card" data-category="aerospace">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Aerospace</h3>
+                            <p>Strategic and operational consulting for aerospace manufacturers</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Chemistry-Pharmaceutical -->
+                    <div class="category-card" data-category="chemistry-pharmaceutical">
+                        <div class="category-image"></div>
+                        <div class="category-overlay">
+                            <h3>Chemistry & Pharmaceutical</h3>
+                            <p>Regulatory compliance and R&D optimization for chemical and pharma companies</p>
+                            <a href="#" class="category-link">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="footer-content">
             <div class="social-links">
-                <a href="https://www.bing.com/ck/a?!&&p=d80ae39a6c62e680643ee94667ec8f9ac79f97a593905b9654e04a4ea4f8dac8JmltdHM9MTc0NDU4ODgwMA&ptn=3&ver=2&hsh=4&fclid=11d5c87e-996b-65a7-1176-ddb598b66439&psq=lgc.archi+instagram&u=a1aHR0cHM6Ly93d3cuaW5zdGFncmFtLmNvbS9sZ2NhcmNoaS8&ntb=1"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.instagram.com/lgcarchi/"><i class="fab fa-instagram"></i></a>
                 <a href="https://www.facebook.com/profile.php?id=100094347141527"><i class="fab fa-facebook"></i></a>
-                <a href="https://www.bing.com/ck/a?!&&p=15e0096609b8b5bfdd21e772411677234e24bbd3b1b7d8a420a0f0c5fa355b20JmltdHM9MTc0NDU4ODgwMA&ptn=3&ver=2&hsh=4&fclid=11d5c87e-996b-65a7-1176-ddb598b66439&psq=lgc.archi+twitter&u=a1aHR0cHM6Ly90d2l0dGVyLmNvbS9pbmdlZ25lcmlhX2xnYw&ntb=1"><i class="fab fa-twitter"></i></a>
+                <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
             </div>
             <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
         </div>
@@ -82,6 +256,7 @@
         // Check login status when loading the page
         document.addEventListener('DOMContentLoaded', function() {
             const currentUser = localStorage.getItem('currentUser');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
             console.log('current login status:', currentUser ? 'Logged in as ' + currentUser : 'Not logged in');
             
             // If the user is logged in, make sure the UI is updated

@@ -3,40 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfólios - Architecture Portfolio</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
+    <title>Projects - Architecture Portfolio</title>
+    <link rel="icon" type="image/png" href="assets/logo(2).png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Load Supabase first -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        window.supabase = supabase;
+        // Make Supabase globally accessible
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Checking supabase:', typeof supabase);
+            if (typeof supabase !== 'undefined') {
+                window.supabase = supabase;
+                console.log('Supabase made globally available');
+            }
+        });
     </script>
+    
+    <!-- Load other scripts -->
+    <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
+    <script src="navigation.js"></script>
 </head>
 <body>
-    <header>   <script src="navigation.js"></script>    </header>
+    <header>
+        <!-- Navigation will be inserted by navigation.js -->
+    </header>
 
     <main>
         <section id="portfolios">
-            <h2>Nossos Portfólios</h2>
-            <div class="portfolio-grid">
-                <div class="portfolio-card">
-                    <div class="portfolio-image" style="background-image: url('assets/portfolio1.jpg');"></div>
-                    <h3>Projeto 1</h3>
-                    <p>Descrição breve do projeto 1.</p>
-                    <a href="portfolio1.html" class="view-button">Ver Detalhes</a>
+            <div class="container">
+                <div class="portfolio-header">
+                    <h2>Our Projects</h2>
+                    <p id="category-filter-info">Showing all projects</p>
                 </div>
-                <div class="portfolio-card">
-                    <div class="portfolio-image" style="background-image: url('assets/portfolio2.jpg');"></div>
-                    <h3>Projeto 2</h3>
-                    <p>Descrição breve do projeto 2.</p>
-                    <a href="portfolio2.html" class="view-button">Ver Detalhes</a>
+                
+                <div class="portfolio-filters">
+                    <button class="filter-button active" data-filter="all">All Categories</button>
+                    <div class="filter-dropdown">
+                        <button class="filter-dropdown-btn">Select Category <i class="fas fa-chevron-down"></i></button>
+                        <div class="filter-dropdown-content">
+                            <button class="filter-item" data-filter="rf-telecommunications">RF Telecommunications</button>
+                            <button class="filter-item" data-filter="energy">Energy</button>
+                            <button class="filter-item" data-filter="construction">Construction</button>
+                            <button class="filter-item" data-filter="banking">Bank Insurance Office</button>
+                            <button class="filter-item" data-filter="sand">Stand</button>
+                            <button class="filter-item" data-filter="oil-gas">Oil & Gas</button>
+                            <button class="filter-item" data-filter="real-estate">Real Estate</button>
+                            <button class="filter-item" data-filter="nuclear">Nuclear</button>
+                            <button class="filter-item" data-filter="industrial">Industrial</button>
+                            <button class="filter-item" data-filter="naval">Naval</button>
+                            <button class="filter-item" data-filter="bpo">BPO</button>
+                            <button class="filter-item" data-filter="automotive">Automotive</button>
+                            <button class="filter-item" data-filter="aerospace">Aerospace</button>
+                            <button class="filter-item" data-filter="chemistry-pharmaceutical">Chemistry-Pharmaceutical</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="portfolio-card">
-                    <div class="portfolio-image" style="background-image: url('assets/portfolio3.jpg');"></div>
-                    <h3>Projeto 3</h3>
-                    <p>Descrição breve do projeto 3.</p>
-                    <a href="portfolio3.html" class="view-button">Ver Detalhes</a>
+                
+                <div id="portfolio-grid" class="portfolio-grid">
+                    <!-- Projects will be loaded here dynamically -->
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading projects...</p>
+                    </div>
                 </div>
-                <!-- Adicione mais cards conforme necessário -->
+                
+                <div id="no-projects" class="no-projects" style="display: none;">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No projects found</h3>
+                    <p>There are no projects in this category yet.</p>
+                </div>
             </div>
         </section>
     </main>
@@ -45,11 +84,519 @@
         <div class="footer-content">
             <div class="social-links">
                 <a href="https://www.instagram.com/lgcarchi/"><i class="fab fa-instagram"></i></a>
-                <a href="#"><i class="fab fa-linkedin"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.facebook.com/profile.php?id=100094347141527"><i class="fab fa-facebook"></i></a>
+                <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
             </div>
-            <p>&copy; 2024 Architecture Portfolio. All rights reserved.</p>
+            <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
         </div>
     </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Supabase
+            const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            
+            // Check for category filter in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryFilter = urlParams.get('category');
+            
+            // Check if there's a stored category in localStorage
+            const storedCategory = localStorage.getItem('selectedCategory');
+            
+            // Determine which category to use
+            let currentCategory = categoryFilter || storedCategory || 'all';
+            
+            // Update filter UI based on selected category
+            updateFilterUI(currentCategory);
+            
+            // Load projects based on the selected category
+            loadProjects(currentCategory);
+            
+            // Add click event to filter buttons
+            document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-filter');
+                    currentCategory = category;
+                    localStorage.setItem('selectedCategory', category);
+                    updateFilterUI(category);
+                    loadProjects(category);
+                });
+            });
+            
+            // Toggle filter dropdown
+            const filterDropdownBtn = document.querySelector('.filter-dropdown-btn');
+            filterDropdownBtn.addEventListener('click', function() {
+                const dropdownContent = document.querySelector('.filter-dropdown-content');
+                dropdownContent.classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(event) {
+                if (!event.target.matches('.filter-dropdown-btn') && !event.target.closest('.filter-dropdown-content')) {
+                    const dropdowns = document.querySelectorAll('.filter-dropdown-content');
+                    dropdowns.forEach(dropdown => {
+                        if (dropdown.classList.contains('show')) {
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                }
+            });
+            
+            // Function to update filter UI
+            function updateFilterUI(category) {
+                // Update filter buttons
+                document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
+                    if (button.getAttribute('data-filter') === category) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                });
+                
+                // Update filter info text
+                const filterInfo = document.getElementById('category-filter-info');
+                if (category === 'all') {
+                    filterInfo.textContent = 'Showing all projects';
+                } else {
+                    // Get the display name of the category
+                    const categoryButton = document.querySelector(`.filter-item[data-filter="${category}"]`);
+                    const categoryName = categoryButton ? categoryButton.textContent : formatCategoryName(category);
+                    filterInfo.textContent = `Showing projects in ${categoryName}`;
+                }
+            }
+            
+            // Format category name for display
+            function formatCategoryName(category) {
+                return category
+                    .split('-')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+            }
+            
+            // Function to load projects
+            async function loadProjects(category) {
+                // Show loading spinner
+                const portfolioGrid = document.getElementById('portfolio-grid');
+                const noProjects = document.getElementById('no-projects');
+                
+                portfolioGrid.innerHTML = `
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading projects...</p>
+                    </div>
+                `;
+                noProjects.style.display = 'none';
+                
+                try {
+                    // Query projects from database
+                    let query = supabase.from('projects').select('*');
+                    
+                    // Apply category filter if not 'all'
+                    if (category && category !== 'all') {
+                        query = query.eq('category', category);
+                    }
+                    
+                    // Execute query
+                    const { data: projects, error } = await query;
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    // Clear loading spinner
+                    portfolioGrid.innerHTML = '';
+                    
+                    // Check if projects were found
+                    if (projects && projects.length > 0) {
+                        // Display projects
+                        projects.forEach(project => {
+                            // Create project card
+                            const card = document.createElement('div');
+                            card.className = 'portfolio-card';
+                            card.setAttribute('data-category', project.category);
+                            
+                            // Set card background color based on category
+                            const bgColor = getCategoryColor(project.category);
+                            
+                            card.innerHTML = `
+                                <div class="portfolio-image" style="background-color: ${bgColor};">
+                                    ${project.image_url ? `<img src="${project.image_url}" alt="${project.name}">` : ''}
+                                </div>
+                                <div class="portfolio-content">
+                                    <h3>${project.name}</h3>
+                                    <p>${project.description || 'No description available'}</p>
+                                    <div class="portfolio-meta">
+                                        <span class="portfolio-category">${formatCategoryName(project.category)}</span>
+                                        <span class="portfolio-status ${project.status}">${project.status}</span>
+                                    </div>
+                                    <a href="#" class="view-button">View Details</a>
+                                </div>
+                            `;
+                            
+                            portfolioGrid.appendChild(card);
+                        });
+                        
+                        // Apply animations
+                        animateProjectCards();
+                    } else {
+                        // Show no projects message
+                        noProjects.style.display = 'flex';
+                        portfolioGrid.innerHTML = '';
+                    }
+                } catch (error) {
+                    console.error('Error loading projects:', error);
+                    portfolioGrid.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error loading projects. Please try again later.</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Function to get category color
+            function getCategoryColor(category) {
+                const colors = {
+                    'rf-telecommunications': '#3498db',
+                    'energy': '#2ecc71',
+                    'construction': '#e67e22',
+                    'banking': '#34495e',
+                    'sand': '#f1c40f',
+                    'oil-gas': '#e74c3c',
+                    'real-estate': '#9b59b6',
+                    'nuclear': '#16a085',
+                    'industrial': '#7f8c8d',
+                    'naval': '#3498db',
+                    'bpo': '#2c3e50',
+                    'automotive': '#c0392b',
+                    'aerospace': '#1abc9c',
+                    'chemistry-pharmaceutical': '#8e44ad'
+                };
+                
+                return colors[category] || '#cccccc';
+            }
+            
+            // Function to animate project cards
+            function animateProjectCards() {
+                const cards = document.querySelectorAll('.portfolio-card');
+                cards.forEach((card, index) => {
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    card.classList.add('animate-in');
+                });
+            }
+        });
+    </script>
+    
+    <style>
+        /* Portfolio Page Styles */
+        #portfolios {
+            padding: 120px 0 60px;
+            background-color: #f8f9fa;
+            min-height: 80vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .portfolio-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .portfolio-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .portfolio-header h2::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 3px;
+            background: #000000c9;
+            bottom: -10px;
+            left: 25%;
+        }
+        
+        #category-filter-info {
+            font-size: 1.1rem;
+            color: #666;
+            margin-top: 20px;
+        }
+        
+        .portfolio-filters {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .filter-button {
+            padding: 8px 16px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-button.active {
+            background-color: #000000c9;
+            color: white;
+        }
+        
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .filter-dropdown-btn {
+            padding: 8px 16px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 220px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 1;
+            border-radius: 8px;
+            padding: 8px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .filter-dropdown-content.show {
+            display: block;
+        }
+        
+        .filter-item {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .filter-item.active {
+            background-color: #f1f1f1;
+            font-weight: 500;
+        }
+        
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            min-height: 200px;
+        }
+        
+        .portfolio-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .portfolio-card.animate-in {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .portfolio-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .portfolio-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .portfolio-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .portfolio-content {
+            padding: 20px;
+        }
+        
+        .portfolio-content h3 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .portfolio-content p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .portfolio-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .portfolio-category {
+            background-color: #f1f1f1;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        
+        .portfolio-status {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+        }
+        
+        .portfolio-status.active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .portfolio-status.completed {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .view-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #000000c9;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .view-button:hover {
+            background-color: #111;
+            transform: translateY(-2px);
+        }
+        
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            grid-column: 1 / -1;
+            color: #666;
+        }
+        
+        .loading-spinner i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #000000c9;
+        }
+        
+        .error-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            grid-column: 1 / -1;
+            color: #721c24;
+            background-color: #f8d7da;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .error-message i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .no-projects {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: #666;
+            background-color: #f8f9fa;
+            padding: 40px;
+            border-radius: 10px;
+            border: 2px dashed #ddd;
+            text-align: center;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+        
+        .no-projects i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .portfolio-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-dropdown {
+                width: 100%;
+            }
+            
+            .filter-dropdown-btn {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .filter-dropdown-content {
+                width: 100%;
+            }
+        }
+    </style>
 </body>
 </html>

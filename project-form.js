@@ -63,6 +63,18 @@ async function loadProjectData(projectId) {
     // Populate form with project data
     document.getElementById('project-title').value = data.name;
     
+    // Set category dropdown value if it exists
+    const categorySelect = document.getElementById('project-category');
+    if (categorySelect && data.category) {
+        // Find and select the matching option
+        for (let i = 0; i < categorySelect.options.length; i++) {
+            if (categorySelect.options[i].value === data.category) {
+                categorySelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+    
     // Set the status dropdown value if it exists
     const statusSelect = document.getElementById('project-status');
     if (statusSelect && data.status) {
@@ -112,11 +124,17 @@ async function saveProject(event) {
     try {
         // Get form values
         const projectName = document.getElementById('project-title').value;
+        const projectCategory = document.getElementById('project-category').value;
         const projectFile = document.getElementById('project-file').files[0];
         const projectStatus = document.getElementById('project-status').value;
         
         if (!projectName) {
             alert('Project name is required!');
+            return;
+        }
+        
+        if (!projectCategory) {
+            alert('Project category is required!');
             return;
         }
         
@@ -156,6 +174,7 @@ async function saveProject(event) {
         // Create project data object
         const projectData = {
             name: projectName,
+            category: projectCategory,
             status: projectStatus
         };
         

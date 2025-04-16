@@ -4,86 +4,86 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// === VARIÁVEIS GLOBAIS ===
+// === GLOBAL VARIABLES ===
 let currentUser = localStorage.getItem('currentUser');
 let currentChatUser = null;
-let messageSubscription = null; // Para guardar a subscrição atual
-let lastMessageCheck = Date.now(); // Para verificação de polling
-let isEditing = null; // Para controlar qual mensagem está sendo editada
-let isRefreshing = localStorage.getItem('refreshState') === 'true'; // Para controlar se é um refresh após edição/exclusão
+let messageSubscription = null; // To store the current subscription
+let lastMessageCheck = Date.now(); // For polling verification
+let isEditing = null; // To control which message is being edited
+let isRefreshing = localStorage.getItem('refreshState') === 'true'; // To control if refreshing after edit/delete
 
-// === AO CARREGAR A PÁGINA ===
+// === ON PAGE LOAD ===
 document.addEventListener('DOMContentLoaded', async () => {
   if (!currentUser) {
-    alert('Utilizador não autenticado.');
+    alert('User not authenticated.');
     window.location.href = 'login.html';
     return;
   }
 
-  await carregarUtilizadores();
+  await loadUsers();
   
-  // Configurar a assinatura em tempo real
-  configurarAssinaturaTempoReal();
+  // Set up real-time subscription
+  setupRealTimeSubscription();
   
-  // Configurar um fallback com polling a cada 10 segundos
+  // Set up a fallback with polling every 10 seconds
   startMessagePolling();
 
-  // Evento de envio de mensagem
+  // Message send event
   const form = document.getElementById('chat-input-form');
   if(form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      await enviarMensagem();
+      await sendMessage();
     });
   }
   
-  // Restaurar o chat anterior se existir
+  // Restore previous chat if it exists
   const lastChatUser = localStorage.getItem('lastChatUser');
   if (lastChatUser) {
-    setTimeout(() => selecionarUtilizador(lastChatUser), 300); // Atraso menor para carregamento mais rápido
+    setTimeout(() => selectUser(lastChatUser), 300); // Shorter delay for faster loading
   }
   
-  // Se foi um refresh após edição/exclusão, limpar o estado para futuros carregamentos
+  // If it was a refresh after edit/delete, clear the state for future loads
   if (isRefreshing) {
     localStorage.removeItem('refreshState');
-    // Eliminamos a animação de carregamento
+    // Remove the loading animation
     document.documentElement.classList.add('no-transitions');
     
-    // Removemos a classe após um breve período para permitir animações futuras
+    // Remove the class after a brief period to allow future animations
     setTimeout(() => {
       document.documentElement.classList.remove('no-transitions');
     }, 1000);
   }
 });
 
-// === CARREGAR UTILIZADORES ===
-async function carregarUtilizadores() {
+// === LOAD USERS ===
+async function loadUsers() {
     const { data: users, error } = await supabaseClient
-      .from('Users') // Certifique-se que a tabela 'Users' existe e tem a coluna 'username'
+      .from('Users') // Make sure the 'Users' table exists and has the 'username' column
       .select('username');
   
-    const lista = document.getElementById('user-list');
-    if (!lista) {
+    const list = document.getElementById('user-list');
+    if (!list) {
         return;
     }
-    lista.innerHTML = ''; // Limpar lista antiga
+    list.innerHTML = ''; // Clear old list
   
     if (error) {
-      lista.innerHTML = `<div class="user-item-error">Erro ao carregar utilizadores.</div>`;
+      list.innerHTML = `<div class="user-item-error">Error loading users.</div>`;
       return;
     }
 
     if (!users || users.length === 0) {
-        lista.innerHTML = `<div class="user-item-none">Nenhum utilizador encontrado.</div>`;
+        list.innerHTML = `<div class="user-item-none">No users found.</div>`;
         return;
     }
 
-    // Filtrar o utilizador atual e mostrar os outros
+    // Filter the current user and show others
     users.filter(u => u.username !== currentUser).forEach(user => {
       const div = document.createElement('div');
       div.className = 'user-item';
       div.dataset.username = user.username;
-      // Adicionar o avatar e nome
+      // Add avatar and name
       div.innerHTML = `
           <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
           <div class="user-info">
@@ -91,89 +91,89 @@ async function carregarUtilizadores() {
               <span class="last-message-placeholder" id="last-msg-${user.username}"></span>
           </div>
       `;
-      div.addEventListener('click', () => selecionarUtilizador(user.username));
-      lista.appendChild(div);
+      div.addEventListener('click', () => selectUser(user.username));
+      list.appendChild(div);
     });
 }
 
-// === SELECIONAR UTILIZADOR PARA CHAT ===
-async function selecionarUtilizador(username) {
-    if (currentChatUser === username) return; // Não fazer nada se já está selecionado
+// === SELECT USER FOR CHAT ===
+async function selectUser(username) {
+    if (currentChatUser === username) return; // Do nothing if already selected
 
     currentChatUser = username;
 
-    // Atualizar UI
+    // Update UI
     document.querySelectorAll('.user-item').forEach(item => item.classList.remove('active'));
     const userItem = document.querySelector(`.user-item[data-username="${username}"]`);
     if (userItem) userItem.classList.add('active');
 
     const chatHeader = document.getElementById('chat-header');
-    if (chatHeader) chatHeader.textContent = `Chat com ${username}`;
+    if (chatHeader) chatHeader.textContent = `Chat with ${username}`;
     
     const messagesDiv = document.getElementById('chat-messages');
-    if (messagesDiv) messagesDiv.innerHTML = '<p>Carregando mensagens...</p>'; // Feedback de carregamento
+    if (messagesDiv) messagesDiv.innerHTML = '<p>Loading messages...</p>'; // Loading feedback
     
     const inputArea = document.querySelector('.chat-input-area');
-    if (inputArea) inputArea.style.display = 'flex'; // Mostrar área de input
+    if (inputArea) inputArea.style.display = 'flex'; // Show input area
     
-    await carregarMensagens();
+    await loadMessages();
 }
 
-// === CARREGAR MENSAGENS ===
-async function carregarMensagens() {
+// === LOAD MESSAGES ===
+async function loadMessages() {
     if (!currentChatUser) return;
     const chat = document.getElementById('chat-messages');
     if (!chat) {
         return;
     }
-    chat.innerHTML = ''; // Limpar mensagens antigas
+    chat.innerHTML = ''; // Clear old messages
 
-    const { data: mensagens, error } = await supabaseClient
+    const { data: messages, error } = await supabaseClient
         .from('chat_messages')
         .select('*')
         .or(`and(sender.eq.${currentUser},receiver.eq.${currentChatUser}),and(sender.eq.${currentChatUser},receiver.eq.${currentUser})`)
         .order('created_at', { ascending: true });
 
     if (error) {
-        chat.innerHTML = `<p class="chat-error">Erro ao carregar mensagens.</p>`;
+        chat.innerHTML = `<p class="chat-error">Error loading messages.</p>`;
         return;
     }
 
-    if (!mensagens || mensagens.length === 0) {
-        chat.innerHTML = `<p class="chat-empty">Nenhuma mensagem ainda. Comece a conversar!</p>`;
+    if (!messages || messages.length === 0) {
+        chat.innerHTML = `<p class="chat-empty">No messages yet. Start a conversation!</p>`;
     } else {
-        mensagens.forEach(msg => mostrarMensagem(msg));
+        messages.forEach(msg => showMessage(msg));
     }
-    chat.scrollTop = chat.scrollHeight; // Scroll para o fim
+    chat.scrollTop = chat.scrollHeight; // Scroll to the end
 }
 
-// === MOSTRAR MENSAGEM NA UI ===
-function mostrarMensagem(msg) {
+// === SHOW MESSAGE IN UI ===
+function showMessage(msg) {
     const chat = document.getElementById('chat-messages');
     if (!chat) return;
 
-    // Remover a mensagem vazia se existir
+    // Remove empty message if it exists
     const emptyMsg = chat.querySelector('.chat-empty');
     if(emptyMsg) emptyMsg.remove();
 
-    // Verificar se a mensagem já existe (para evitar duplicação)
+    // Check if message already exists (to avoid duplication)
     const existingMsg = document.querySelector(`.message[data-message-id="${msg.id}"]`);
     if (existingMsg) {
-        // Se a mensagem já existe, apenas atualiza seu conteúdo
+        // If message already exists, just update its content
         const contentDiv = existingMsg.querySelector('.message-content');
         if (contentDiv) {
             if (msg.is_deleted) {
                 existingMsg.classList.add('deleted');
-                contentDiv.textContent = 'Esta mensagem foi excluída.';
+                contentDiv.textContent = 'This message was deleted.';
             } else {
                 contentDiv.textContent = msg.content;
                 if (msg.is_edited) {
-                    // Adicionar indicador de edição se não existir
+                    // Add edited indicator if it doesn't exist
                     let editedTag = existingMsg.querySelector('.edited-tag');
                     if (!editedTag) {
                         editedTag = document.createElement('span');
                         editedTag.className = 'edited-tag';
-                        editedTag.textContent = ' (editado)';
+                        editedTag.textContent = ' (edited)';
                         existingMsg.querySelector('.message-time').prepend(editedTag);
                     }
                 }
@@ -183,49 +183,49 @@ function mostrarMensagem(msg) {
     }
 
     const div = document.createElement('div');
-    // Certifique-se que as classes CSS 'sent' e 'received' existem em chat.css
+    // Make sure the CSS classes 'sent' and 'received' exist in chat.css
     div.className = `message ${msg.sender === currentUser ? 'sent' : 'received'}`;
     if (msg.is_deleted) div.classList.add('deleted');
     
-    // Adicionar atributos para possível edição/exclusão futura
+    // Add attributes for possible future edit/delete
     div.dataset.messageId = msg.id;
     div.dataset.sender = msg.sender;
 
-    // Sanitizar o conteúdo antes de inserir (MUITO IMPORTANTE para segurança)
+    // Sanitize content before inserting (VERY IMPORTANT for security)
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
-    contentDiv.textContent = msg.is_deleted ? 'Esta mensagem foi excluída.' : msg.content; // Usar textContent previne XSS
+    contentDiv.textContent = msg.is_deleted ? 'This message was deleted.' : msg.content; // Using textContent prevents XSS
 
     const timeDiv = document.createElement('div');
     timeDiv.className = 'message-time';
     
-    // Adicionar indicador de editado se necessário
+    // Add edited indicator if necessary
     if (msg.is_edited && !msg.is_deleted) {
         const editedTag = document.createElement('span');
         editedTag.className = 'edited-tag';
-        editedTag.textContent = ' (editado)';
+        editedTag.textContent = ' (edited)';
         timeDiv.appendChild(editedTag);
     }
     
-    timeDiv.appendChild(document.createTextNode(formatarHora(msg.created_at)));
+    timeDiv.appendChild(document.createTextNode(formatTime(msg.created_at)));
 
     div.appendChild(contentDiv);
     div.appendChild(timeDiv);
     
-    // Adicionar botões de ação (editar/excluir) apenas para mensagens enviadas pelo usuário atual
-    // e que não estejam excluídas
+    // Add action buttons (edit/delete) only for messages sent by the current user
+    // and that aren't deleted
     if (msg.sender === currentUser && !msg.is_deleted) {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'message-actions';
         
         const editButton = document.createElement('button');
         editButton.className = 'message-action-button edit';
-        editButton.innerHTML = '<i class="fas fa-edit"></i> Editar';
+        editButton.innerHTML = '<i class="fas fa-edit"></i> Edit';
         editButton.addEventListener('click', () => startEditingMessage(msg.id));
         
         const deleteButton = document.createElement('button');
         deleteButton.className = 'message-action-button delete';
-        deleteButton.innerHTML = '<i class="fas fa-trash"></i> Excluir';
+        deleteButton.innerHTML = '<i class="fas fa-trash"></i> Delete';
         deleteButton.addEventListener('click', () => deleteMessage(msg.id));
         
         actionsDiv.appendChild(editButton);
@@ -234,89 +234,61 @@ function mostrarMensagem(msg) {
     }
     
     chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight; // Scroll para o fim
+    chat.scrollTop = chat.scrollHeight; // Scroll to the end
 }
 
-// === ENVIAR MENSAGEM ===
-async function enviarMensagem() {
-    // Obter o conteúdo da mensagem
+// === SEND MESSAGE ===
+async function sendMessage() {
+    // Get message content
     const messageInput = document.getElementById('chat-input');
     const content = messageInput.value.trim();
     
-    // Verificar se o conteúdo não está vazio e se temos um utilizador selecionado
+    // Check if content is not empty and we have a selected user
     if (!content || !currentChatUser) {
         if (!content) {
             messageInput.classList.add('error');
             setTimeout(() => messageInput.classList.remove('error'), 2000);
         }
-        if (!currentChatUser) {
-            document.getElementById('user-list').classList.add('pulse-error');
-            setTimeout(() => document.getElementById('user-list').classList.remove('pulse-error'), 2000);
-        }
         return;
     }
     
-    // Limpar o input e definir estado de envio
+    // Clear input field immediately for better UX
     messageInput.value = '';
-    messageInput.disabled = true;
-    document.getElementById('send-button').disabled = true;
     
     try {
-        // Criar o objeto da mensagem
-        const message = {
-            sender: currentUser,
-            receiver: currentChatUser,
-            content: content,
-            created_at: new Date().toISOString(),
-            read: false,
-            is_edited: false,
-            is_deleted: false
-        };
-        
-        // Inserir mensagem na base de dados
+        // Add message to database
         const { data, error } = await supabaseClient
             .from('chat_messages')
-            .insert(message)
-            .select();
+            .insert([
+                { 
+                    sender: currentUser,
+                    receiver: currentChatUser,
+                    content: content
+                }
+            ]);
             
         if (error) {
-            throw error;
+            console.error('Error sending message:', error);
+            alert('Error sending message. Please try again.');
+            return;
         }
         
-        // Guardar o utilizador atual no localStorage antes de recarregar
+        console.log('Message sent successfully:', data);
+        
+        // Store the chat user for when we reload the page
         localStorage.setItem('lastChatUser', currentChatUser);
         
-        // Indicar que estamos fazendo um refresh após envio
-        localStorage.setItem('refreshState', 'true');
-        
-        // Recarregar a página
-        window.location.reload();
-        
-    } catch (error) {
-        messageInput.disabled = false;
-        document.getElementById('send-button').disabled = false;
-        
-        // Mostrar erro ao utilizador
-        const errorToast = document.createElement('div');
-        errorToast.className = 'error-toast';
-        errorToast.innerText = 'Erro ao enviar mensagem. Tente novamente.';
-        document.body.appendChild(errorToast);
-        
-        setTimeout(() => {
-            errorToast.classList.add('show');
-            setTimeout(() => {
-                errorToast.classList.remove('show');
-                setTimeout(() => errorToast.remove(), 300);
-            }, 3000);
-        }, 100);
+    } catch (e) {
+        console.error('Exception sending message:', e);
+        alert('An error occurred. Please try again.');
     }
 }
 
-// === CONFIGURAR ASSINATURA DE TEMPO REAL ===
-function configurarAssinaturaTempoReal() {
-    const channelName = `chat-messages-${currentUser}`; // Nome do canal com username para evitar conflitos
+// === SETUP REAL-TIME SUBSCRIPTION ===
+function setupRealTimeSubscription() {
+    const channelName = `chat-messages-${currentUser}`; // Name of the channel with username to avoid conflicts
 
-    // Remover canal anterior se existir
+    // Remove previous channel if it exists
     if (messageSubscription) {
         supabaseClient.removeChannel(messageSubscription);
         messageSubscription = null;
@@ -343,7 +315,7 @@ function configurarAssinaturaTempoReal() {
                 } else if (status === 'CHANNEL_ERROR') {
                     document.dispatchEvent(new CustomEvent('realtime-error'));
                 } else if (status === 'TIMED_OUT') {
-                    setTimeout(configurarAssinaturaTempoReal, 5000);
+                    setTimeout(setupRealTimeSubscription, 5000);
                 }
             });
     } catch (error) {
@@ -351,30 +323,30 @@ function configurarAssinaturaTempoReal() {
     }
 }
 
-// Função para lidar com novas mensagens (tanto de realtime quanto de polling)
+// Function to handle new messages (both realtime and polling)
 function handleNewMessage(msg) {
-    // Atualizar a última verificação
+    // Update last check
     lastMessageCheck = Date.now();
     
-    // Salvar o remetente como usuário do chat atual
+    // Store the sender as the current chat user
     localStorage.setItem('lastChatUser', msg.sender);
     
-    // Recarregar a página
+    // Reload the page
     setTimeout(() => {
         window.location.reload();
     }, 100);
 }
 
-// Implementar um sistema de polling como fallback para realtime
+// Implement a polling fallback for realtime
 function startMessagePolling() {
-    // Verificar novas mensagens a cada 10 segundos
+    // Check for new messages every 10 seconds
     setInterval(async () => {
-        // Não verificar se o usuário estava digitando
+        // Don't check if user was typing
         const inputActive = document.activeElement === document.getElementById('chat-input');
         if (inputActive) return;
         
         try {
-            // Buscar mensagens recebidas após a última verificação
+            // Search for received messages after the last check
             const { data, error } = await supabaseClient
                 .from('chat_messages')
                 .select('*')
@@ -391,24 +363,24 @@ function startMessagePolling() {
         } catch (error) {
             // Silently handle error
         }
-    }, 10000); // 10 segundos
+    }, 10000); // 10 seconds
 }
 
-// === FORMATAR HORA ===
-function formatarHora(timestamp) {
+// === FORMAT TIME ===
+function formatTime(timestamp) {
     if (!timestamp) return '';
     try {
         const data = new Date(timestamp);
-        // Formato HH:MM
+        // Format HH:MM
         return data.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
     } catch(e) {
         return '--:--';
     }
 }
 
-// === INICIAR EDIÇÃO DE MENSAGEM ===
+// === START EDITING MESSAGE ===
 function startEditingMessage(messageId) {
-    // Se já estiver editando outra mensagem, cancela a edição
+    // If already editing another message, cancel editing
     if (isEditing) {
         cancelEditing();
     }
@@ -417,14 +389,14 @@ function startEditingMessage(messageId) {
     const messageElement = document.querySelector(`.message[data-message-id="${messageId}"]`);
     if (!messageElement) return;
     
-    // Adicionar classe de edição
+    // Add editing class
     messageElement.classList.add('editing');
     
-    // Obter o conteúdo atual da mensagem
+    // Get current message content
     const contentDiv = messageElement.querySelector('.message-content');
     const currentContent = contentDiv.textContent;
     
-    // Criar o input para edição
+    // Create input for editing
     const editContainer = document.createElement('div');
     editContainer.className = 'edit-container';
     
@@ -438,12 +410,12 @@ function startEditingMessage(messageId) {
     
     const saveButton = document.createElement('button');
     saveButton.className = 'edit-button';
-    saveButton.textContent = 'Salvar';
+    saveButton.textContent = 'Save';
     saveButton.addEventListener('click', () => saveMessageEdit(messageId, editInput.value));
     
     const cancelButton = document.createElement('button');
     cancelButton.className = 'cancel-button';
-    cancelButton.textContent = 'Cancelar';
+    cancelButton.textContent = 'Cancel';
     cancelButton.addEventListener('click', cancelEditing);
     
     editActions.appendChild(cancelButton);
@@ -452,14 +424,14 @@ function startEditingMessage(messageId) {
     editContainer.appendChild(editInput);
     editContainer.appendChild(editActions);
     
-    // Substituir o conteúdo pelo formulário de edição
+    // Replace content with edit form
     contentDiv.innerHTML = '';
     contentDiv.appendChild(editContainer);
     
-    // Focar no input
+    // Focus on input
     editInput.focus();
     
-    // Permitir salvar com Enter
+    // Allow saving with Enter
     editInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             saveMessageEdit(messageId, editInput.value);
@@ -467,28 +439,28 @@ function startEditingMessage(messageId) {
     });
 }
 
-// === CANCELAR EDIÇÃO DE MENSAGEM ===
+// === CANCEL EDITING MESSAGE ===
 function cancelEditing() {
     if (!isEditing) return;
     
     const messageElement = document.querySelector(`.message[data-message-id="${isEditing}"]`);
     if (!messageElement) return;
     
-    // Recarregar mensagens para restaurar o estado original
+    // Reload messages to restore original state
     messageElement.classList.remove('editing');
     isEditing = null;
-    carregarMensagens();
+    loadMessages();
 }
 
-// === SALVAR EDIÇÃO DE MENSAGEM ===
+// === SAVE EDITED MESSAGE ===
 async function saveMessageEdit(messageId, newContent) {
     if (!newContent.trim()) {
-        // Não permitir conteúdo vazio
+        // Don't allow empty content
         return;
     }
     
     try {
-        // Atualizar a mensagem no banco de dados
+        // Update message in database
         const { error } = await supabaseClient
             .from('chat_messages')
             .update({ 
@@ -496,27 +468,27 @@ async function saveMessageEdit(messageId, newContent) {
                 is_edited: true
             })
             .eq('id', messageId)
-            .eq('sender', currentUser); // Garantir que só o próprio usuário pode editar suas mensagens
+            .eq('sender', currentUser); // Ensure only the original user can edit their messages
         
         if (error) throw error;
         
-        // Limpar o estado de edição
+        // Clear editing state
         isEditing = null;
         
-        // Guardar o utilizador atual no localStorage antes de recarregar
+        // Store the chat user for when we reload the page
         localStorage.setItem('lastChatUser', currentChatUser);
         
-        // Indicar que estamos fazendo um refresh após edição
+        // Indicate that we're doing a refresh after edit
         localStorage.setItem('refreshState', 'true');
         
-        // Recarregar a página para mostrar as mudanças
+        // Reload the page to show changes
         window.location.reload();
         
     } catch (error) {
-        // Mostrar erro ao usuário
+        // Show error to user
         const errorToast = document.createElement('div');
         errorToast.className = 'error-toast';
-        errorToast.innerText = 'Erro ao editar mensagem. Tente novamente.';
+        errorToast.innerText = 'Error editing message. Please try again.';
         document.body.appendChild(errorToast);
         
         setTimeout(() => {
@@ -529,37 +501,37 @@ async function saveMessageEdit(messageId, newContent) {
     }
 }
 
-// === EXCLUIR MENSAGEM ===
+// === DELETE MESSAGE ===
 async function deleteMessage(messageId) {
-    // Confirmar antes de excluir
-    if (!confirm('Tem certeza que deseja excluir esta mensagem?')) {
+    // Confirm before deleting
+    if (!confirm('Are you sure you want to delete this message?')) {
         return;
     }
     
     try {
-        // Marcar a mensagem como excluída no banco de dados
+        // Mark message as deleted in database
         const { error } = await supabaseClient
             .from('chat_messages')
             .update({ is_deleted: true })
             .eq('id', messageId)
-            .eq('sender', currentUser); // Garantir que só o próprio usuário pode excluir suas mensagens
+            .eq('sender', currentUser); // Ensure only the original user can delete their messages
         
         if (error) throw error;
         
-        // Guardar o utilizador atual no localStorage antes de recarregar
+        // Store the chat user for when we reload the page
         localStorage.setItem('lastChatUser', currentChatUser);
         
-        // Indicar que estamos fazendo um refresh após exclusão
+        // Indicate that we're doing a refresh after deletion
         localStorage.setItem('refreshState', 'true');
         
-        // Recarregar a página para mostrar as mudanças
+        // Reload the page to show changes
         window.location.reload();
         
     } catch (error) {
-        // Mostrar erro ao usuário
+        // Show error to user
         const errorToast = document.createElement('div');
         errorToast.className = 'error-toast';
-        errorToast.innerText = 'Erro ao excluir mensagem. Tente novamente.';
+        errorToast.innerText = 'Error deleting message. Please try again.';
         document.body.appendChild(errorToast);
         
         setTimeout(() => {

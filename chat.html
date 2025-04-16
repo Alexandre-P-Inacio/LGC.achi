@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
     
 <head>
   <meta charset="UTF-8" />
-  <title>Chat em Tempo Real</title>
+  <title>Real-Time Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="chat.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* Estilo para desativar todas as transições/animações durante refresh */
+    /* Style to disable all transitions/animations during refresh */
     .no-transitions * {
       transition: none !important;
       animation: none !important;
       animation-delay: 0ms !important;
     }
     
-    /* Remove efeitos visuais de carregamento */
+    /* Remove loading visual effects */
     html.no-transitions .loading-indicator,
     html.no-transitions .spinner {
       display: none !important;
     }
     
-    /* Garantir que não haja atrasos ou transições */
+    /* Ensure there are no delays or transitions */
     html.no-transitions .user-item,
     html.no-transitions .message,
     html.no-transitions .chat-input-container,
@@ -42,16 +42,16 @@
   <div class="chat-app">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h2>Conversas</h2>
+        <h2>Conversations</h2>
         <div class="search-container">
           <i class="fas fa-search search-icon"></i>
-          <input type="text" placeholder="Procurar usuário..." id="user-search" />
+          <input type="text" placeholder="Search user..." id="user-search" />
         </div>
       </div>
       <div class="user-list" id="user-list">
         <div class="loading-indicator">
           <div class="spinner"></div>
-          <span>Carregando contatos...</span>
+          <span>Loading contacts...</span>
         </div>
       </div>
     </aside>
@@ -61,7 +61,7 @@
         <div class="current-chat-user">
           <div class="user-avatar" id="chat-user-avatar"></div>
           <div class="user-info">
-            <span class="chat-user-name">Selecione uma conversa</span>
+            <span class="chat-user-name">Select a conversation</span>
             <span class="chat-user-status">Offline</span>
           </div>
         </div>
@@ -72,10 +72,6 @@
         </div>
       </div>
       
-      <div class="connection-status">
-        <i class="fas fa-circle"></i> Desconectado
-      </div>
-      
       <div class="chat-messages" id="chat-messages">
         <!-- Messages will be loaded here -->
       </div>
@@ -84,12 +80,12 @@
         <span class="typing-dot"></span>
         <span class="typing-dot"></span>
         <span class="typing-dot"></span>
-        <span>Digitando...</span>
+        <span>Typing...</span>
       </div>
       
       <form class="chat-input-area" id="chat-input-form">
         <div class="chat-input-container">
-          <input type="text" id="chat-input" placeholder="Escreva uma mensagem..." autocomplete="off" />
+          <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off" />
           <button type="submit" id="send-button">
             <i class="fas fa-paper-plane"></i>
           </button>
