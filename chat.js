@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
-// Carregar lista de utilizadores
+// Carrega a lista de utilizadores
 async function carregarUtilizadores() {
   const { data: users, error } = await supabaseClient
     .from('Users')
@@ -50,7 +50,7 @@ async function carregarUtilizadores() {
     });
 }
 
-// Selecionar utilizador para conversar
+// Selecionar um utilizador e iniciar o chat
 async function selecionarUtilizador(username) {
   currentChatUser = username;
   document.getElementById('chat-header').textContent = `Chat com ${username}`;
@@ -60,11 +60,13 @@ async function selecionarUtilizador(username) {
 
   await carregarMensagens();
 
-  // Subscrição em tempo real
-  if (subscription) supabaseClient.removeChannel(subscription);
+  if (subscription) {
+    supabaseClient.removeChannel(subscription);
+    subscription = null;
+  }
 
   subscription = supabaseClient
-    .channel('chat-realtime')
+    .channel(`chat-realtime-${currentUser}`)
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
@@ -78,10 +80,14 @@ async function selecionarUtilizador(username) {
         mostrarMensagem(msg);
       }
     })
-    .subscribe();
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Subscrição em tempo real ativa!');
+      }
+    });
 }
 
-// Carregar histórico de mensagens
+// Carregar as mensagens da conversa
 async function carregarMensagens() {
   const { data: mensagens, error } = await supabaseClient
     .from('chat_messages')
@@ -101,7 +107,7 @@ async function carregarMensagens() {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Mostrar uma única mensagem na interface
+// Mostrar uma mensagem na interface
 function mostrarMensagem(msg) {
   const chat = document.getElementById('chat-messages');
   const div = document.createElement('div');
@@ -114,7 +120,7 @@ function mostrarMensagem(msg) {
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Enviar nova mensagem
+// Enviar uma nova mensagem
 async function enviarMensagem() {
   const input = document.getElementById('chat-input');
   const texto = input.value.trim();
@@ -136,7 +142,7 @@ async function enviarMensagem() {
   }
 }
 
-// Formatar hora (ex: 14:22)
+// Formatar hora (ex: 14:35)
 function formatarHora(timestamp) {
   const hora = new Date(timestamp);
   return hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
