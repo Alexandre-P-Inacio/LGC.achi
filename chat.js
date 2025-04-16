@@ -1,4 +1,4 @@
-// Supabase config
+// Configuração do Supabase
 const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -8,45 +8,33 @@ let currentUser = localStorage.getItem('currentUser');
 let currentChatUser = null;
 let subscription = null;
 
-// Ao carregar a página
+// Quando a página carrega
 document.addEventListener('DOMContentLoaded', async () => {
   if (!currentUser) {
-    alert("Utilizador não autenticado.");
+    alert('Utilizador não autenticado.');
     window.location.href = 'login.html';
     return;
   }
 
-  await loadUsers();
+  await carregarUtilizadores();
 
-  // Eventos
-  document.getElementById('send-button').addEventListener('click', sendMessage);
-  document.getElementById('chat-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendMessage();
-    }
+  document.getElementById('chat-input-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    enviarMensagem();
   });
-
-  document.getElementById('search-button').addEventListener('click', loadUsers);
 });
 
 // Carregar lista de utilizadores
-async function loadUsers() {
+async function carregarUtilizadores() {
   const { data: users, error } = await supabaseClient
     .from('Users')
     .select('username');
 
-  const container = document.getElementById('user-list');
-  container.innerHTML = '';
+  const lista = document.getElementById('user-list');
+  lista.innerHTML = '';
 
   if (error) {
-    console.error("Erro ao carregar utilizadores:", error.message);
-    container.innerHTML = `<p>Erro: ${error.message}</p>`;
-    return;
-  }
-
-  if (!users || users.length === 0) {
-    container.innerHTML = `<p>Nenhum utilizador encontrado.</p>`;
+    lista.innerHTML = `<p>Erro: ${error.message}</p>`;
     return;
   }
 
@@ -56,52 +44,46 @@ async function loadUsers() {
       const div = document.createElement('div');
       div.className = 'user-item';
       div.dataset.username = user.username;
-      div.innerHTML = `
-        <div class="user-avatar">${user.username.charAt(0).toUpperCase()}</div>
-        <div class="user-info">
-          <span class="user-name">${user.username}</span>
-          <div class="last-message">Clique para conversar</div>
-        </div>
-      `;
-      div.addEventListener('click', () => selectUser(user.username));
-      container.appendChild(div);
+      div.innerHTML = `<span class="user-name">${user.username}</span>`;
+      div.addEventListener('click', () => selecionarUtilizador(user.username));
+      lista.appendChild(div);
     });
 }
 
 // Selecionar utilizador para conversar
-async function selectUser(username) {
+async function selecionarUtilizador(username) {
   currentChatUser = username;
-  document.getElementById('chat-header').innerHTML = `<h2>Chat com ${username}</h2>`;
-  document.getElementById('chat-input-container').style.display = 'flex';
+  document.getElementById('chat-header').textContent = `Chat com ${username}`;
+  document.getElementById('chat-messages').innerHTML = '';
+  document.getElementById('chat-input').value = '';
+  document.getElementById('chat-input').focus();
 
-  await loadMessages();
-
-  if (subscription) {
-    supabaseClient.removeChannel(subscription);
-  }
+  await carregarMensagens();
 
   // Subscrição em tempo real
+  if (subscription) supabaseClient.removeChannel(subscription);
+
   subscription = supabaseClient
-    .channel('chat-messages-channel')
+    .channel('chat-realtime')
     .on('postgres_changes', {
       event: 'INSERT',
       schema: 'public',
-      table: 'chat_messages'
-    }, (payload) => {
+      table: 'chat_messages',
+    }, payload => {
       const msg = payload.new;
       if (
         (msg.sender === currentUser && msg.receiver === currentChatUser) ||
         (msg.sender === currentChatUser && msg.receiver === currentUser)
       ) {
-        appendMessage(msg);
+        mostrarMensagem(msg);
       }
     })
     .subscribe();
 }
 
-// Carregar mensagens entre utilizadores
-async function loadMessages() {
-  const { data: messages, error } = await supabaseClient
+// Carregar histórico de mensagens
+async function carregarMensagens() {
+  const { data: mensagens, error } = await supabaseClient
     .from('chat_messages')
     .select('*')
     .or(`and(sender.eq.${currentUser},receiver.eq.${currentChatUser}),and(sender.eq.${currentChatUser},receiver.eq.${currentUser})`)
@@ -111,42 +93,32 @@ async function loadMessages() {
   chat.innerHTML = '';
 
   if (error) {
-    console.error("Erro ao carregar mensagens:", error.message);
     chat.innerHTML = `<p>Erro ao carregar mensagens.</p>`;
     return;
   }
 
-  if (!messages || messages.length === 0) {
-    chat.innerHTML = `<p>Sem mensagens ainda. Começa a conversar!</p>`;
-    return;
-  }
-
-  messages.forEach(msg => appendMessage(msg));
+  mensagens.forEach(msg => mostrarMensagem(msg));
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Adicionar mensagem na UI
-function appendMessage(msg) {
+// Mostrar uma única mensagem na interface
+function mostrarMensagem(msg) {
   const chat = document.getElementById('chat-messages');
   const div = document.createElement('div');
   div.className = `message ${msg.sender === currentUser ? 'sent' : 'received'}`;
   div.innerHTML = `
-    <div class="message-avatar">${msg.sender.charAt(0).toUpperCase()}</div>
-    <div class="message-bubble">
-      ${msg.sender !== currentUser ? `<div class="message-sender">${msg.sender}</div>` : ''}
-      <div class="message-content">${msg.content}</div>
-      <div class="message-time">${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-    </div>
+    <div class="message-content">${msg.content}</div>
+    <div class="message-time">${formatarHora(msg.created_at)}</div>
   `;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
 
-// Enviar mensagem
-async function sendMessage() {
+// Enviar nova mensagem
+async function enviarMensagem() {
   const input = document.getElementById('chat-input');
-  const content = input.value.trim();
-  if (!content || !currentChatUser) return;
+  const texto = input.value.trim();
+  if (!texto || !currentChatUser) return;
 
   input.value = '';
 
@@ -155,12 +127,17 @@ async function sendMessage() {
     .insert({
       sender: currentUser,
       receiver: currentChatUser,
-      content,
+      content: texto,
       read: false
     });
 
   if (error) {
-    console.error("Erro ao enviar mensagem:", error.message);
-    alert("Erro ao enviar mensagem.");
+    alert('Erro ao enviar mensagem: ' + error.message);
   }
+}
+
+// Formatar hora (ex: 14:22)
+function formatarHora(timestamp) {
+  const hora = new Date(timestamp);
+  return hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }

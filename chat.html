@@ -1,42 +1,28 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Chat em Tempo Real</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="chat.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="chat.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="chat.js" defer></script>
+  <script defer src="chat.js"></script>
 </head>
 <body>
-  <main class="chat-container">
-    <div class="chat-sidebar">
-      <div class="chat-header">
-        <h2>Conversas</h2>
-      </div>
-      <div class="user-search">
-        <input type="text" id="user-search" placeholder="Procurar usuário...">
-        <button id="search-button"><i class="fas fa-search"></i></button>
-      </div>
-      <div class="user-list" id="user-list">
-        <p>Carregando...</p>
-      </div>
-    </div>
+  <div class="chat-app">
+    <aside class="sidebar">
+      <header class="sidebar-header">Conversas</header>
+      <div class="user-list" id="user-list">Carregando...</div>
+    </aside>
 
-    <div class="chat-main">
-      <div class="chat-header" id="chat-header">
-        <h2>Seleciona um utilizador</h2>
-      </div>
-      <div class="chat-messages" id="chat-messages">
-        <p>Sem mensagens...</p>
-      </div>
-      <div class="chat-input-container" id="chat-input-container" style="display: none;">
-        <input type="text" id="chat-input" placeholder="Escreve aqui...">
-        <button id="send-button"><i class="fas fa-paper-plane"></i></button>
-      </div>
-    </div>
-  </main>
+    <main class="chat-main">
+      <header class="chat-header" id="chat-header">Seleciona uma conversa</header>
+      <div class="chat-messages" id="chat-messages"></div>
+      <form class="chat-input-area" id="chat-input-form">
+        <input type="text" id="chat-input" placeholder="Escreve uma mensagem..." autocomplete="off" />
+        <button type="submit" id="send-button">Enviar</button>
+      </form>
+    </main>
+  </div>
 </body>
 </html>
