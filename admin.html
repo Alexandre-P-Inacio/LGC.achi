@@ -1269,7 +1269,7 @@
                                 }).promise;
                                 
                                 console.log(`Rendered page ${pageNum} at scale ${scale.toFixed(2)}`);
-                            } catch (error) {
+            } catch (error) {
                                 console.error(`Error rendering page ${pageNum}:`, error);
                                 pageDiv.innerHTML = `<div style="padding: 20px; text-align: center;">
                                     Error loading page ${pageNum}<br>
@@ -1321,7 +1321,7 @@
                         console.error('Error loading PDF:', error);
                         fallbackToPdfViewer(fileUrl);
                     });
-                } catch (e) {
+                    } catch (e) {
                     console.error('General error in PDF processing:', e);
                     fallbackToPdfViewer(fileUrl);
                 }

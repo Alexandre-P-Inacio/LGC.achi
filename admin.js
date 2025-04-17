@@ -692,15 +692,18 @@ function resetFilters() {
 
 // Make sure the admin email stays visible by keeping it separate from the project loading process
 // Add this near the beginning of your script or in the document ready function:
-function loadAdminInfo() {
-    const user = supabase.auth.user();
+async function loadAdminInfo() {
+    const { data: user, error } = await supabase.auth.getUser();
     if (user) {
         const adminNameElement = document.getElementById('admin-name');
         if (adminNameElement) {
             adminNameElement.textContent = user.email || 'Admin';
         }
+    } else {
+        console.error('User not found:', error);
     }
 }
+
 
 // Call this function when the page loads and never reset it during filtering
 document.addEventListener('DOMContentLoaded', function() {
@@ -857,4 +860,348 @@ window.inspectProjects = async function() {
     } catch (err) {
         console.error('Error in inspectProjects:', err);
     }
-}; 
+};
+
+// Show file in modal with appropriate preview based on file type
+function showFileInModal(fileUrl, fileName) {
+    const modal = document.getElementById('file-viewer-modal');
+    const title = document.getElementById('modal-file-title');
+    const iframe = document.getElementById('file-iframe');
+    const imgPreview = document.getElementById('file-image');
+    const unsupportedView = document.getElementById('file-unsupported');
+    const downloadLink = document.getElementById('file-download-link');
+    const downloadButton = document.getElementById('download-button');
+    const fileLoading = document.getElementById('file-loading');
+    const fileInfo = document.getElementById('file-info');
+    const fileTypeIcon = document.getElementById('file-type-icon');
+    const zoomInButton = document.getElementById('zoom-in-button');
+    const zoomOutButton = document.getElementById('zoom-out-button');
+    const flipbook = document.getElementById('flipbook');
+    const flipbookWrapper = document.getElementById('flipbook-wrapper');
+    const prevBtn = document.getElementById('prev-page-btn');
+    const nextBtn = document.getElementById('next-page-btn');
+    
+    // Reset zoom
+    imgPreview.style.transform = 'scale(1)';
+    
+    // Show loading indicator
+    fileLoading.style.display = 'flex';
+    
+    // Hide all preview elements initially
+    iframe.style.display = 'none';
+    imgPreview.style.display = 'none';
+    unsupportedView.style.display = 'none';
+    flipbookWrapper.style.display = 'none';
+    flipbook.style.display = 'none';
+    
+    // Destroy any existing Turn.js instance - fix for "is is an invalid value" error
+    try {
+        if ($(flipbook).data().turn) {
+            $(flipbook).turn('destroy');
+        }
+    } catch (e) {
+        console.log('No existing Turn instance to destroy:', e);
+    }
+    
+    // Reset flipbook container
+    flipbook.innerHTML = '';
+    
+    // Set the modal title to the file name
+    title.textContent = fileName || 'File Preview';
+    
+    // Set download links
+    downloadLink.href = fileUrl;
+    downloadLink.setAttribute('download', fileName || 'download');
+    downloadButton.href = fileUrl;
+    downloadButton.setAttribute('download', fileName || 'download');
+    
+    // Show the modal
+    modal.style.display = 'block';
+    
+    // Determine file type and update file info
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    const fileTypeMap = {
+        'jpg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+        'jpeg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+        'png': { type: 'Image', icon: 'PNG', color: '#28a745' },
+        'gif': { type: 'Image', icon: 'GIF', color: '#fd7e14' },
+        'svg': { type: 'Image', icon: 'SVG', color: '#6610f2' },
+        'webp': { type: 'Image', icon: 'WP', color: '#20c997' },
+        'pdf': { type: 'Document', icon: 'PDF', color: '#dc3545' },
+        'txt': { type: 'Text', icon: 'TXT', color: '#6c757d' },
+        'html': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+        'htm': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+        'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
+        'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
+        'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
+        'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
+    };
+    
+    const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
+    fileInfo.textContent = `${fileType.type} • ${formatFileSize(1024 * 1024)} • ${formatDate(new Date())}`;
+    fileTypeIcon.textContent = fileType.icon;
+    fileTypeIcon.style.background = fileType.color;
+    
+    // Show or hide zoom buttons based on file type
+    const canZoom = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension);
+    zoomInButton.style.display = canZoom ? 'flex' : 'none';
+    zoomOutButton.style.display = canZoom ? 'flex' : 'none';
+    
+    // Choose appropriate preview based on file extension
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
+        // Image preview
+        imgPreview.onload = function() {
+            fileLoading.style.display = 'none';
+            imgPreview.style.display = 'block';
+        };
+        imgPreview.onerror = function() {
+            fileLoading.style.display = 'none';
+            unsupportedView.style.display = 'block';
+        };
+        imgPreview.src = fileUrl;
+    } 
+    else if (['pdf'].includes(fileExtension)) {
+        // PDF Flipbook using PDF.js and Turn.js
+        flipbookWrapper.style.display = 'block';
+        
+        try {
+            console.log('Starting PDF processing for flipbook');
+            // First check if libraries are loaded
+            if (typeof pdfjsLib === 'undefined') {
+                throw new Error('PDF.js library not loaded');
+            }
+            
+            if (typeof $ === 'undefined' || typeof $.fn.turn === 'undefined') {
+                throw new Error('Turn.js library not loaded');
+            }
+            
+            // Load the PDF file
+            console.log('Loading PDF from URL:', fileUrl);
+            pdfjsLib.getDocument(fileUrl).promise.then(function(pdf) {
+                console.log('PDF loaded successfully with', pdf.numPages, 'pages');
+                
+                // Store number of pages globally
+                window.numPages = pdf.numPages;
+                
+                // Clear existing content first
+                flipbook.innerHTML = '';
+                
+                // Create a new container for Turn.js to avoid issues with reuse
+                const flipContainer = document.createElement('div');
+                flipContainer.id = 'flipbook-pages';
+                flipContainer.className = 'flipbook-container';
+                flipbook.appendChild(flipContainer);
+                
+                // Initialize the flipbook with only the exact required pages
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const pageDiv = document.createElement('div');
+                    pageDiv.className = 'page';
+                    pageDiv.id = `page-${i}`;
+                    pageDiv.style.position = 'relative';
+                    pageDiv.style.overflow = 'hidden';
+                    
+                    // Loading placeholder
+                    const placeholder = document.createElement('div');
+                    placeholder.style.position = 'absolute';
+                    placeholder.style.top = '50%';
+                    placeholder.style.left = '50%';
+                    placeholder.style.transform = 'translate(-50%, -50%)';
+                    placeholder.style.color = '#999';
+                    placeholder.textContent = `Carregando página ${i}...`;
+                    pageDiv.appendChild(placeholder);
+                    
+                    // Page number for reference
+                    const pageNumber = document.createElement('div');
+                    pageNumber.textContent = i;
+                    pageNumber.style.position = 'absolute';
+                    pageNumber.style.bottom = '10px';
+                    pageNumber.style.right = '10px';
+                    pageNumber.style.fontSize = '12px';
+                    pageNumber.style.color = '#999';
+                    pageNumber.style.zIndex = '100';
+                    pageDiv.appendChild(pageNumber);
+                    
+                    flipContainer.appendChild(pageDiv);
+                }
+                
+                // Initialize the flipbook with explicit numeric dimensions
+                setTimeout(() => {
+                    try {
+                        $(flipContainer).turn({
+                            width: 800,
+                            height: 600,
+                            autoCenter: true,
+                            display: 'single',
+                            duration: 600,
+                            acceleration: true,
+                            gradients: true,
+                            elevation: 50,
+                            page: 1,
+                            when: {
+                                turning: function(event, page, view) {
+                                    // Load current page
+                                    loadPageContent(page);
+                                },
+                                turned: function(event, page, view) {
+                                    // Update navigation button states
+                                    prevBtn.disabled = page <= 1;
+                                    nextBtn.disabled = page >= pdf.numPages;
+                                }
+                            }
+                        });
+                        
+                        console.log('Turn.js initialized successfully');
+                    } catch (turnError) {
+                        console.error('Error initializing Turn.js:', turnError);
+                        fallbackToPdfViewer(fileUrl);
+                    }
+                }, 100); // Small delay to ensure DOM is ready
+                
+                // Function to directly render PDF page to a canvas
+                async function loadPageContent(pageNum) {
+                    if (pageNum < 1 || pageNum > pdf.numPages) return;
+                    
+                    const pageDiv = document.getElementById(`page-${pageNum}`);
+                    if (!pageDiv || pageDiv.querySelector('canvas')) return;
+                    
+                    try {
+                        const page = await pdf.getPage(pageNum);
+                        
+                        const viewport = page.getViewport({scale: 1.0});
+                        const containerWidth = 750;
+                        const containerHeight = 550;
+                        
+                        const scaleX = containerWidth / viewport.width;
+                        const scaleY = containerHeight / viewport.height;
+                        const scale = Math.min(scaleX, scaleY) * 0.95;
+                        
+                        const scaledViewport = page.getViewport({scale});
+                        
+                        const canvas = document.createElement('canvas');
+                        canvas.width = scaledViewport.width;
+                        canvas.height = scaledViewport.height;
+                        
+                        canvas.style.position = 'absolute';
+                        canvas.style.top = '50%';
+                        canvas.style.left = '50%';
+                        canvas.style.transform = 'translate(-50%, -50%)';
+                        canvas.style.border = '1px solid #eee';
+                        
+                        pageDiv.innerHTML = '';
+                        pageDiv.appendChild(canvas);
+                        
+                        const pageNumber = document.createElement('div');
+                        pageNumber.textContent = pageNum;
+                        pageNumber.style.position = 'absolute';
+                        pageNumber.style.bottom = '10px';
+                        pageNumber.style.right = '10px';
+                        pageNumber.style.fontSize = '12px';
+                        pageNumber.style.color = '#333';
+                        pageNumber.style.background = 'rgba(255,255,255,0.7)';
+                        pageNumber.style.padding = '3px 8px';
+                        pageNumber.style.borderRadius = '10px';
+                        pageDiv.appendChild(pageNumber);
+                        
+                        const context = canvas.getContext('2d');
+                        await page.render({
+                            canvasContext: context,
+                            viewport: scaledViewport
+                        }).promise;
+                    } catch (error) {
+                        console.error(`Error rendering page ${pageNum}:`, error);
+                        pageDiv.innerHTML = `<div style="padding: 20px; text-align: center;">
+                            Erro ao carregar página ${pageNum}<br>
+                            <small>${error.message}</small>
+                        </div>`;
+                    }
+                }
+                
+                // Load first page immediately
+                loadPageContent(1);
+                
+                // Hide loading indicator and show flipbook
+                fileLoading.style.display = 'none';
+                flipbook.style.display = 'block';
+                
+                // Update button states
+                prevBtn.disabled = true;
+                nextBtn.disabled = pdf.numPages <= 1;
+                
+                // Add navigation handlers
+                $(prevBtn).off('click').on('click', function() {
+                    try {
+                        $(flipContainer).turn('previous');
+                    } catch (e) {
+                        console.error('Error navigating to previous page:', e);
+                    }
+                    return false;
+                });
+                
+                $(nextBtn).off('click').on('click', function() {
+                    try {
+                        $(flipContainer).turn('next');
+                    } catch (e) {
+                        console.error('Error navigating to next page:', e);
+                    }
+                    return false;
+                });
+                
+            }).catch(function(error) {
+                console.error('Error loading PDF:', error);
+                fallbackToPdfViewer(fileUrl);
+            });
+        } catch (e) {
+            console.error('General error in PDF processing:', e);
+            fallbackToPdfViewer(fileUrl);
+        }
+    }
+    else if (['doc', 'docx'].includes(fileExtension)) {
+        iframe.onload = function() {
+            fileLoading.style.display = 'none';
+            iframe.style.display = 'block';
+        };
+        iframe.onerror = function() {
+            fileLoading.style.display = 'none';
+            unsupportedView.style.display = 'block';
+        };
+        const encodedUrl = encodeURIComponent(fileUrl);
+        iframe.src = `https://view.officeapps.live.com/op/view.aspx?src=${encodedUrl}`;
+    }
+    else if (['txt', 'html', 'htm', 'css', 'js'].includes(fileExtension)) {
+        iframe.onload = function() {
+            fileLoading.style.display = 'none';
+            iframe.style.display = 'block';
+        };
+        iframe.onerror = function() {
+            fileLoading.style.display = 'none';
+            unsupportedView.style.display = 'block';
+        };
+        iframe.src = fileUrl;
+    }
+    else {
+        fileLoading.style.display = 'none';
+        unsupportedView.style.display = 'block';
+    }
+}
+
+// Fallback function for PDF viewing
+function fallbackToPdfViewer(pdfUrl) {
+    console.log('Using fallback PDF viewer');
+    const fileLoading = document.getElementById('file-loading');
+    const flipbookWrapper = document.getElementById('flipbook-wrapper');
+    const iframe = document.getElementById('file-iframe');
+    const unsupportedView = document.getElementById('file-unsupported');
+    
+    fileLoading.style.display = 'none';
+    flipbookWrapper.style.display = 'none';
+    
+    iframe.onload = function() {
+        fileLoading.style.display = 'none';
+        iframe.style.display = 'block';
+    };
+    iframe.onerror = function() {
+        fileLoading.style.display = 'none';
+        unsupportedView.style.display = 'block';
+    };
+    iframe.src = pdfUrl;
+} 
