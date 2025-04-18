@@ -10,24 +10,68 @@
     <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Carregar o Supabase primeiro -->
+    <!-- Load Supabase first -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Garantir que o Supabase seja acessível globalmente
+        // Ensure Supabase is globally accessible
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Verificando supabase:', typeof supabase);
+            console.log('Checking supabase:', typeof supabase);
             if (typeof supabase !== 'undefined') {
                 window.supabase = supabase;
-                console.log('Supabase disponibilizado globalmente');
+                console.log('Supabase made available globally');
             }
         });
     </script>
     
-    <!-- Depois carregar os outros scripts -->
+    <!-- Then load other scripts -->
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
     <script src="navigation.js"></script>
     <script src="client-dashboard.js" defer></script>
+    
+    <style>
+        /* Fixed Chat Button Styles */
+        .fixed-chat-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            background-color: #333;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .fixed-chat-button:hover {
+            background-color: #000000c9;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .fixed-chat-button i {
+            font-size: 32px;
+        }
+        
+        @media (max-width: 768px) {
+            .fixed-chat-button {
+                width: 65px;
+                height: 65px;
+                bottom: 20px;
+                right: 20px;
+            }
+            
+            .fixed-chat-button i {
+                font-size: 26px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>   <script src="navigation.js"></script>    </header>
@@ -198,6 +242,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Fixed Chat Button -->
+    <a href="chat.html" class="fixed-chat-button">
+        <i class="fas fa-comments"></i>
+    </a>
 
     <footer>
         <div class="footer-content">
