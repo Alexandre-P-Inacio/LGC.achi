@@ -38,8 +38,7 @@ function initializeDashboard() {
         });
     });
 
-    // Set up intersection observer for animation
-    setupIntersectionObserver();
+    // No need for animation observer with the new sliding design
 }
 
 // Set up listeners for dashboard popup
@@ -59,6 +58,13 @@ function setupDashboardListeners() {
             }
         });
     }
+
+    // Add keyboard escape key support
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeDashboard();
+        }
+    });
 }
 
 // Function to show dashboard popup
@@ -73,7 +79,12 @@ function showDashboard() {
     // Show dashboard overlay
     const overlay = document.getElementById('client-dashboard-overlay');
     if (overlay) {
-        overlay.style.display = 'flex';
+        overlay.style.display = 'block';
+        
+        // Add class to trigger animation after a small delay
+        setTimeout(() => {
+            overlay.classList.add('active');
+        }, 10);
         
         // Initialize dashboard
         initializeDashboard();
@@ -87,10 +98,16 @@ function showDashboard() {
 function closeDashboard() {
     const overlay = document.getElementById('client-dashboard-overlay');
     if (overlay) {
-        overlay.style.display = 'none';
+        // First remove the active class to trigger slide-out
+        overlay.classList.remove('active');
         
-        // Re-enable body scrolling
-        document.body.style.overflow = 'auto';
+        // Then hide the overlay after animation completes
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            
+            // Re-enable body scrolling
+            document.body.style.overflow = 'auto';
+        }, 300); // Match transition duration from CSS
     }
 }
 
@@ -99,39 +116,11 @@ function navigateToCategory(category) {
     // Store the selected category in localStorage
     localStorage.setItem('selectedCategory', category);
     
+    // Close the dashboard immediately before navigating since we have simpler UI now
+    closeDashboard();
+    
     // Navigate to the projects page filtered by category
     window.location.href = `portfolios.html?category=${category}`;
-}
-
-// Set up intersection observer for animation
-function setupIntersectionObserver() {
-    // Check if IntersectionObserver is supported
-    if ('IntersectionObserver' in window) {
-        const options = {
-            root: null, // Use the viewport
-            rootMargin: '0px',
-            threshold: 0.1 // Trigger when at least 10% of the element is visible
-        };
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target); // Stop observing once it's visible
-                }
-            });
-        }, options);
-        
-        // Observe each category card
-        document.querySelectorAll('.category-card').forEach(card => {
-            observer.observe(card);
-        });
-    } else {
-        // Fallback for browsers that don't support IntersectionObserver
-        document.querySelectorAll('.category-card').forEach(card => {
-            card.classList.add('visible');
-        });
-    }
 }
 
 // Show a notification message
