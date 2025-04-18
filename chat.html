@@ -30,18 +30,97 @@
       transition: none !important;
       animation: none !important;
     }
+    
+    /* Back button styles */
+    .back-button {
+      color: #0a66c2;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      font-size: 14px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .back-button:hover {
+      color: #094d8f;
+    }
+    
+    .back-button i {
+      font-size: 12px;
+    }
+    
+    /* Sidebar header adjusted */
+    .sidebar-header {
+      padding-top: 15px;
+    }
+    
+    /* Adjust chat app position */
+    .chat-app {
+      top: 0;
+    }
+    
+    /* Updated chat input area styles */
+    .chat-input-area {
+      padding: 15px 20px;
+      background-color: #f0f2f5;
+      margin-top: auto;
+      border-top: 1px solid #eaeaea;
+      position: relative;
+    }
+    
+    .chat-input-container {
+      display: flex;
+      align-items: center;
+      background-color: white;
+      border-radius: 30px;
+      padding: 8px 8px 8px 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: none;
+    }
+    
+    .chat-input-area input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+    
+    .chat-input-area button {
+      background-color: #0a66c2;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 10px;
+    }
+    
+    .chat-input-area button:hover {
+      background-color: #094d8f;
+    }
   </style>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script defer src="chat.js"></script>
 </head>
 <body>
-  <header id="site-header">
-    <script src="navigation.js"></script>
-  </header>
-
   <div class="chat-app">
     <aside class="sidebar">
       <div class="sidebar-header">
+        <!-- Back button integrated into the sidebar header -->
+        <a href="index.html" class="back-button">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
         <h2>Conversations</h2>
         <div class="search-container">
           <i class="fas fa-search search-icon"></i>
@@ -64,11 +143,6 @@
             <span class="chat-user-name">Select a conversation</span>
             <span class="chat-user-status">Offline</span>
           </div>
-        </div>
-        <div class="chat-actions">
-          <button class="action-button"><i class="fas fa-phone"></i></button>
-          <button class="action-button"><i class="fas fa-video"></i></button>
-          <button class="action-button"><i class="fas fa-ellipsis-v"></i></button>
         </div>
       </div>
       

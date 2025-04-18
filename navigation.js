@@ -1,15 +1,16 @@
-// Script que insere automaticamente a mesma barra de navegação em todas as páginas HTML
+// Script that automatically inserts the same navigation bar on all HTML pages
 document.addEventListener('DOMContentLoaded', function() {
     // Navigation bar structure (upperbar)
     const navHTML = `
     <header>
         <nav>
-            <div class="logo">ARCHITECT</div>
+            <a href="index.html" class="logo">
+                <img src="assets/LGC LOGO.png" alt="LGC Logo" class="logo-image">
+            </a>
             <ul class="nav-links">
                 <li><a href="index.html" id="nav-home">Home</a></li>
-                <li><a href="portfolios.html" id="nav-portfolios">Portfólios</a></li>
-                <li><a href="chat.html" id="nav-chat">Chat</a></li>
-                <li><a href="#about" id="nav-about">About</a></li>
+                <li><a href="portfolios.html" id="nav-portfolios">Portfolios</a></li>
+                <li><a href="index.html#about" id="nav-about">About</a></li>
                 <li><a href="contact.html" id="nav-contact">Contact</a></li>
                 <li class="auth-buttons">
                     <a href="login.html" class="login-button">Sign In</a>
@@ -50,8 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     } else if (currentPage === 'portfolios.html') {
         document.getElementById('nav-portfolios')?.classList.add('active');
-    } else if (currentPage === 'chat.html') {
-        document.getElementById('nav-chat')?.classList.add('active');
     } else if (currentPage === 'contact.html') {
         document.getElementById('nav-contact')?.classList.add('active');
     } else if (currentPage.includes('about')) {
@@ -96,5 +95,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.reload();
             });
         }
+    }
+    
+    // Add smooth scrolling for the About link when on home page
+    const aboutLink = document.getElementById('nav-about');
+    if (aboutLink) {
+        aboutLink.addEventListener('click', function(e) {
+            // Only do smooth scroll if we're already on the home page
+            const isHomePage = currentPage === '' || currentPage === 'index.html';
+            
+            if (isHomePage) {
+                e.preventDefault();
+                const aboutSection = document.getElementById('about');
+                
+                if (aboutSection) {
+                    aboutSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    
+                    // Update URL without refresh
+                    history.pushState(null, '', '#about');
+                }
+            }
+            // Otherwise, default link behavior will navigate to index.html#about
+        });
     }
 });
