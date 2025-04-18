@@ -38,6 +38,9 @@ function initializeDashboard() {
         });
     });
 
+    // Load shared projects for the user
+    loadSharedProjects();
+
     // Set up intersection observer for animation
     setupIntersectionObserver();
 }
@@ -101,6 +104,170 @@ function navigateToCategory(category) {
     
     // Navigate to the projects page filtered by category
     window.location.href = `portfolios.html?category=${category}`;
+}
+
+// Load projects shared with the current user
+async function loadSharedProjects() {
+    try {
+        // Get the current user
+        const currentUsername = localStorage.getItem('currentUser');
+        if (!currentUsername) {
+            console.error('No logged in user found');
+            return;
+        }
+        
+        // Get the user ID
+        const { data: userData, error: userError } = await supabase
+            .from('Users')
+            .select('id')
+            .eq('username', currentUsername)
+            .single();
+            
+        if (userError || !userData) {
+            console.error('Error getting user ID:', userError);
+            return;
+        }
+        
+        // Get shared projects for this user
+        const { data: sharedProjectsData, error: sharedError } = await supabase
+            .from('project_shares')
+            .select(`
+                id,
+                shared_at,
+                shared_by,
+                project_id,
+                projects:project_id (
+                    id, 
+                    name, 
+                    description,
+                    category,
+                    file_url,
+                    image_url,
+                    status,
+                    created_at
+                ),
+                sharer:shared_by (username)
+            `)
+            .eq('user_id', userData.id)
+            .order('shared_at', { ascending: false });
+            
+        if (sharedError) {
+            console.error('Error loading shared projects:', sharedError);
+            return;
+        }
+        
+        if (!sharedProjectsData || sharedProjectsData.length === 0) {
+            console.log('No shared projects found');
+            // Verificar se o elemento existe antes de tentar atualizá-lo
+            const sharedProjectsSection = document.getElementById('shared-projects-section');
+            if (sharedProjectsSection) {
+                sharedProjectsSection.style.display = 'none';
+            }
+            return;
+        }
+        
+        console.log('Shared projects:', sharedProjectsData);
+        
+        // Criar ou atualizar a seção de projetos compartilhados
+        let sharedProjectsSection = document.getElementById('shared-projects-section');
+        
+        // Se a seção não existir, criá-la
+        if (!sharedProjectsSection) {
+            const dashboardContent = document.querySelector('.dashboard-popup-content');
+            
+            if (dashboardContent) {
+                // Criar a seção de projetos compartilhados
+                sharedProjectsSection = document.createElement('div');
+                sharedProjectsSection.id = 'shared-projects-section';
+                sharedProjectsSection.className = 'shared-projects-section';
+                
+                // Adicionar a seção depois do texto introdutório
+                const contentParagraph = dashboardContent.querySelector('p');
+                if (contentParagraph) {
+                    contentParagraph.insertAdjacentElement('afterend', sharedProjectsSection);
+                } else {
+                    dashboardContent.prepend(sharedProjectsSection);
+                }
+            } else {
+                console.error('Dashboard content not found');
+                return;
+            }
+        }
+        
+        // Construir o conteúdo HTML para a seção de projetos compartilhados
+        sharedProjectsSection.innerHTML = `
+            <h3>Projects Shared With You</h3>
+            <div class="shared-projects-list">
+                ${sharedProjectsData.map(item => {
+                    const project = item.projects;
+                    
+                    if (!project) return '';  // Skip if project data is missing
+                    
+                    // Determinar status do projeto
+                    let statusClass = 'status-unknown';
+                    let statusText = 'Unknown';
+                    
+                    if (project.status === 'completed' || project.status === true || project.status === 'Completed') {
+                        statusClass = 'status-completed';
+                        statusText = 'Completed';
+                    } else if (project.status === 'incompleted' || project.status === false || project.status === 'Incompleted') {
+                        statusClass = 'status-incompleted';
+                        statusText = 'Incomplete';
+                    } else if (project.status === 'in_progress' || project.status === null || project.status === 'In Progress') {
+                        statusClass = 'status-in-progress';
+                        statusText = 'In Progress';
+                    }
+                    
+                    // Formatar a categoria
+                    const category = project.category ? project.category
+                        .split('-')
+                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(' ') : 'No category';
+                    
+                    // Formatar a data de compartilhamento
+                    const sharedDate = new Date(item.shared_at).toLocaleDateString();
+                    
+                    return `
+                        <div class="shared-project-card">
+                            <div class="shared-project-header">
+                                <h4>${project.name || 'Unnamed Project'}</h4>
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="shared-project-details">
+                                <p class="category-tag">${category}</p>
+                                <p class="shared-by">Shared by: ${item.sharer?.username || 'Unknown user'}</p>
+                                <p class="shared-date">On: ${sharedDate}</p>
+                            </div>
+                            <div class="shared-project-actions">
+                                <a href="javascript:void(0)" class="view-project-button" onclick="viewSharedProject('${project.id}')">
+                                    View Details
+                                </a>
+                                ${project.file_url ? `
+                                <a href="${project.file_url}" class="download-file-button" download="${project.name} - File">
+                                    <i class="fas fa-download"></i> Download File
+                                </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        
+        sharedProjectsSection.style.display = 'block';
+        
+    } catch (e) {
+        console.error('Error loading shared projects:', e);
+    }
+}
+
+// Function to view a shared project
+function viewSharedProject(projectId) {
+    // Implementar a visualização do projeto
+    console.log('Viewing project:', projectId);
+    
+    // Por enquanto, apenas mostra uma notificação
+    showNotification('View functionality is still being implemented.', 'info');
 }
 
 // Set up intersection observer for animation

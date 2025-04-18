@@ -26,8 +26,22 @@ CREATE TABLE IF NOT EXISTS public.projects (
   updated_at TIMESTAMPTZ
 );
 
+-- Tabela para compartilhamento de projetos
+CREATE TABLE IF NOT EXISTS public.project_shares (
+  id SERIAL PRIMARY KEY,
+  project_id UUID NOT NULL,
+  user_id INTEGER NOT NULL,
+  shared_by INTEGER NOT NULL,
+  shared_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES public."Users"(id) ON DELETE CASCADE,
+  FOREIGN KEY (shared_by) REFERENCES public."Users"(id) ON DELETE SET NULL,
+  UNIQUE(project_id, user_id)
+);
+
 -- Enable row level security
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.project_shares ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
 CREATE POLICY IF NOT EXISTS "Allow public select" ON "projects"
@@ -41,6 +55,13 @@ FOR UPDATE USING (true);
 
 CREATE POLICY IF NOT EXISTS "Allow public delete" ON "projects"
 FOR DELETE USING (true);
+
+-- Políticas para compartilhamentos
+CREATE POLICY IF NOT EXISTS "Allow admin manage shares" ON "project_shares" 
+FOR ALL USING (EXISTS (SELECT 1 FROM public."Users" WHERE id = auth.uid() AND is_admin = true));
+
+CREATE POLICY IF NOT EXISTS "Allow users view own shares" ON "project_shares"
+FOR SELECT USING (user_id = auth.uid());
 
 -- Insert sample projects for different categories
 INSERT INTO public.projects (name, description, category, client, status)

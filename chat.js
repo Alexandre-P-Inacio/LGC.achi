@@ -78,6 +78,23 @@ async function loadUsers() {
         return;
     }
 
+    // Add a system notifications item at the top
+    const systemDiv = document.createElement('div');
+    systemDiv.className = 'user-item system-user';
+    systemDiv.dataset.username = 'system';
+    systemDiv.innerHTML = `
+        <div class="user-avatar system-avatar"><i class="fas fa-bell"></i></div>
+        <div class="user-info">
+            <span class="user-name">Notificações</span>
+            <span class="last-message-placeholder">Atualizações do sistema</span>
+        </div>
+    `;
+    systemDiv.addEventListener('click', () => selectUser('system'));
+    list.appendChild(systemDiv);
+
+    // Check for unread system notifications
+    checkForUnreadNotifications();
+
     // Filter the current user and show others
     users.filter(u => u.username !== currentUser).forEach(user => {
       const div = document.createElement('div');
@@ -96,6 +113,36 @@ async function loadUsers() {
     });
 }
 
+// Check for unread system notifications
+async function checkForUnreadNotifications() {
+    if (!currentUser) return;
+    
+    try {
+        const { data, error } = await supabaseClient
+            .from('chat_messages')
+            .select('id')
+            .eq('receiver', currentUser)
+            .eq('sender', 'system')
+            .eq('read', false)
+            .limit(1);
+            
+        if (error) {
+            console.error('Error checking for unread notifications:', error);
+            return;
+        }
+        
+        // If we have unread notifications, add the notification indicator
+        if (data && data.length > 0) {
+            const systemUserItem = document.querySelector('.system-user');
+            if (systemUserItem) {
+                systemUserItem.classList.add('has-notifications');
+            }
+        }
+    } catch (e) {
+        console.error('Exception checking for unread notifications:', e);
+    }
+}
+
 // === SELECT USER FOR CHAT ===
 async function selectUser(username) {
     if (currentChatUser === username) return; // Do nothing if already selected
@@ -105,18 +152,39 @@ async function selectUser(username) {
     // Update UI
     document.querySelectorAll('.user-item').forEach(item => item.classList.remove('active'));
     const userItem = document.querySelector(`.user-item[data-username="${username}"]`);
-    if (userItem) userItem.classList.add('active');
+    if (userItem) {
+        userItem.classList.add('active');
+        
+        // Remove notification indicator if it's the system user
+        if (username === 'system') {
+            userItem.classList.remove('has-notifications');
+        }
+    }
 
     const chatHeader = document.getElementById('chat-header');
-    if (chatHeader) chatHeader.textContent = `Chat with ${username}`;
+    if (chatHeader) {
+        if (username === 'system') {
+            chatHeader.textContent = 'Notificações do Sistema';
+        } else {
+            chatHeader.textContent = `Chat with ${username}`;
+        }
+    }
     
     const messagesDiv = document.getElementById('chat-messages');
     if (messagesDiv) messagesDiv.innerHTML = '<p>Loading messages...</p>'; // Loading feedback
     
     const inputArea = document.querySelector('.chat-input-area');
-    if (inputArea) inputArea.style.display = 'flex'; // Show input area
+    if (inputArea) {
+        // Hide input area for system notifications, show for regular chats
+        inputArea.style.display = username === 'system' ? 'none' : 'flex';
+    }
     
     await loadMessages();
+    
+    // Store last selected user unless it's system
+    if (username !== 'system') {
+        localStorage.setItem('lastChatUser', username);
+    }
 }
 
 // === LOAD MESSAGES ===
@@ -128,20 +196,65 @@ async function loadMessages() {
     }
     chat.innerHTML = ''; // Clear old messages
 
-    const { data: messages, error } = await supabaseClient
-        .from('chat_messages')
-        .select('*')
-        .or(`and(sender.eq.${currentUser},receiver.eq.${currentChatUser}),and(sender.eq.${currentChatUser},receiver.eq.${currentUser})`)
-        .order('created_at', { ascending: true });
+    // Define query based on whether we're viewing system notifications or regular chat
+    let query;
+    if (currentChatUser === 'system') {
+        // Load only system notifications for the current user
+        query = supabaseClient
+            .from('chat_messages')
+            .select('*')
+            .eq('receiver', currentUser)
+            .eq('sender', 'system')
+            .order('created_at', { ascending: true });
+    } else {
+        // Load regular chat messages between users
+        query = supabaseClient
+            .from('chat_messages')
+            .select('*')
+            .or(`and(sender.eq.${currentUser},receiver.eq.${currentChatUser}),and(sender.eq.${currentChatUser},receiver.eq.${currentUser})`)
+            .order('created_at', { ascending: true });
+    }
+
+    const { data: messages, error } = await query;
 
     if (error) {
         chat.innerHTML = `<p class="chat-error">Error loading messages.</p>`;
+        console.error("Error loading messages:", error);
         return;
     }
 
     if (!messages || messages.length === 0) {
-        chat.innerHTML = `<p class="chat-empty">No messages yet. Start a conversation!</p>`;
+        if (currentChatUser === 'system') {
+            chat.innerHTML = `<p class="chat-empty">No notifications yet.</p>`;
+        } else {
+            chat.innerHTML = `<p class="chat-empty">No messages yet. Start a conversation!</p>`;
+        }
     } else {
+        // Mark system notifications as read when viewed
+        if (currentChatUser === 'system') {
+            const unreadIds = messages.filter(msg => !msg.read).map(msg => msg.id);
+            
+            if (unreadIds.length > 0) {
+                // Update read status
+                supabaseClient
+                    .from('chat_messages')
+                    .update({ read: true })
+                    .in('id', unreadIds)
+                    .then(result => {
+                        if (result.error) {
+                            console.error("Error marking notifications as read:", result.error);
+                        } else {
+                            console.log(`${unreadIds.length} notifications marked as read`);
+                            // Remove notification indicator
+                            const systemUserItem = document.querySelector('.system-user');
+                            if (systemUserItem) {
+                                systemUserItem.classList.remove('has-notifications');
+                            }
+                        }
+                    });
+            }
+        }
+        
         messages.forEach(msg => showMessage(msg));
     }
     chat.scrollTop = chat.scrollHeight; // Scroll to the end
@@ -183,9 +296,20 @@ function showMessage(msg) {
     }
 
     const div = document.createElement('div');
+    // Check if it's a system notification (sender is 'system')
+    const isSystemNotification = msg.sender === 'system';
+    
     // Make sure the CSS classes 'sent' and 'received' exist in chat.css
-    div.className = `message ${msg.sender === currentUser ? 'sent' : 'received'}`;
-    if (msg.is_deleted) div.classList.add('deleted');
+    if (isSystemNotification) {
+        div.className = 'message system-notification';
+        // If it has a project ID, add a specific class
+        if (msg.project_id) {
+            div.classList.add('project-notification');
+        }
+    } else {
+        div.className = `message ${msg.sender === currentUser ? 'sent' : 'received'}`;
+        if (msg.is_deleted) div.classList.add('deleted');
+    }
     
     // Add attributes for possible future edit/delete
     div.dataset.messageId = msg.id;
@@ -212,9 +336,23 @@ function showMessage(msg) {
     div.appendChild(contentDiv);
     div.appendChild(timeDiv);
     
+    // Add action buttons for project notifications
+    if (isSystemNotification && msg.project_id) {
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'notification-actions';
+        
+        const viewButton = document.createElement('a');
+        viewButton.className = 'notification-action-button';
+        viewButton.href = `client-dashboard.html?project=${msg.project_id}`;
+        viewButton.innerHTML = '<i class="fas fa-eye"></i> Ver Projeto';
+        
+        actionsDiv.appendChild(viewButton);
+        div.appendChild(actionsDiv);
+    }
+    
     // Add action buttons (edit/delete) only for messages sent by the current user
-    // and that aren't deleted
-    if (msg.sender === currentUser && !msg.is_deleted) {
+    // and that aren't deleted or system notifications
+    if (msg.sender === currentUser && !msg.is_deleted && !isSystemNotification) {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'message-actions';
         
@@ -278,6 +416,12 @@ async function sendMessage() {
         // Store the chat user for when we reload the page
         localStorage.setItem('lastChatUser', currentChatUser);
         
+        // Indicate that we're doing a refresh after sending
+        localStorage.setItem('refreshState', 'true');
+        
+        // Reload the page to show changes
+        window.location.reload();
+        
     } catch (e) {
         console.error('Exception sending message:', e);
         alert('An error occurred. Please try again.');
@@ -295,6 +439,7 @@ function setupRealTimeSubscription() {
     }
 
     try {
+        // Subscribe to messages where the current user is the receiver
         messageSubscription = supabaseClient
             .channel(channelName)
             .on(
@@ -328,13 +473,100 @@ function handleNewMessage(msg) {
     // Update last check
     lastMessageCheck = Date.now();
     
-    // Store the sender as the current chat user
-    localStorage.setItem('lastChatUser', msg.sender);
+    // Check if it's a system notification
+    const isSystemNotification = msg.sender === 'system';
     
-    // Reload the page
+    // Store the sender as the current chat user if it's not a system notification
+    if (!isSystemNotification) {
+        localStorage.setItem('lastChatUser', msg.sender);
+    }
+    
+    // If it's a system notification, mark the system user item
+    if (isSystemNotification) {
+        const systemUserItem = document.querySelector('.system-user');
+        if (systemUserItem) {
+            systemUserItem.classList.add('has-notifications');
+        }
+        
+        // If we're viewing system notifications, show it immediately
+        if (currentChatUser === 'system' && msg.receiver === currentUser) {
+            showMessage(msg);
+        } else {
+            // Check if it's a project notification
+            const isProjectNotification = msg.project_id != null;
+            
+            // Show appropriate toast notification
+            if (isProjectNotification) {
+                showToastNotification('Um projeto foi compartilhado com você!', true, msg.project_id);
+            } else {
+                showToastNotification('Nova notificação de sistema recebida!');
+            }
+        }
+    } else {
+        // For regular messages, reload the page
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
+    }
+}
+
+// Function to show toast notification for new messages and system notifications
+function showToastNotification(message, isProject = false, projectId = null) {
+    // Remove any existing toast
+    const existingToast = document.querySelector('.notification-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `notification-toast ${isProject ? 'project-toast' : ''}`;
+    
+    // Add content with appropriate icon
+    let icon = isProject ? 'fa-folder-open' : 'fa-bell';
+    toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add view button for project notifications
+    if (isProject && projectId) {
+        const viewButton = document.createElement('a');
+        viewButton.className = 'toast-action';
+        viewButton.href = `client-dashboard.html?project=${projectId}`;
+        viewButton.innerHTML = '<i class="fas fa-eye"></i> Ver';
+        
+        toast.appendChild(viewButton);
+    }
+    
+    // Add to the document
+    document.body.appendChild(toast);
+    
+    // Show the toast after a small delay (for animation)
     setTimeout(() => {
-        window.location.reload();
-    }, 100);
+        toast.classList.add('show');
+    }, 10);
+    
+    // Auto-hide the toast after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        
+        // Remove from DOM after animation completes
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    }, 5000);
+    
+    // Play notification sound if available
+    const notificationSound = document.getElementById('notification-sound');
+    if (notificationSound) {
+        notificationSound.play().catch(e => {
+            // Silently fail if auto-play is blocked
+            console.log('Notification sound could not be played:', e);
+        });
+    }
 }
 
 // Implement a polling fallback for realtime
@@ -353,15 +585,19 @@ function startMessagePolling() {
                 .eq('receiver', currentUser)
                 .gt('created_at', new Date(lastMessageCheck).toISOString())
                 .order('created_at', { ascending: false })
-                .limit(1);
+                .limit(10); // Increased limit to catch system notifications too
                 
             if (error) throw error;
             
             if (data && data.length > 0) {
-                handleNewMessage(data[0]);
+                // Process each message
+                data.forEach(msg => {
+                    handleNewMessage(msg);
+                });
             }
         } catch (error) {
             // Silently handle error
+            console.error("Polling error:", error);
         }
     }, 10000); // 10 seconds
 }
@@ -541,5 +777,35 @@ async function deleteMessage(messageId) {
                 setTimeout(() => errorToast.remove(), 300);
             }, 3000);
         }, 100);
+    }
+}
+
+// === SEND SYSTEM NOTIFICATION ===
+async function sendSystemNotification(receiver, content, projectId = null) {
+    try {
+        // Add system notification to database
+        const { data, error } = await supabaseClient
+            .from('chat_messages')
+            .insert([
+                { 
+                    sender: 'system',  // Using 'system' as the sender for notifications
+                    receiver: receiver,
+                    content: content,
+                    project_id: projectId,
+                    read: false
+                }
+            ]);
+            
+        if (error) {
+            console.error('Error sending system notification:', error);
+            return false;
+        }
+        
+        console.log('System notification sent successfully:', data);
+        return true;
+        
+    } catch (e) {
+        console.error('Exception sending system notification:', e);
+        return false;
     }
 }

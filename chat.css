@@ -591,3 +591,210 @@
     transition: all 0.15s;
   }
   
+  /* System notification message style */
+  .system-notification {
+    background-color: #f2f7ff;
+    border-left: 4px solid #0a66c2;
+    margin: 10px auto;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    padding: 12px 16px;
+  }
+  
+  .system-notification .message-content {
+    color: #333;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .system-notification .message-content::before {
+    content: "\f1e0";  /* FontAwesome share icon */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    margin-right: 8px;
+    color: #0a66c2;
+  }
+  
+  /* Special style for project share notifications */
+  .project-notification {
+    background-color: #fff8e6;
+    border-left: 4px solid #ff9800;
+    position: relative;
+  }
+  
+  .project-notification .message-content::before {
+    content: "\f07c";  /* FontAwesome folder icon */
+    color: #ff9800;
+  }
+  
+  /* Notification action buttons */
+  .notification-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .notification-action-button {
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: background-color 0.2s;
+  }
+  
+  .notification-action-button:hover {
+    background-color: #f57c00;
+    text-decoration: none;
+    color: white;
+  }
+  
+  .notification-action-button i {
+    margin-right: 5px;
+  }
+  
+  .system-notification .message-time {
+    text-align: center;
+    color: #777;
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  
+  /* Animation for system notifications */
+  .system-notification {
+    animation: slideIn 0.4s ease-out;
+  }
+  
+  @keyframes slideIn {
+    0% {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* System user item in user list */
+  .system-user {
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .system-avatar {
+    background-color: #ff9800 !important;
+    color: white !important;
+    font-size: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  
+  .system-user .user-name {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .system-user .last-message-placeholder {
+    color: #888;
+  }
+  
+  /* Add notification indicator to system user */
+  .system-user.has-notifications::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 8px;
+    height: 8px;
+    background-color: #ff9800;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+    }
+    
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 6px rgba(255, 152, 0, 0);
+    }
+    
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+    }
+  }
+  
+  /* Toast notification */
+  .notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #0a66c2;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    max-width: 300px;
+  }
+  
+  .notification-toast.show {
+    transform: translateX(0);
+  }
+  
+  .notification-toast i {
+    color: #fff;
+    font-size: 18px;
+  }
+  
+  .notification-toast span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  /* Project notification toast */
+  .project-toast {
+    background-color: #ff9800;
+  }
+  
+  .toast-action {
+    margin-left: auto;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s;
+  }
+  
+  .toast-action:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    text-decoration: none;
+  }
+  

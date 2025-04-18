@@ -281,3 +281,176 @@
         font-size: 1.2rem;
     }
 } 
+
+/* Estilos para projetos compartilhados */
+.shared-projects-section {
+    margin-top: 25px;
+    border-top: 1px solid #eaeaea;
+    padding-top: 20px;
+}
+
+.shared-projects-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.shared-projects-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.shared-project-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.shared-project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.shared-project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.shared-project-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-incompleted {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-in-progress {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-unknown {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.shared-project-details {
+    margin-bottom: 15px;
+}
+
+.shared-project-details p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.category-tag {
+    display: inline-block;
+    background-color: #e9ecef;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #495057;
+}
+
+.shared-by, .shared-date {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.shared-project-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.view-project-button, .download-file-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.view-project-button {
+    background-color: #4a89dc;
+    color: white;
+}
+
+.view-project-button:hover {
+    background-color: #3a6bae;
+}
+
+.download-file-button {
+    background-color: #f8f9fa;
+    color: #212529;
+    border: 1px solid #dee2e6;
+}
+
+.download-file-button:hover {
+    background-color: #e9ecef;
+}
+
+.download-file-button i {
+    margin-right: 5px;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 768px) {
+    .shared-projects-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .shared-project-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .shared-project-header h4 {
+        margin-bottom: 8px;
+    }
+    
+    .status-badge {
+        align-self: flex-start;
+    }
+    
+    .shared-project-actions {
+        flex-direction: column;
+    }
+    
+    .view-project-button, .download-file-button {
+        width: 100%;
+    }
+} 
