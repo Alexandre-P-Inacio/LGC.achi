@@ -114,6 +114,10 @@
   <script defer src="chat.js"></script>
 </head>
 <body>
+  <header id="site-header">
+    <script src="navigation.js"></script>
+  </header>
+
   <div class="chat-app">
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -144,6 +148,11 @@
             <span class="chat-user-status">Offline</span>
           </div>
         </div>
+        <div class="chat-actions">
+          <button class="action-button"><i class="fas fa-phone"></i></button>
+          <button class="action-button"><i class="fas fa-video"></i></button>
+          <button class="action-button"><i class="fas fa-ellipsis-v"></i></button>
+        </div>
       </div>
       
       <div class="chat-messages" id="chat-messages">
@@ -167,5 +176,10 @@
       </form>
     </main>
   </div>
+  
+  <!-- Audio element for notification sound -->
+  <audio id="notification-sound" preload="auto">
+    <source src="assets/notification.mp3" type="audio/mpeg">
+  </audio>
 </body>
 </html>

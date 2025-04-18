@@ -54,6 +54,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.documentElement.classList.remove('no-transitions');
     }, 1000);
   }
+  
+  // Listen for storage events to detect unread message updates from other tabs
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'unreadMessagesUpdated') {
+      // If on chat page, no need to update since we're already showing messages
+      if (document.getElementById('chat-notification-dot') && 
+        typeof checkUnreadMessages === 'function') {
+        checkUnreadMessages();
+      }
+    }
+  });
 });
 
 // === LOAD USERS ===
@@ -250,6 +261,30 @@ async function loadMessages() {
                             if (systemUserItem) {
                                 systemUserItem.classList.remove('has-notifications');
                             }
+                            // Update navigation notification indicator
+                            updateNavigationNotification();
+                        }
+                    });
+            }
+        } else {
+            // Mark messages from current chat user as read
+            const unreadIds = messages
+                .filter(msg => !msg.read && msg.sender === currentChatUser && msg.receiver === currentUser)
+                .map(msg => msg.id);
+                
+            if (unreadIds.length > 0) {
+                // Update read status
+                supabaseClient
+                    .from('chat_messages')
+                    .update({ read: true })
+                    .in('id', unreadIds)
+                    .then(result => {
+                        if (result.error) {
+                            console.error("Error marking messages as read:", result.error);
+                        } else {
+                            console.log(`${unreadIds.length} messages marked as read`);
+                            // Update navigation notification indicator
+                            updateNavigationNotification();
                         }
                     });
             }
@@ -502,8 +537,13 @@ function handleNewMessage(msg) {
                 showToastNotification('Nova notificação de sistema recebida!');
             }
         }
+        
+        // Update navigation notification indicator
+        updateNavigationNotification();
     } else {
-        // For regular messages, reload the page
+        // For regular messages, update notification and reload the page
+        updateNavigationNotification();
+        
         setTimeout(() => {
             window.location.reload();
         }, 100);
@@ -808,4 +848,18 @@ async function sendSystemNotification(receiver, content, projectId = null) {
         console.error('Exception sending system notification:', e);
         return false;
     }
+}
+
+// Function to update the navigation notification indicator
+function updateNavigationNotification() {
+    // If in this window, try to update directly
+    if (document.getElementById('fixed-chat-notification')) {
+        // Check if checkUnreadMessages function exists (from navigation.js)
+        if (typeof checkUnreadMessages === 'function') {
+            checkUnreadMessages();
+        }
+    }
+    
+    // Set a flag in localStorage to tell other tabs to update
+    localStorage.setItem('unreadMessagesUpdated', Date.now().toString());
 }

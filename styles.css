@@ -1211,4 +1211,105 @@ footer {
 .slideshow-dot.active {
     background-color: #fff;
     transform: scale(1.2);
+}
+
+/* Add styles for the chat button and notification indicator */
+.chat-nav-item {
+    position: relative;
+    margin-right: 10px;
+}
+
+.chat-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.chat-button i {
+    font-size: 16px;
+}
+
+.chat-notification-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 10px;
+    height: 10px;
+    background-color: #f44336;
+    border-radius: 50%;
+    display: none;
+    box-shadow: 0 0 0 2px #fff;
+    animation: pulse-animation 1.5s infinite;
+}
+
+/* Add data-count attribute style for showing message count */
+.chat-notification-indicator[data-count]:not([data-count="0"]):not([data-count=""]):after {
+    content: attr(data-count);
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 10px;
+    background-color: #f44336;
+    color: white;
+    min-width: 14px;
+    height: 14px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 10px;
+    padding: 0 3px;
+    font-weight: bold;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+/* Add animation for the notification dot */
+@keyframes pulse-animation {
+    0% {
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(244, 67, 54, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+    }
+}
+
+/* Fixed Chat Button Notification */
+.fixed-chat-button {
+    position: relative;
+}
+
+.fixed-chat-button .chat-notification-indicator {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 12px;
+    height: 12px;
+    background-color: #f44336;
+    border-radius: 50%;
+    display: none;
+    box-shadow: 0 0 0 2px #333;
+    animation: pulse-animation 1.5s infinite;
+}
+
+.fixed-chat-button .chat-notification-indicator[data-count]:not([data-count="0"]):not([data-count=""]):after {
+    content: attr(data-count);
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 11px;
+    background-color: #f44336;
+    color: white;
+    min-width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 10px;
+    padding: 0 3px;
+    font-weight: bold;
+    box-shadow: 0 0 0 2px #333;
 } 

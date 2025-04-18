@@ -55,6 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('nav-contact')?.classList.add('active');
     } else if (currentPage.includes('about')) {
         document.getElementById('nav-about')?.classList.add('active');
+    } else if (currentPage === 'chat.html') {
+        document.getElementById('nav-chat')?.classList.add('active');
     }
  
     // Check if user is logged in (integration with existing authentication system)
@@ -71,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create user menu element
         const navLinks = document.querySelector('.nav-links');
         if (navLinks) {
+            // Create user menu element
             const userElement = document.createElement('li');
             userElement.id = 'user-display';
             userElement.className = 'user-display';
@@ -94,6 +97,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.removeItem('isAdmin');
                 window.location.reload();
             });
+            
+            // Check for unread messages
+            checkUnreadMessages();
+            
+            // Set up periodic check for unread messages
+            setInterval(checkUnreadMessages, 30000); // Check every 30 seconds
         }
     }
     
@@ -122,3 +131,65 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Function to check for unread messages
+async function checkUnreadMessages() {
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) return;
+    
+    try {
+        // Check if Supabase is available as a global object
+        if (!window.supabase && typeof supabase !== 'undefined') {
+            window.supabase = supabase;
+        }
+        
+        // Initialize Supabase client if not already available
+        if (!window.supabase && !window.supabaseNav) {
+            const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+            
+            try {
+                window.supabaseNav = supabase.createClient(supabaseUrl, supabaseKey);
+                console.log('Navigation: Created supabaseNav client');
+            } catch (e) {
+                console.error('Navigation: Failed to create Supabase client', e);
+                return;
+            }
+        }
+        
+        const supabaseClient = window.supabase || window.supabaseNav;
+        if (!supabaseClient) {
+            console.error('Navigation: No Supabase client available');
+            return;
+        }
+        
+        // Check for unread chat messages
+        const { data, error, count } = await supabaseClient
+            .from('chat_messages')
+            .select('*', { count: 'exact' })
+            .eq('receiver', currentUser)
+            .eq('read', false);
+            
+        if (error) {
+            console.error('Navigation: Error checking unread messages:', error);
+            return;
+        }
+        
+        // Get the notification dot element for the fixed chat button
+        const notificationDot = document.getElementById('fixed-chat-notification');
+        if (!notificationDot) return;
+        
+        // Show or hide the notification dot based on unread messages
+        if (data && data.length > 0) {
+            notificationDot.style.display = 'block';
+            notificationDot.setAttribute('data-count', data.length);
+            console.log(`Navigation: Found ${data.length} unread messages`);
+        } else {
+            notificationDot.style.display = 'none';
+            console.log('Navigation: No unread messages');
+        }
+        
+    } catch (e) {
+        console.error('Navigation: Exception checking unread messages:', e);
+    }
+}
