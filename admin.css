@@ -1459,4 +1459,39 @@ label[for="project-gallery"]:after {
         margin-top: 10px;
         align-self: flex-end;
     }
+}
+
+/* Feature button - to toggle featured status */
+.projects-table .feature-button {
+    background: linear-gradient(135deg, #ffc107, #ffab00);
+}
+
+.projects-table .feature-button:hover {
+    background: linear-gradient(135deg, #f0b000, #ff9100);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.projects-table .feature-button.featured {
+    background: linear-gradient(135deg, #ffc107, #ffab00);
+    box-shadow: 0 0 10px rgba(255, 171, 0, 0.5);
+}
+
+/* Feature Tag Styling */
+.feature-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #d9a400;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.feature-tag i {
+    font-size: 0.7rem;
 } 
