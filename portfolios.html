@@ -206,25 +206,94 @@
                         throw new Error('Supabase client not initialized. Please refresh the page.');
                     }
                     
-                    // Query projects from database
-                    let query = supabase.from('projects').select('*');
+                    // Check if user is admin
+                    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                    const currentUser = localStorage.getItem('currentUser');
                     
-                    // Apply category filter if not 'all'
-                    if (category && category !== 'all') {
-                        query = query.eq('category', category);
+                    console.log('User status:', isAdmin ? 'Admin' : 'Regular user', currentUser);
+                    
+                    let projects = [];
+                    
+                    if (isAdmin) {
+                        // Admin users see all projects
+                        const { data: adminProjects, error: adminError } = await supabase
+                            .from('projects')
+                            .select('*')
+                            .eq(category !== 'all' ? 'category' : 'id', category !== 'all' ? category : 'id');
+                            
+                        if (adminError) throw adminError;
+                        projects = adminProjects || [];
+                    } 
+                    else if (currentUser) {
+                        // First, get the user's numeric ID from the Users table
+                        const { data: userData, error: userError } = await supabase
+                            .from('Users')
+                            .select('id')
+                            .eq('username', currentUser)
+                            .single();
+                            
+                        if (userError) {
+                            console.error('Error fetching user ID:', userError);
+                            throw userError;
+                        }
+                        
+                        if (!userData) {
+                            throw new Error('User not found');
+                        }
+                        
+                        const userId = userData.id;
+                        console.log('Current user ID:', userId);
+                        
+                        // Get project IDs shared with this user from project_shares table
+                        const { data: sharedData, error: sharedError } = await supabase
+                            .from('project_shares')
+                            .select('project_id')
+                            .eq('user_id', userId);
+                            
+                        if (sharedError) {
+                            console.error('Error fetching shared projects:', sharedError);
+                            throw sharedError;
+                        }
+                        
+                        if (!sharedData || sharedData.length === 0) {
+                            console.log('No shared projects found');
+                            projects = [];
+                        } else {
+                            // Extract project IDs
+                            const projectIds = sharedData.map(item => item.project_id);
+                            console.log('Shared project IDs:', projectIds);
+                            
+                            // Fetch the actual projects by their IDs
+                            let query = supabase
+                                .from('projects')
+                                .select('*')
+                                .in('id', projectIds);
+                                
+                            // Apply category filter if needed
+                            if (category && category !== 'all') {
+                                query = query.eq('category', category);
+                            }
+                            
+                            const { data: projectsData, error: projectsError } = await query;
+                            
+                            if (projectsError) {
+                                console.error('Error fetching projects by IDs:', projectsError);
+                                throw projectsError;
+                            }
+                            
+                            projects = projectsData || [];
+                            console.log('Fetched shared projects:', projects.length);
+                        }
                     }
-                    
-                    // Execute query with timeout
-                    const { data: projects, error } = await query;
-                    
-                    if (error) {
-                        throw error;
+                    else {
+                        // Not logged in - show nothing or public projects if that's a concept
+                        projects = [];
                     }
                     
                     // Clear loading spinner
                     portfolioGrid.innerHTML = '';
                     
-                    console.log('Projects loaded:', projects ? projects.length : 0);
+                    console.log('Projects loaded:', projects.length);
                     
                     // Check if projects were found
                     if (projects && projects.length > 0) {
@@ -238,9 +307,13 @@
                             // Set card background color based on category
                             const bgColor = getCategoryColor(project.category);
                             
+                            // Add shared badge for projects
+                            const sharedBadge = '<span class="shared-badge"><i class="fas fa-users"></i> Shared with you</span>';
+                            
                             card.innerHTML = `
                                 <div class="portfolio-image" style="background-color: ${bgColor};">
                                     ${project.image_url ? `<img src="${project.image_url}" alt="${project.name}">` : ''}
+                                    ${sharedBadge}
                                 </div>
                                 <div class="portfolio-content">
                                     <h3>${project.name}</h3>
@@ -606,6 +679,25 @@
         .no-projects p {
             margin: 5px 0 0;
             font-size: 1rem;
+        }
+        
+        /* Shared badge for projects */
+        .shared-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .shared-badge i {
+            font-size: 0.9rem;
         }
         
         /* Responsive styles */
