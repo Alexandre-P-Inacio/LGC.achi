@@ -93,82 +93,13 @@
             border-radius: 2px;
         }
         
-        /* Carousel Layout */
-        .projects-container {
-            position: relative;
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 2rem;
-            display: flex;
-            align-items: center;
-        }
-        
-        .project-carousel-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            position: relative;
-            scroll-behavior: smooth;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
-            cursor: grab;
-        }
-        
-        /* Hide scrollbar */
-        .project-carousel-wrapper::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .project-carousel {
-            display: flex;
-            gap: 2rem;
-            padding: 1rem 0.5rem;
-            min-width: max-content;
-        }
-        
-        /* Scroll Buttons */
-        .scroll-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: white;
-            color: #333;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            opacity: 0.9;
-        }
-        
-        .scroll-btn:hover {
-            background-color: #333;
-            color: white;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-            opacity: 1;
-        }
-        
-        .scroll-btn:focus {
-            outline: none;
-        }
-        
-        .scroll-left {
-            left: 10px;
-        }
-        
-        .scroll-right {
-            right: 10px;
-        }
-        
-        /* Hide scroll buttons when not needed */
-        .scroll-btn.hidden {
-            display: none;
         }
         
         .project-card {
@@ -177,9 +108,7 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
-            flex: 0 0 auto;
-            width: calc(33.333% - 1.35rem);
-            max-width: 400px;
+            height: 100%;
             display: flex;
             flex-direction: column;
         }
@@ -248,7 +177,7 @@
         }
         
         .no-projects, .error-message {
-            width: 100%;
+            grid-column: 1 / -1;
             text-align: center;
             padding: 3rem;
             background-color: white;
@@ -271,7 +200,7 @@
             align-items: center;
             justify-content: center;
             padding: 3rem;
-            width: 100%;
+            grid-column: 1 / -1;
         }
         
         .spinner {
@@ -291,8 +220,9 @@
         
         /* Make the layout responsive */
         @media (max-width: 1200px) {
-            .project-card {
-                width: calc(50% - 1rem);
+            .project-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 2rem;
             }
         }
         
@@ -306,17 +236,10 @@
                 margin-bottom: 2rem;
             }
             
-            .projects-container {
-                padding: 0 1rem;
-            }
-            
-            .project-carousel {
+            .project-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 1.5rem;
-            }
-            
-            .project-card {
-                width: 85%;
-                min-width: 280px;
+                padding: 0 1.5rem;
             }
             
             .project-image {
@@ -337,20 +260,6 @@
                 margin: auto 1.2rem 1.2rem;
                 padding: 0.7rem 1.2rem;
                 font-size: 0.8rem;
-            }
-            
-            .scroll-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-            
-            .scroll-left {
-                left: 5px;
-            }
-            
-            .scroll-right {
-                right: 5px;
             }
         }
     </style>
@@ -382,22 +291,12 @@
 
         <section id="projects">
             <h2>Featured Projects</h2>
-            <div class="projects-container">
-                <button class="scroll-btn scroll-left" id="scroll-left">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="project-carousel-wrapper">
-                    <div class="project-carousel" id="featured-projects-container">
-                        <!-- Featured projects will be loaded dynamically here -->
-                        <div class="loading-spinner">
-                            <div class="spinner"></div>
-                            <p>Loading featured projects...</p>
-                        </div>
-                    </div>
+            <div class="project-grid" id="featured-projects-container">
+                <!-- Featured projects will be loaded dynamically here -->
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading featured projects...</p>
                 </div>
-                <button class="scroll-btn scroll-right" id="scroll-right">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
             </div>
         </section>
 
@@ -620,10 +519,6 @@
                 if (!featuredProjects || featuredProjects.length === 0) {
                     console.log('No featured projects found');
                     projectsContainer.innerHTML = '<p class="no-projects">No featured projects available at the moment.</p>';
-                    
-                    // Hide scroll buttons if no projects
-                    document.getElementById('scroll-left').classList.add('hidden');
-                    document.getElementById('scroll-right').classList.add('hidden');
                     return;
                 }
                 
@@ -641,7 +536,7 @@
                     'nuclear': 'assets/Nuclear.png',
                     'industrial': 'assets/Industrial.jpg',
                     'naval': 'assets/Naval.jpg',
-                    'bpo': 'assets/GDO.jpg',
+                    'bpo': 'assets/Bank-insurance-office.jpg',
                     'automotive': 'assets/Automotive.jpg',
                     'aerospace': 'assets/Aerospace.jpg',
                     'chemistry-pharmaceutical': 'assets/Chemistry-Pharmacy.jpg'
@@ -702,9 +597,6 @@
                 
                 console.log('Featured projects rendered successfully');
                 
-                // Initialize carousel functionality
-                initCarousel();
-                
             } catch (error) {
                 console.error('Error in loadFeaturedProjects:', error);
                 const projectsContainer = document.getElementById('featured-projects-container');
@@ -715,116 +607,7 @@
                         <small>Error: ${error.message}</small>
                     </p>
                 `;
-                
-                // Hide scroll buttons if error
-                document.getElementById('scroll-left').classList.add('hidden');
-                document.getElementById('scroll-right').classList.add('hidden');
             }
-        }
-        
-        // Initialize carousel functionality
-        function initCarousel() {
-            const carouselWrapper = document.querySelector('.project-carousel-wrapper');
-            const carousel = document.getElementById('featured-projects-container');
-            const leftBtn = document.getElementById('scroll-left');
-            const rightBtn = document.getElementById('scroll-right');
-            
-            if (!carousel || !carouselWrapper || !leftBtn || !rightBtn) return;
-            
-            const cards = carousel.querySelectorAll('.project-card');
-            
-            // If we have 3 or fewer cards, hide navigation buttons
-            if (cards.length <= 3) {
-                leftBtn.classList.add('hidden');
-                rightBtn.classList.add('hidden');
-                return;
-            }
-            
-            // Show navigation buttons
-            leftBtn.classList.remove('hidden');
-            rightBtn.classList.remove('hidden');
-            
-            // Calculate card width + gap
-            const cardWidth = cards[0].offsetWidth;
-            const gap = 32; // 2rem gap
-            const scrollAmount = cardWidth + gap;
-            
-            // Scroll left/right with buttons
-            leftBtn.addEventListener('click', () => {
-                carouselWrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            });
-            
-            rightBtn.addEventListener('click', () => {
-                carouselWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-            });
-            
-            // Implement drag-to-scroll functionality
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-            
-            // Mouse events for desktop
-            carouselWrapper.addEventListener('mousedown', (e) => {
-                isDown = true;
-                carouselWrapper.style.cursor = 'grabbing';
-                startX = e.pageX - carouselWrapper.offsetLeft;
-                scrollLeft = carouselWrapper.scrollLeft;
-                e.preventDefault();
-            });
-            
-            carouselWrapper.addEventListener('mouseleave', () => {
-                isDown = false;
-                carouselWrapper.style.cursor = 'grab';
-            });
-            
-            carouselWrapper.addEventListener('mouseup', () => {
-                isDown = false;
-                carouselWrapper.style.cursor = 'grab';
-            });
-            
-            carouselWrapper.addEventListener('mousemove', (e) => {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - carouselWrapper.offsetLeft;
-                const walk = (x - startX) * 2; // Scroll speed multiplier
-                carouselWrapper.scrollLeft = scrollLeft - walk;
-            });
-            
-            // Touch events for mobile
-            carouselWrapper.addEventListener('touchstart', (e) => {
-                isDown = true;
-                startX = e.touches[0].pageX - carouselWrapper.offsetLeft;
-                scrollLeft = carouselWrapper.scrollLeft;
-            });
-            
-            carouselWrapper.addEventListener('touchend', () => {
-                isDown = false;
-            });
-            
-            carouselWrapper.addEventListener('touchcancel', () => {
-                isDown = false;
-            });
-            
-            carouselWrapper.addEventListener('touchmove', (e) => {
-                if (!isDown) return;
-                const x = e.touches[0].pageX - carouselWrapper.offsetLeft;
-                const walk = (x - startX) * 2;
-                carouselWrapper.scrollLeft = scrollLeft - walk;
-                e.preventDefault(); // Prevent page scroll
-            });
-            
-            // Update button states on scroll
-            carouselWrapper.addEventListener('scroll', () => {
-                const scrollPosition = carouselWrapper.scrollLeft;
-                const maxScroll = carouselWrapper.scrollWidth - carouselWrapper.clientWidth;
-                
-                // Enable/disable buttons based on scroll position
-                leftBtn.disabled = scrollPosition <= 0;
-                leftBtn.style.opacity = scrollPosition <= 0 ? '0.5' : '0.9';
-                
-                rightBtn.disabled = scrollPosition >= maxScroll;
-                rightBtn.style.opacity = scrollPosition >= maxScroll ? '0.5' : '0.9';
-            });
         }
     </script>
 </body>
