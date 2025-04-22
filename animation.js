@@ -170,10 +170,14 @@ function initSlideshow() {
     let isDragging = false;
     let startX = 0;
     let dragDistance = 0;
+    let autoRotatePaused = false;
     
     // Set the first slide as active
     slides[0].classList.add('active');
     if (dots.length > 0) dots[0].classList.add('active');
+    
+    // Reset manual control flag - enable auto rotation
+    window.manualSlideControl = false;
     
     // Set up drag functionality
     slideshow.addEventListener('mousedown', dragStart);
@@ -183,6 +187,19 @@ function initSlideshow() {
     slideshow.addEventListener('mouseleave', dragEnd);
     slideshow.addEventListener('mousemove', drag);
     slideshow.addEventListener('touchmove', drag, { passive: true });
+    
+    // Stop animation on hover
+    slideshow.addEventListener('mouseenter', () => {
+        autoRotatePaused = true;
+        clearInterval(autoRotateInterval);
+    });
+    
+    slideshow.addEventListener('mouseleave', () => {
+        autoRotatePaused = false;
+        if (!isDragging && !window.manualSlideControl) {
+            startAutoRotate();
+        }
+    });
     
     // Set up dot navigation if dots exist
     if (dots.length > 0) {
@@ -194,7 +211,26 @@ function initSlideshow() {
         });
     }
     
-    // Start auto-rotate
+    // Add listeners for manual navigation buttons
+    const prevBtn = document.getElementById('prev-slide');
+    const nextBtn = document.getElementById('next-slide');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            goToPrevSlide();
+            resetAutoRotate();
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            goToNextSlide();
+            resetAutoRotate();
+        });
+    }
+    
+    // Start auto-rotate immediately
+    console.log("Starting automatic slideshow");
     startAutoRotate();
     
     // Drag Functions
@@ -206,6 +242,7 @@ function initSlideshow() {
         dragDistance = 0;
         
         // Stop auto-rotate while dragging
+        autoRotatePaused = true;
         clearInterval(autoRotateInterval);
         
         // Add grabbing cursor
@@ -227,33 +264,35 @@ function initSlideshow() {
         const activeSlide = slides[currentSlide];
         activeSlide.style.transform = `translateX(${dragDistance}px)`;
         
-        // Move adjacent slides for continuity
+        // Get previous and next slide indices
         const nextIndex = (currentSlide + 1) % slides.length;
         const prevIndex = (currentSlide - 1 + slides.length) % slides.length;
         
+        // Reset all slides first (clean state)
+        slides.forEach(slide => {
+            if (slide !== activeSlide && 
+                slide !== slides[nextIndex] && 
+                slide !== slides[prevIndex]) {
+                slide.style.transform = '';
+                slide.classList.remove('temp-active');
+                slide.style.opacity = '';
+                slide.style.zIndex = '';
+            }
+        });
+        
         // Show next or previous slide based on drag direction
         if (dragDistance < 0) {
-            // Dragging left, show next slide
+            // Dragging left (showing next slide)
             slides[nextIndex].classList.add('temp-active');
             slides[nextIndex].style.opacity = '1';
             slides[nextIndex].style.zIndex = '1';
             slides[nextIndex].style.transform = `translateX(calc(100% + ${dragDistance}px))`;
-            if (prevIndex !== nextIndex) {
-                slides[prevIndex].classList.remove('temp-active');
-                slides[prevIndex].style.opacity = '';
-                slides[prevIndex].style.zIndex = '';
-            }
         } else if (dragDistance > 0) {
-            // Dragging right, show previous slide
+            // Dragging right (showing previous slide)
             slides[prevIndex].classList.add('temp-active');
             slides[prevIndex].style.opacity = '1';
             slides[prevIndex].style.zIndex = '1';
             slides[prevIndex].style.transform = `translateX(calc(-100% + ${dragDistance}px))`;
-            if (nextIndex !== prevIndex) {
-                slides[nextIndex].classList.remove('temp-active');
-                slides[nextIndex].style.opacity = '';
-                slides[nextIndex].style.zIndex = '';
-            }
         }
     }
     
@@ -264,36 +303,50 @@ function initSlideshow() {
         // Reset cursor
         slideshow.style.cursor = 'grab';
         
-        // Restore transitions
-        slides.forEach(slide => {
-            slide.style.transition = 'transform 0.3s ease-out';
-            slide.classList.remove('temp-active');
-            slide.style.opacity = '';
-            slide.style.zIndex = '';
-        });
+        // Get the threshold for slide change (20% of slideshow width)
+        const threshold = slideshow.offsetWidth * 0.2;
         
-        // Re-apply active state to current slide
-        slides[currentSlide].style.opacity = '1';
-        slides[currentSlide].style.zIndex = '1';
-        
-        const threshold = slideshow.offsetWidth * 0.2; // 20% threshold for slide change
-        
+        // Determine if we should change slides based on drag distance
         if (Math.abs(dragDistance) > threshold) {
             // Change slide if threshold is passed
             if (dragDistance < 0) {
+                // Dragged left - go to next slide
                 goToNextSlide();
             } else {
+                // Dragged right - go to previous slide
                 goToPrevSlide();
             }
         } else {
-            // Reset positions if threshold not passed
+            // Threshold not passed, reset all slides
             slides.forEach(slide => {
+                slide.style.transition = 'transform 0.3s ease-out';
                 slide.style.transform = '';
+                slide.classList.remove('temp-active');
+                slide.style.opacity = '';
+                slide.style.zIndex = '';
             });
+            
+            // Ensure current slide is visible
+            slides[currentSlide].classList.add('active');
         }
         
-        // Restart auto-rotate
-        startAutoRotate();
+        // After animation completes, reset all styles
+        setTimeout(() => {
+            slides.forEach(slide => {
+                if (!slide.classList.contains('active')) {
+                    slide.style.transform = '';
+                    slide.style.transition = '';
+                    slide.style.opacity = '';
+                    slide.style.zIndex = '';
+                }
+            });
+            
+            // Restart auto-rotate if not manually controlled and not paused
+            autoRotatePaused = false;
+            if (!window.manualSlideControl) {
+                startAutoRotate();
+            }
+        }, 300); // Match the transition duration
     }
     
     // Helper Functions
@@ -302,19 +355,46 @@ function initSlideshow() {
     }
     
     function goToSlide(index) {
-        // Remove active class from current slides
+        if (index === currentSlide) return;
+        
+        // Determine if we're going forward or backward
+        const direction = index > currentSlide ? 'next' : 'prev';
+        
+        // Remove active class from current slide
         slides[currentSlide].classList.remove('active');
         if (dots.length > 0) dots[currentSlide].classList.remove('active');
         
+        // Prepare transition effect
+        slides.forEach(slide => {
+            slide.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+        });
+        
         // Set new slide as active
+        const oldIndex = currentSlide;
         currentSlide = index;
+        
+        // Add appropriate classes
         slides[currentSlide].classList.add('active');
         if (dots.length > 0) dots[currentSlide].classList.add('active');
         
-        // Reset any transforms
-        slides.forEach(slide => {
-            slide.style.transform = '';
-        });
+        // Add appropriate transition effect
+        if (direction === 'next') {
+            slides[oldIndex].style.transform = 'translateX(-100%)';
+            slides[currentSlide].style.transform = 'translateX(0)';
+        } else {
+            slides[oldIndex].style.transform = 'translateX(100%)';
+            slides[currentSlide].style.transform = 'translateX(0)';
+        }
+        
+        // Reset all styles after transition
+        setTimeout(() => {
+            slides.forEach(slide => {
+                if (!slide.classList.contains('active')) {
+                    slide.style.transform = '';
+                    slide.style.transition = '';
+                }
+            });
+        }, 300);
     }
     
     function goToNextSlide() {
@@ -326,11 +406,39 @@ function initSlideshow() {
     }
     
     function startAutoRotate() {
-        autoRotateInterval = setInterval(goToNextSlide, 5000);
+        // Clear any existing interval first
+        clearInterval(autoRotateInterval);
+        
+        // Don't start autorotation if manual control is active or paused
+        if (window.manualSlideControl || autoRotatePaused) {
+            return;
+        }
+        
+        console.log("Auto rotation started");
+        
+        // Store the interval ID in a variable
+        autoRotateInterval = setInterval(() => {
+            console.log("Auto advancing slide");
+            goToNextSlide();
+        }, 5000);
+        
+        // Also store globally for access by other scripts
+        window.slideshowInterval = autoRotateInterval;
     }
     
     function resetAutoRotate() {
+        // Don't restart autorotation if manual control is active
+        if (window.manualSlideControl) {
+            return;
+        }
+        
         clearInterval(autoRotateInterval);
-        startAutoRotate();
+        
+        // Short delay before restarting to prevent immediate advancement
+        setTimeout(() => {
+            if (!autoRotatePaused) {
+                startAutoRotate();
+            }
+        }, 100);
     }
 } 
