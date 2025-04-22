@@ -70,23 +70,24 @@
         }
         
         /* Enhanced Featured Projects Styles */
-        #projects {
-            padding: 5rem 0;
+        #projects, #featured-projects {
+            padding: 5rem 0 6rem;
             background-color: #f8f9fa;
         }
         
-        #projects h2 {
+        #projects h2, #featured-projects h2 {
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
+            font-size: 2.8rem;
+            margin-bottom: 3.5rem;
             position: relative;
             color: #333;
+            font-weight: 700;
         }
         
-        #projects h2:after {
+        #projects h2:after, #featured-projects h2:after {
             content: '';
             display: block;
-            width: 80px;
+            width: 100px;
             height: 4px;
             background: linear-gradient(90deg, #333, #828282);
             margin: 15px auto 0;
@@ -192,8 +193,192 @@
             font-size: 2rem;
             margin-bottom: 1rem;
             display: block;
+        /* Carousel styling */
+        .carousel-section {
+            max-width: 90%;
+            margin: 0 auto;
+            padding: 20px 0;
+            position: relative;
         }
         
+        .carousel-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 0 90px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .carousel-mask {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .project-carousel {
+            display: flex;
+            transition: transform 0.5s ease;
+            padding: 10px 0;
+        }
+        
+        .project-card {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            background-color: white;
+            border-radius: 0.5rem;
+            margin: 0 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .project-image {
+            width: 100%;
+            height: 280px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: transform 0.5s ease;
+        }
+        
+        .project-card:hover .project-image {
+            transform: scale(1.05);
+        }
+        
+        .project-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1.8rem 1.8rem 0.6rem;
+            color: #333;
+        }
+        
+        .project-card p {
+            margin: 0 1.8rem 1.8rem;
+            color: #666;
+            flex-grow: 1;
+            font-size: 1.1rem;
+        }
+        
+        .view-project-btn {
+            display: block;
+            background-color: var(--primary-color, #333);
+            color: white;
+            text-align: center;
+            padding: 0.8rem 1.5rem;
+            margin: auto 1.5rem 1.5rem;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .view-project-btn:hover {
+            background-color: var(--accent-color, #555);
+        }
+        
+        .carousel-nav-button {
+            background-color: white;
+            color: black;
+            border: 1px solid #E5E7EB;
+            border-radius: 9999px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .carousel-nav-button.prev-button {
+            left: 0;
+        }
+        
+        .carousel-nav-button.next-button {
+            right: 0;
+        }
+        
+        .carousel-nav-button:hover {
+            background-color: #F3F4F6;
+        }
+        
+        .carousel-nav-button:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #4F46E5;
+        }
+        
+        .carousel-nav-button.hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            #projects, #featured-projects {
+                padding: 3rem 0 4rem;
+            }
+            
+            #projects h2, #featured-projects h2 {
+                font-size: 2.4rem;
+                margin-bottom: 2.5rem;
+            }
+            
+            .carousel-container {
+                padding: 0 70px;
+            }
+            
+            .carousel-nav-button {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .project-image {
+                height: 220px;
+            }
+            
+            .project-card h3 {
+                font-size: 1.3rem;
+                margin: 1.4rem 1.4rem 0.5rem;
+            }
+            
+            .project-card p {
+                margin: 0 1.4rem 1.4rem;
+                font-size: 1rem;
+            }
+            
+            .view-project-btn {
+                margin: auto 1.2rem 1.2rem;
+                padding: 0.7rem 1.2rem;
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .carousel-container {
+                padding: 0 55px;
+            }
+            
+            .carousel-nav-button {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .project-card {
+                margin: 0 5px;
+            }
+            
+            .project-image {
+                height: 200px;
+            }
+        }
+        
+        /* Loading & Error States */
         .loading-spinner {
             display: flex;
             flex-direction: column;
@@ -218,32 +403,32 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Make the layout responsive */
-        @media (max-width: 1200px) {
-            .project-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 2rem;
-            }
+        .no-projects, .error-message {
+            width: 100%;
+            text-align: center;
+            padding: 3rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            color: #666;
+            font-size: 1.1rem;
         }
         
-        @media (max-width: 768px) {
-            #projects {
-                padding: 3rem 0;
-            }
-            
-            #projects h2 {
-                font-size: 2rem;
-                margin-bottom: 2rem;
-            }
-            
-            .project-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 1.5rem;
-                padding: 0 1.5rem;
+        .error-message i {
+            color: #dc3545;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .carousel-container {
+                max-width: 1100px;
             }
             
             .project-image {
-                height: 200px;
+                height: 250px;
             }
             
             .project-card h3 {
@@ -593,7 +778,7 @@
                 console.log('Featured projects fetched:', featuredProjects);
                 
                 // Get the container element
-                const projectsContainer = document.getElementById('featured-projects-container');
+                const projectsContainer = document.querySelector('.project-carousel');
                 
                 // Clear loading indicator
                 projectsContainer.innerHTML = '';
@@ -670,7 +855,6 @@
                         <div class="project-image" style="background-image: url('${imageUrl}')"></div>
                         <h3>${project.name || 'Unnamed Project'}</h3>
                         <p>${categoryDisplay}</p>
-                        <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
                     `;
                     
                     // Add the project card to the container
@@ -681,7 +865,7 @@
                 
             } catch (error) {
                 console.error('Error in loadFeaturedProjects:', error);
-                const projectsContainer = document.getElementById('featured-projects-container');
+                const projectsContainer = document.querySelector('.project-carousel');
                 projectsContainer.innerHTML = `
                     <p class="error-message">
                         <i class="fas fa-exclamation-circle"></i>
@@ -689,6 +873,7 @@
                         <small>Error: ${error.message}</small>
                     </p>
                 `;
+
             }
         }
         
