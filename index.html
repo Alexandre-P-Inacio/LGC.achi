@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Architecture Portfolio</title>
-    <link rel="icon" type="image/png" href="assets/logo(2).png">
+    <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -96,21 +96,24 @@
         /* Carousel Layout */
         .projects-container {
             position: relative;
-            max-width: 1400px;
+            max-width: 1320px; /* Exact width for 3 cards: 3 x 400px + 2 x 32px gaps + padding */
             margin: 0 auto;
             padding: 0 2rem;
             display: flex;
             align-items: center;
+            overflow: visible;
         }
         
         .project-carousel-wrapper {
             width: 100%;
-            overflow-x: auto;
+            overflow: hidden;
             position: relative;
             scroll-behavior: smooth;
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none; /* IE and Edge */
             cursor: grab;
+            mask-image: linear-gradient(to right, transparent 0%, black 0%, black 100%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 0%, black 100%, transparent 100%);
         }
         
         /* Hide scrollbar */
@@ -123,6 +126,20 @@
             gap: 2rem;
             padding: 1rem 0.5rem;
             min-width: max-content;
+            justify-content: flex-start;
+            margin: 0 auto;
+        }
+        
+        /* Add initial padding to center the first 3 cards */
+        @media (min-width: 1200px) {
+            .project-carousel-wrapper {
+                overflow: hidden;
+                padding: 0;
+            }
+            
+            .project-carousel {
+                justify-content: center;
+            }
         }
         
         /* Scroll Buttons */
@@ -159,11 +176,11 @@
         }
         
         .scroll-left {
-            left: 10px;
+            left: -25px;
         }
         
         .scroll-right {
-            right: 10px;
+            right: -25px;
         }
         
         /* Hide scroll buttons when not needed */
@@ -171,6 +188,7 @@
             display: none;
         }
         
+        /* Project Card */
         .project-card {
             background: white;
             border-radius: 12px;
@@ -178,10 +196,12 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             flex: 0 0 auto;
-            width: calc(33.333% - 1.35rem);
+            width: 400px; /* Fixed width for all cards */
+            min-width: 350px;
             max-width: 400px;
             display: flex;
             flex-direction: column;
+            margin-right: 0;
         }
         
         .project-card:hover {
@@ -291,8 +311,12 @@
         
         /* Make the layout responsive */
         @media (max-width: 1200px) {
+            .projects-container {
+                max-width: 800px; /* Width for 2 cards on tablets */
+            }
+            
             .project-card {
-                width: calc(50% - 1rem);
+                width: 360px;
             }
         }
         
@@ -308,6 +332,7 @@
             
             .projects-container {
                 padding: 0 1rem;
+                max-width: 400px; /* Width for 1 card on mobile */
             }
             
             .project-carousel {
@@ -315,7 +340,7 @@
             }
             
             .project-card {
-                width: 85%;
+                width: 360px;
                 min-width: 280px;
             }
             
@@ -613,6 +638,7 @@
                 
                 // Get the container element
                 const projectsContainer = document.getElementById('featured-projects-container');
+                const carouselWrapper = document.querySelector('.project-carousel-wrapper');
                 
                 // Clear loading indicator
                 projectsContainer.innerHTML = '';
@@ -702,8 +728,18 @@
                 
                 console.log('Featured projects rendered successfully');
                 
+                // Hide right button if 3 or fewer projects
+                if (featuredProjects.length <= 3) {
+                    document.getElementById('scroll-right').classList.add('hidden');
+                }
+                
                 // Initialize carousel functionality
                 initCarousel();
+                
+                // Force reset scroll position to start
+                if (carouselWrapper) {
+                    carouselWrapper.scrollLeft = 0;
+                }
                 
             } catch (error) {
                 console.error('Error in loadFeaturedProjects:', error);
@@ -744,12 +780,23 @@
             leftBtn.classList.remove('hidden');
             rightBtn.classList.remove('hidden');
             
-            // Calculate card width + gap
+            // Center the carousel to show exactly 3 cards
+            const containerWidth = carouselWrapper.clientWidth;
             const cardWidth = cards[0].offsetWidth;
             const gap = 32; // 2rem gap
             const scrollAmount = cardWidth + gap;
             
-            // Scroll left/right with buttons
+            // Ensure scroll snapping to cards
+            carouselWrapper.style.scrollSnapType = 'x mandatory';
+            cards.forEach(card => {
+                card.style.scrollSnapAlign = 'center';
+            });
+            
+            // Disable left button initially (we're showing the first 3 cards)
+            leftBtn.disabled = true;
+            leftBtn.style.opacity = '0.5';
+            
+            // Scroll left/right with buttons - scroll exactly one card
             leftBtn.addEventListener('click', () => {
                 carouselWrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
             });
