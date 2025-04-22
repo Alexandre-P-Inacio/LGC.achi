@@ -1564,7 +1564,3 @@ label[for="project-gallery"]:after {
     /* Distinctive icon styling for share button */
     color: #ffffff;
 }
-
-.projects-table .feature-button {
-    /* Black background already set in common .action-button class */
-} 

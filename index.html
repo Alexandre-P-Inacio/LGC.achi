@@ -70,29 +70,31 @@
         }
         
         /* Enhanced Featured Projects Styles */
-        #projects {
-            padding: 5rem 0;
+        #projects, #featured-projects {
+            padding: 5rem 0 6rem;
             background-color: #f8f9fa;
         }
         
-        #projects h2 {
+        #projects h2, #featured-projects h2 {
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
+            font-size: 2.8rem;
+            margin-bottom: 3.5rem;
             position: relative;
             color: #333;
+            font-weight: 700;
         }
         
-        #projects h2:after {
+        #projects h2:after, #featured-projects h2:after {
             content: '';
             display: block;
-            width: 80px;
+            width: 100px;
             height: 4px;
             background: linear-gradient(90deg, #333, #828282);
             margin: 15px auto 0;
             border-radius: 2px;
         }
         
+<<<<<<< HEAD
         .project-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -192,8 +194,194 @@
             font-size: 2rem;
             margin-bottom: 1rem;
             display: block;
+=======
+        /* Carousel styling */
+        .carousel-section {
+            max-width: 90%;
+            margin: 0 auto;
+            padding: 20px 0;
+            position: relative;
         }
         
+        .carousel-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 0 90px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .carousel-mask {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .project-carousel {
+            display: flex;
+            transition: transform 0.5s ease;
+            padding: 10px 0;
+        }
+        
+        .project-card {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            background-color: white;
+            border-radius: 0.5rem;
+            margin: 0 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .project-image {
+            width: 100%;
+            height: 280px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: transform 0.5s ease;
+        }
+        
+        .project-card:hover .project-image {
+            transform: scale(1.05);
+        }
+        
+        .project-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1.8rem 1.8rem 0.6rem;
+            color: #333;
+        }
+        
+        .project-card p {
+            margin: 0 1.8rem 1.8rem;
+            color: #666;
+            flex-grow: 1;
+            font-size: 1.1rem;
+        }
+        
+        .view-project-btn {
+            display: block;
+            background-color: var(--primary-color, #333);
+            color: white;
+            text-align: center;
+            padding: 0.8rem 1.5rem;
+            margin: auto 1.5rem 1.5rem;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .view-project-btn:hover {
+            background-color: var(--accent-color, #555);
+        }
+        
+        .carousel-nav-button {
+            background-color: white;
+            color: black;
+            border: 1px solid #E5E7EB;
+            border-radius: 9999px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .carousel-nav-button.prev-button {
+            left: 0;
+        }
+        
+        .carousel-nav-button.next-button {
+            right: 0;
+        }
+        
+        .carousel-nav-button:hover {
+            background-color: #F3F4F6;
+        }
+        
+        .carousel-nav-button:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: #4F46E5;
+        }
+        
+        .carousel-nav-button.hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            #projects, #featured-projects {
+                padding: 3rem 0 4rem;
+            }
+            
+            #projects h2, #featured-projects h2 {
+                font-size: 2.4rem;
+                margin-bottom: 2.5rem;
+            }
+            
+            .carousel-container {
+                padding: 0 70px;
+            }
+            
+            .carousel-nav-button {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .project-image {
+                height: 220px;
+            }
+            
+            .project-card h3 {
+                font-size: 1.3rem;
+                margin: 1.4rem 1.4rem 0.5rem;
+            }
+            
+            .project-card p {
+                margin: 0 1.4rem 1.4rem;
+                font-size: 1rem;
+            }
+            
+            .view-project-btn {
+                margin: auto 1.2rem 1.2rem;
+                padding: 0.7rem 1.2rem;
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .carousel-container {
+                padding: 0 55px;
+            }
+            
+            .carousel-nav-button {
+                width: 28px;
+                height: 28px;
+            }
+            
+            .project-card {
+                margin: 0 5px;
+            }
+            
+            .project-image {
+                height: 200px;
+            }
+>>>>>>> d900bcf6e1c9ebc160f190e69eef3fdaf6cc20d6
+        }
+        
+        /* Loading & Error States */
         .loading-spinner {
             display: flex;
             flex-direction: column;
@@ -218,6 +406,7 @@
             100% { transform: rotate(360deg); }
         }
         
+<<<<<<< HEAD
         /* Make the layout responsive */
         @media (max-width: 1200px) {
             .project-grid {
@@ -240,11 +429,36 @@
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 1.5rem;
                 padding: 0 1.5rem;
+=======
+        .no-projects, .error-message {
+            width: 100%;
+            text-align: center;
+            padding: 3rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .error-message i {
+            color: #dc3545;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .carousel-container {
+                max-width: 1100px;
+>>>>>>> d900bcf6e1c9ebc160f190e69eef3fdaf6cc20d6
             }
             
             .project-image {
-                height: 200px;
+                height: 250px;
             }
+<<<<<<< HEAD
             
             .project-card h3 {
                 font-size: 1.2rem;
@@ -260,6 +474,14 @@
                 margin: auto 1.2rem 1.2rem;
                 padding: 0.7rem 1.2rem;
                 font-size: 0.8rem;
+=======
+        }
+        
+        @media (max-width: 1100px) {
+            .project-card {
+                flex: 0 0 calc((100% - 32px) / 2); /* 2 cards */
+                width: calc((100% - 32px) / 2);
+>>>>>>> d900bcf6e1c9ebc160f190e69eef3fdaf6cc20d6
             }
         }
     </style>
@@ -289,6 +511,7 @@
             </div>
         </section>
 
+<<<<<<< HEAD
         <section id="projects">
             <h2>Featured Projects</h2>
             <div class="project-grid" id="featured-projects-container">
@@ -296,6 +519,34 @@
                 <div class="loading-spinner">
                     <div class="spinner"></div>
                     <p>Loading featured projects...</p>
+=======
+        <section id="featured-projects" class="py-16 bg-gray-100">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-8">Featured Projects</h2>
+                
+                <div class="carousel-container">
+                    <button class="carousel-nav-button prev-button hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    
+                    <div class="carousel-mask">
+                        <div class="project-carousel">
+                            <!-- Project cards will be loaded here by JavaScript -->
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                                <p>Loading featured projects...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="carousel-nav-button next-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+>>>>>>> d900bcf6e1c9ebc160f190e69eef3fdaf6cc20d6
                 </div>
             </div>
         </section>
@@ -511,7 +762,7 @@
                 console.log('Featured projects fetched:', featuredProjects);
                 
                 // Get the container element
-                const projectsContainer = document.getElementById('featured-projects-container');
+                const projectsContainer = document.querySelector('.project-carousel');
                 
                 // Clear loading indicator
                 projectsContainer.innerHTML = '';
@@ -519,6 +770,13 @@
                 if (!featuredProjects || featuredProjects.length === 0) {
                     console.log('No featured projects found');
                     projectsContainer.innerHTML = '<p class="no-projects">No featured projects available at the moment.</p>';
+<<<<<<< HEAD
+=======
+                    
+                    // Hide scroll buttons if no projects
+                    document.querySelector('.prev-button').classList.add('hidden');
+                    document.querySelector('.next-button').classList.add('hidden');
+>>>>>>> d900bcf6e1c9ebc160f190e69eef3fdaf6cc20d6
                     return;
                 }
                 
@@ -588,7 +846,6 @@
                         <div class="project-image" style="background-image: url('${imageUrl}')"></div>
                         <h3>${project.name || 'Unnamed Project'}</h3>
                         <p>${categoryDisplay}</p>
-                        <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
                     `;
                     
                     // Add the project card to the container
@@ -599,7 +856,7 @@
                 
             } catch (error) {
                 console.error('Error in loadFeaturedProjects:', error);
-                const projectsContainer = document.getElementById('featured-projects-container');
+                const projectsContainer = document.querySelector('.project-carousel');
                 projectsContainer.innerHTML = `
                     <p class="error-message">
                         <i class="fas fa-exclamation-circle"></i>
@@ -607,8 +864,119 @@
                         <small>Error: ${error.message}</small>
                     </p>
                 `;
+<<<<<<< HEAD
             }
         }
+=======
+                
+                // Hide scroll buttons if error
+                document.querySelector('.prev-button').classList.add('hidden');
+                document.querySelector('.next-button').classList.add('hidden');
+            }
+        }
+        
+        // Initialize carousel functionality
+        async function initCarousel() {
+            const carousel = document.querySelector('.project-carousel');
+            const carouselMask = document.querySelector('.carousel-mask');
+            const prevButton = document.querySelector('.prev-button');
+            const nextButton = document.querySelector('.next-button');
+            
+            if (!carousel || !prevButton || !nextButton) return;
+            
+            const cards = Array.from(carousel.querySelectorAll('.project-card'));
+            const totalItems = cards.length;
+            let currentIndex = 0;
+            
+            // Calculate how many items to show based on screen width
+            const calculateVisibleItems = () => {
+                if (window.innerWidth < 640) {
+                    return 1; // Mobile view: show 1 card
+                } else if (window.innerWidth < 1024) {
+                    return 2; // Tablet view: show 2 cards
+                } else {
+                    return 3; // Desktop view: show 3 cards
+                }
+            };
+            
+            let visibleItems = calculateVisibleItems();
+            
+            // Set up the carousel with proper card widths
+            const setupCarousel = () => {
+                visibleItems = calculateVisibleItems();
+                
+                // Set widths for cards
+                const containerWidth = carouselMask.clientWidth;
+                const cardWidth = (containerWidth / visibleItems) - 30; // Account for wider margins
+                
+                // Apply widths to cards
+                cards.forEach(card => {
+                    card.style.width = `${cardWidth}px`;
+                    card.style.flexShrink = '0';
+                    card.style.flexGrow = '0';
+                });
+                
+                // If there's a fourth card (index 3) and we're on desktop, hide it initially
+                if (cards.length > 3 && visibleItems === 3) {
+                    // Make sure we don't show the fourth card initially
+                    currentIndex = 0; // Reset to beginning to be safe
+                }
+                
+                // Update carousel position
+                updateCarousel();
+            };
+            
+            // Update carousel position and button visibility
+            const updateCarousel = () => {
+                const containerWidth = carouselMask.clientWidth;
+                const cardWidth = (containerWidth / visibleItems) - 30; // Account for wider margins
+                const offset = -currentIndex * cardWidth - (currentIndex * 30); // Account for card margins
+                
+                carousel.style.transform = `translateX(${offset}px)`;
+                
+                // Update button visibility
+                prevButton.classList.toggle('hidden', currentIndex === 0);
+                nextButton.classList.toggle('hidden', currentIndex >= totalItems - visibleItems);
+            };
+            
+            // Event listeners for navigation
+            prevButton.addEventListener('click', () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateCarousel();
+                }
+            });
+            
+            nextButton.addEventListener('click', () => {
+                if (currentIndex < totalItems - visibleItems) {
+                    currentIndex++;
+                    updateCarousel();
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                const oldVisibleItems = visibleItems;
+                setupCarousel();
+                
+                // Adjust currentIndex proportionally when visible items change
+                if (oldVisibleItems !== visibleItems && currentIndex > 0) {
+                    // Ensure we never show past the last available card
+                    currentIndex = Math.min(currentIndex, totalItems - visibleItems);
+                    
+                    // If we switched to desktop view (3 visible items), ensure the fourth card is not visible initially
+                    if (visibleItems === 3 && cards.length > 3 && currentIndex === 0) {
+                        // We're already at the beginning, nothing to do
+                    }
+                }
+                
+                updateCarousel();
+            });
+            
+            // Initialize carousel
+            setupCarousel();
+        }
+>>>>>>> d900bcf6e1c9ebc160f190e69eef3fdaf6cc20d6
     </script>
 </body>
 </html>
