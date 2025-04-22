@@ -112,11 +112,21 @@
   </style>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script defer src="chat.js"></script>
+  <script>
+    // Script to ensure notifications are shown by default when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add a small delay to ensure chat.js has initialized first
+      setTimeout(function() {
+        // If selectUser function exists, call it with 'system' to show notifications
+        if (typeof selectUser === 'function') {
+          selectUser('system');
+        }
+      }, 500);
+    });
+  </script>
 </head>
 <body>
-  <header id="site-header">
-    <script src="navigation.js"></script>
-  </header>
+
 
   <div class="chat-app">
     <aside class="sidebar">
