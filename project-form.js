@@ -87,6 +87,9 @@ async function loadProjectData(projectId) {
         }
     }
     
+    // Set featured checkbox state
+    document.getElementById('project-featured').checked = data.is_featured || false;
+    
     // Display current file name if exists
     if (data.file_url) {
         // Extract filename from URL
@@ -175,7 +178,8 @@ async function saveProject(event) {
         const projectData = {
             name: projectName,
             category: projectCategory,
-            status: projectStatus
+            status: projectStatus,
+            is_featured: document.getElementById('project-featured').checked
         };
         
         if (isEdit) {

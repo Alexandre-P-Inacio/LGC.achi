@@ -1953,12 +1953,24 @@ async function toggleFeaturedStatus(projectId, isFeatured) {
         // Show loading indicator
         showLoadingIndicator('Updating project...');
         
-        const { error } = await supabase
+        console.log('Toggling featured status:', { projectId, isFeatured });
+        
+        // Update the project in the database
+        const { data, error } = await supabase
             .from('projects')
-            .update({ is_featured: isFeatured })
-            .eq('id', projectId);
+            .update({ 
+                is_featured: isFeatured,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', projectId)
+            .select();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Error updating project:', error);
+            throw error;
+        }
+
+        console.log('Project updated successfully:', data);
 
         // Find the project row
         const projectRow = document.querySelector(`tr[data-project-id="${projectId}"]`);
