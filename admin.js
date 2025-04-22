@@ -347,6 +347,8 @@ function updateProjectsTable(projects) {
         
         // Create a simple version of the row first to ensure it works
         const row = document.createElement('tr');
+        // Add data attribute for project ID for easier reference
+        row.setAttribute('data-project-id', project.id);
         
         try {
             // Format the date
@@ -400,10 +402,18 @@ function updateProjectsTable(projects) {
                     .join(' ');
             }
             
+            // Create project title with featured tag if applicable
+            const projectTitleHtml = `
+                <div class="project-title">
+                    ${project.name || 'Unnamed Project'}
+                    ${project.is_featured ? '<span class="feature-tag"><i class="fas fa-star"></i> Featured</span>' : ''}
+                </div>
+            `;
+            
             // Create table row with basic data
             row.innerHTML = `
                 <td>
-                    <div class="project-title">${project.name || 'Unnamed Project'}</div>
+                    ${projectTitleHtml}
                 </td>
                 <td>
                     <span class="category-badge">${categoryDisplay}</span>
@@ -426,6 +436,11 @@ function updateProjectsTable(projects) {
                         </button>
                         <button class="action-button share-button" onclick="showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')" title="Share">
                             <i class="fas fa-share-alt" style="font-size: 16px; color: white;"></i>
+                        </button>
+                        <button class="action-button feature-button${project.is_featured ? ' featured' : ''}" 
+                                onclick="toggleFeaturedStatus('${project.id}', ${!project.is_featured})" 
+                                title="${project.is_featured ? 'Remove from featured' : 'Add to featured'}">
+                            <i class="${project.is_featured ? 'fas' : 'far'} fa-star" style="font-size: 16px; color: white;"></i>
                         </button>
                     </div>
                 </td>
@@ -1743,4 +1758,254 @@ document.addEventListener('DOMContentLoaded', function() {
         adminControls.appendChild(testButton);
         logDebug('Test notification button added to admin controls');
     }
-}); 
+});
+
+// Add these utility functions that are missing
+function showLoadingIndicator(message = 'Loading...') {
+    // Create loading overlay if it doesn't exist
+    let loadingOverlay = document.getElementById('loading-overlay');
+    if (!loadingOverlay) {
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loading-overlay';
+        loadingOverlay.className = 'loading-overlay';
+        
+        const spinnerContainer = document.createElement('div');
+        spinnerContainer.className = 'loading-spinner-container';
+        
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+        
+        const messageElement = document.createElement('div');
+        messageElement.id = 'loading-message';
+        messageElement.className = 'loading-message';
+        
+        spinnerContainer.appendChild(spinner);
+        spinnerContainer.appendChild(messageElement);
+        loadingOverlay.appendChild(spinnerContainer);
+        
+        document.body.appendChild(loadingOverlay);
+    }
+    
+    // Update the message
+    const messageElement = document.getElementById('loading-message');
+    if (messageElement) {
+        messageElement.textContent = message;
+    }
+    
+    // Show the overlay
+    loadingOverlay.style.display = 'flex';
+}
+
+function hideLoadingIndicator() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification container if it doesn't exist
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        document.body.appendChild(notificationContainer);
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    
+    // Add appropriate icon based on type
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'exclamation-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
+    
+    notification.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add to container
+    notificationContainer.appendChild(notification);
+    
+    // Show with animation
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 5000);
+}
+
+// Add CSS for the loading indicator and notifications
+document.addEventListener('DOMContentLoaded', function() {
+    // Add CSS if not already present
+    if (!document.getElementById('utility-styles')) {
+        const styleElement = document.createElement('style');
+        styleElement.id = 'utility-styles';
+        styleElement.textContent = `
+            /* Loading Overlay */
+            .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            }
+            
+            .loading-spinner-container {
+                background-color: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .loading-spinner {
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid var(--primary-color, #3a7bd5);
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin-bottom: 15px;
+            }
+            
+            .loading-message {
+                font-size: 14px;
+                color: #333;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            /* Notification Container */
+            #notification-container {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .notification {
+                background-color: white;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                border-radius: 6px;
+                padding: 12px 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transform: translateX(120%);
+                transition: transform 0.3s ease;
+                max-width: 350px;
+            }
+            
+            .notification.show {
+                transform: translateX(0);
+            }
+            
+            .notification i {
+                font-size: 20px;
+            }
+            
+            .notification-info i {
+                color: #3a7bd5;
+            }
+            
+            .notification-success i {
+                color: #28a745;
+            }
+            
+            .notification-error i {
+                color: #dc3545;
+            }
+            
+            .notification-warning i {
+                color: #ffc107;
+            }
+        `;
+        document.head.appendChild(styleElement);
+    }
+});
+
+// Fix the toggleFeaturedStatus function to update button correctly
+async function toggleFeaturedStatus(projectId, isFeatured) {
+    try {
+        // Show loading indicator
+        showLoadingIndicator('Updating project...');
+        
+        const { error } = await supabase
+            .from('projects')
+            .update({ is_featured: isFeatured })
+            .eq('id', projectId);
+
+        if (error) throw error;
+
+        // Find the project row
+        const projectRow = document.querySelector(`tr[data-project-id="${projectId}"]`);
+        if (projectRow) {
+            const featureButton = projectRow.querySelector('.feature-button');
+            const projectTitle = projectRow.querySelector('.project-title');
+            
+            if (featureButton) {
+                // Update button appearance
+                if (isFeatured) {
+                    featureButton.classList.add('featured');
+                    featureButton.querySelector('i').className = 'fas fa-star';
+                    featureButton.title = 'Remove from featured';
+                    
+                    // Add feature tag if not exists
+                    if (!projectTitle.querySelector('.feature-tag')) {
+                        const featureTag = document.createElement('span');
+                        featureTag.className = 'feature-tag';
+                        featureTag.innerHTML = '<i class="fas fa-star"></i> Featured';
+                        projectTitle.appendChild(featureTag);
+                    }
+                } else {
+                    featureButton.classList.remove('featured');
+                    featureButton.querySelector('i').className = 'far fa-star';
+                    featureButton.title = 'Add to featured';
+                    
+                    // Remove feature tag if exists
+                    const featureTag = projectTitle.querySelector('.feature-tag');
+                    if (featureTag) {
+                        featureTag.remove();
+                    }
+                }
+                
+                // Update the onclick handler
+                featureButton.setAttribute('onclick', `toggleFeaturedStatus('${projectId}', ${!isFeatured})`);
+            }
+        }
+        
+        // Hide loading indicator
+        hideLoadingIndicator();
+        
+        // Show success notification
+        showNotification(`Project ${isFeatured ? 'added to' : 'removed from'} featured list successfully`, 'success');
+        
+    } catch (error) {
+        console.error('Error toggling featured status:', error);
+        hideLoadingIndicator();
+        showNotification('Error updating featured status. Please try again.', 'error');
+    }
+} 

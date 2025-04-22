@@ -96,8 +96,8 @@ async function loadUsers() {
     systemDiv.innerHTML = `
         <div class="user-avatar system-avatar"><i class="fas fa-bell"></i></div>
         <div class="user-info">
-            <span class="user-name">Notificações</span>
-            <span class="last-message-placeholder">Atualizações do sistema</span>
+            <span class="user-name">Notifications</span>
+            <span class="last-message-placeholder">System updates</span>
         </div>
     `;
     systemDiv.addEventListener('click', () => selectUser('system'));
@@ -175,7 +175,7 @@ async function selectUser(username) {
     const chatHeader = document.getElementById('chat-header');
     if (chatHeader) {
         if (username === 'system') {
-            chatHeader.textContent = 'Notificações do Sistema';
+            chatHeader.textContent = 'System Notifications';
         } else {
             chatHeader.textContent = `Chat with ${username}`;
         }

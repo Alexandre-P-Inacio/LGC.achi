@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/logo(2).png">
     <link rel="stylesheet" href="styles.css">
@@ -11,17 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Load Supabase first -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script>
-        // Ensure Supabase is globally accessible
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Checking supabase:', typeof supabase);
-            if (typeof supabase !== 'undefined') {
-                window.supabase = supabase;
-                console.log('Supabase made available globally');
-            }
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Then load other scripts -->
     <script src="auth.js" defer></script>
@@ -104,21 +94,11 @@
 
         <section id="projects">
             <h2>Featured Projects</h2>
-            <div class="project-grid">
-                <div class="project-card">
-                    <div class="project-image"></div>
-                    <h3>Lorem ipsum</h3>
-                    <p>Lorem ipsum dolor sit amet consectetur</p>
-                </div>
-                <div class="project-card">
-                    <div class="project-image"></div>
-                    <h3>Lorem ipsum</h3>
-                    <p>Lorem ipsum dolor sit amet consectetur</p>
-                </div>
-                <div class="project-card">
-                    <div class="project-image"></div>
-                    <h3>Lorem ipsum</h3>
-                    <p>Lorem ipsum dolor sit amet consectetur</p>
+            <div class="project-grid" id="featured-projects-container">
+                <!-- Featured projects will be loaded dynamically here -->
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading featured projects...</p>
                 </div>
             </div>
         </section>
@@ -271,7 +251,109 @@
             if (currentUser && typeof updateUserInterface === 'function') {
                 updateUserInterface(currentUser);
             }
+            
+            // Load featured projects
+            loadFeaturedProjects();
         });
+        
+        // Function to load featured projects from the database
+        async function loadFeaturedProjects() {
+            try {
+                // Use the existing Supabase client that was initialized in auth.js
+                if (!window.supabase) {
+                    throw new Error('Supabase client not initialized');
+                }
+                
+                // Fetch featured projects from the database
+                const { data: featuredProjects, error } = await window.supabase
+                    .from('projects')
+                    .select('id, name, category, file_url, status, created_at')
+                    .eq('is_featured', true)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                // Get the container element
+                const projectsContainer = document.getElementById('featured-projects-container');
+                
+                // Clear loading indicator
+                projectsContainer.innerHTML = '';
+                
+                if (!featuredProjects || featuredProjects.length === 0) {
+                    projectsContainer.innerHTML = '<p class="no-projects">No featured projects available at the moment.</p>';
+                    return;
+                }
+                
+                // Display each featured project
+                featuredProjects.forEach(project => {
+                    // Format category name for display
+                    let categoryDisplay = 'Uncategorized';
+                    if (project.category) {
+                        categoryDisplay = project.category
+                            .split('-')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+                    }
+                    
+                    // Create project card element
+                    const projectCard = document.createElement('div');
+                    projectCard.className = 'project-card';
+                    
+                    // Determine if we have an image or need to use a placeholder
+                    const hasImage = project.file_url;
+                    
+                    // Generate a random gradient for the placeholder
+                    const colors = [
+                        ['#3a7bd5', '#00d2ff'], // Blue gradient
+                        ['#f2994a', '#f2c94c'], // Orange gradient
+                        ['#11998e', '#38ef7d'], // Green gradient
+                        ['#FC5C7D', '#6A82FB'], // Pink to purple
+                        ['#833ab4', '#fd1d1d'], // Purple to red
+                        ['#4568dc', '#b06ab3']  // Blue to purple
+                    ];
+                    
+                    // Select a random gradient based on the project name
+                    const colorIndex = Math.abs(project.name.charCodeAt(0) || 0) % colors.length;
+                    const [color1, color2] = colors[colorIndex];
+                    
+                    // Fill the project card with content
+                    if (hasImage) {
+                        // Use the actual image if available
+                        projectCard.innerHTML = `
+                            <div class="project-image" style="background-image: url('${project.file_url}')"></div>
+                            <h3>${project.name || 'Unnamed Project'}</h3>
+                            <p>${categoryDisplay}</p>
+                            <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
+                        `;
+                    } else {
+                        // Use a gradient placeholder with the project name
+                        projectCard.innerHTML = `
+                            <div class="project-image project-placeholder" style="background: linear-gradient(135deg, ${color1}, ${color2})">
+                                <div class="placeholder-content">
+                                    <div class="placeholder-icon"><i class="fas fa-building"></i></div>
+                                </div>
+                            </div>
+                            <h3>${project.name || 'Unnamed Project'}</h3>
+                            <p>${categoryDisplay}</p>
+                            <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
+                        `;
+                    }
+                    
+                    // Add the project card to the container
+                    projectsContainer.appendChild(projectCard);
+                });
+                
+            } catch (error) {
+                console.error('Error loading featured projects:', error);
+                const projectsContainer = document.getElementById('featured-projects-container');
+                projectsContainer.innerHTML = `
+                    <p class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Failed to load featured projects. Please try again later.
+                    </p>
+                `;
+            }
+        }
     </script>
 </body>
 </html>
