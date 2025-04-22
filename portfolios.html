@@ -63,18 +63,18 @@
                     </div>
                 </div>
                 
+                <div id="no-projects" class="no-projects" style="display: none;">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No projects found</h3>
+                    <p>There are no projects in this category yet.</p>
+                </div>
+                
                 <div id="portfolio-grid" class="portfolio-grid">
                     <!-- Projects will be loaded here dynamically -->
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>Loading projects...</p>
                     </div>
-                </div>
-                
-                <div id="no-projects" class="no-projects" style="display: none;">
-                    <i class="fas fa-folder-open"></i>
-                    <h3>No projects found</h3>
-                    <p>There are no projects in this category yet.</p>
                 </div>
             </div>
         </section>
@@ -93,44 +93,42 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Supabase
-            const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
-            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-            
-            // Check for category filter in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const categoryFilter = urlParams.get('category');
-            
-            // Check if there's a stored category in localStorage
-            const storedCategory = localStorage.getItem('selectedCategory');
-            
-            // Determine which category to use
-            let currentCategory = categoryFilter || storedCategory || 'all';
-            
-            // Update filter UI based on selected category
-            updateFilterUI(currentCategory);
-            
-            // Load projects based on the selected category
-            loadProjects(currentCategory);
-            
-            // Add click event to filter buttons
-            document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
-                button.addEventListener('click', function() {
-                    const category = this.getAttribute('data-filter');
-                    currentCategory = category;
-                    localStorage.setItem('selectedCategory', category);
-                    updateFilterUI(category);
-                    loadProjects(category);
+            // Wait a short moment for auth.js to initialize the Supabase client
+            setTimeout(() => {
+                // Check for category filter in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryFilter = urlParams.get('category');
+                
+                // Check if there's a stored category in localStorage
+                const storedCategory = localStorage.getItem('selectedCategory');
+                
+                // Determine which category to use
+                let currentCategory = categoryFilter || storedCategory || 'all';
+                
+                // Update filter UI based on selected category
+                updateFilterUI(currentCategory);
+                
+                // Load projects based on the selected category
+                loadProjects(currentCategory);
+                
+                // Add click event to filter buttons
+                document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const category = this.getAttribute('data-filter');
+                        currentCategory = category;
+                        localStorage.setItem('selectedCategory', category);
+                        updateFilterUI(category);
+                        loadProjects(category);
+                    });
                 });
-            });
-            
-            // Toggle filter dropdown
-            const filterDropdownBtn = document.querySelector('.filter-dropdown-btn');
-            filterDropdownBtn.addEventListener('click', function() {
-                const dropdownContent = document.querySelector('.filter-dropdown-content');
-                dropdownContent.classList.toggle('show');
-            });
+                
+                // Toggle filter dropdown
+                const filterDropdownBtn = document.querySelector('.filter-dropdown-btn');
+                filterDropdownBtn.addEventListener('click', function() {
+                    const dropdownContent = document.querySelector('.filter-dropdown-content');
+                    dropdownContent.classList.toggle('show');
+                });
+            }, 500);
             
             // Close dropdown when clicking outside
             window.addEventListener('click', function(event) {
@@ -154,6 +152,19 @@
                         button.classList.remove('active');
                     }
                 });
+                
+                // Update dropdown button text
+                const dropdownBtn = document.querySelector('.filter-dropdown-btn');
+                if (category === 'all') {
+                    dropdownBtn.innerHTML = 'Select Category <i class="fas fa-chevron-down"></i>';
+                    dropdownBtn.classList.remove('active');
+                } else {
+                    // Get the display name of the category
+                    const categoryButton = document.querySelector(`.filter-item[data-filter="${category}"]`);
+                    const categoryName = categoryButton ? categoryButton.textContent : formatCategoryName(category);
+                    dropdownBtn.innerHTML = `${categoryName} <i class="fas fa-chevron-down"></i>`;
+                    dropdownBtn.classList.add('active');
+                }
                 
                 // Update filter info text
                 const filterInfo = document.getElementById('category-filter-info');
@@ -190,6 +201,11 @@
                 noProjects.style.display = 'none';
                 
                 try {
+                    // Check if supabase is defined (should be defined by auth.js)
+                    if (typeof supabase === 'undefined') {
+                        throw new Error('Supabase client not initialized. Please refresh the page.');
+                    }
+                    
                     // Query projects from database
                     let query = supabase.from('projects').select('*');
                     
@@ -198,7 +214,7 @@
                         query = query.eq('category', category);
                     }
                     
-                    // Execute query
+                    // Execute query with timeout
                     const { data: projects, error } = await query;
                     
                     if (error) {
@@ -207,6 +223,8 @@
                     
                     // Clear loading spinner
                     portfolioGrid.innerHTML = '';
+                    
+                    console.log('Projects loaded:', projects ? projects.length : 0);
                     
                     // Check if projects were found
                     if (projects && projects.length > 0) {
@@ -250,7 +268,7 @@
                     portfolioGrid.innerHTML = `
                         <div class="error-message">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <p>Error loading projects. Please try again later.</p>
+                            <p>Error loading projects: ${error.message || 'Please try again later.'}</p>
                         </div>
                     `;
                 }
@@ -371,6 +389,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 180px;
+            justify-content: space-between;
+        }
+        
+        .filter-dropdown-btn.active {
+            background-color: #000000c9;
+            color: white;
         }
         
         .filter-dropdown-content {
@@ -556,21 +581,31 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 200px;
+            min-height: 150px;
             color: #666;
             background-color: #f8f9fa;
-            padding: 40px;
+            padding: 30px;
             border-radius: 10px;
             border: 2px dashed #ddd;
             text-align: center;
-            margin: 20px auto;
-            max-width: 500px;
+            margin: 20px auto 30px;
+            max-width: 600px;
         }
         
         .no-projects i {
-            font-size: 3rem;
-            margin-bottom: 15px;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
             color: #ddd;
+        }
+        
+        .no-projects h3 {
+            margin: 10px 0;
+            font-size: 1.4rem;
+        }
+        
+        .no-projects p {
+            margin: 5px 0 0;
+            font-size: 1rem;
         }
         
         /* Responsive styles */
