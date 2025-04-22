@@ -93,16 +93,9 @@
             border-radius: 2px;
         }
         
-<<<<<<< HEAD
         /* Carousel Layout */
         .projects-container {
             position: relative;
-=======
-        .project-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2.5rem;
->>>>>>> 634c8b900dd331ffac5bad2e06bdf83718ebc877
             max-width: 1400px;
             margin: 0 auto;
             padding: 0 2rem;
@@ -270,197 +263,8 @@
             font-size: 2rem;
             margin-bottom: 1rem;
             display: block;
-<<<<<<< HEAD
         }
         
-=======
-        /* Carousel styling */
-        .carousel-section {
-            max-width: 90%;
-            margin: 0 auto;
-            padding: 20px 0;
-            position: relative;
-        }
-        
-        .carousel-container {
-            display: flex;
-            align-items: center;
-            position: relative;
-            padding: 0 90px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .carousel-mask {
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-        }
-        
-        .project-carousel {
-            display: flex;
-            transition: transform 0.5s ease;
-            padding: 10px 0;
-        }
-        
-        .project-card {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            background-color: white;
-            border-radius: 0.5rem;
-            margin: 0 15px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-        }
-        
-        .project-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-        }
-        
-        .project-image {
-            width: 100%;
-            height: 280px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            transition: transform 0.5s ease;
-        }
-        
-        .project-card:hover .project-image {
-            transform: scale(1.05);
-        }
-        
-        .project-card h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 1.8rem 1.8rem 0.6rem;
-            color: #333;
-        }
-        
-        .project-card p {
-            margin: 0 1.8rem 1.8rem;
-            color: #666;
-            flex-grow: 1;
-            font-size: 1.1rem;
-        }
-        
-        .view-project-btn {
-            display: block;
-            background-color: var(--primary-color, #333);
-            color: white;
-            text-align: center;
-            padding: 0.8rem 1.5rem;
-            margin: auto 1.5rem 1.5rem;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        
-        .view-project-btn:hover {
-            background-color: var(--accent-color, #555);
-        }
-        
-        .carousel-nav-button {
-            background-color: white;
-            color: black;
-            border: 1px solid #E5E7EB;
-            border-radius: 9999px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: absolute;
-            z-index: 10;
-        }
-        
-        .carousel-nav-button.prev-button {
-            left: 0;
-        }
-        
-        .carousel-nav-button.next-button {
-            right: 0;
-        }
-        
-        .carousel-nav-button:hover {
-            background-color: #F3F4F6;
-        }
-        
-        .carousel-nav-button:focus {
-            outline: none;
-            ring: 2px;
-            ring-color: #4F46E5;
-        }
-        
-        .carousel-nav-button.hidden {
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            #projects, #featured-projects {
-                padding: 3rem 0 4rem;
-            }
-            
-            #projects h2, #featured-projects h2 {
-                font-size: 2.4rem;
-                margin-bottom: 2.5rem;
-            }
-            
-            .carousel-container {
-                padding: 0 70px;
-            }
-            
-            .carousel-nav-button {
-                width: 32px;
-                height: 32px;
-            }
-            
-            .project-image {
-                height: 220px;
-            }
-            
-            .project-card h3 {
-                font-size: 1.3rem;
-                margin: 1.4rem 1.4rem 0.5rem;
-            }
-            
-            .project-card p {
-                margin: 0 1.4rem 1.4rem;
-                font-size: 1rem;
-            }
-            
-            .view-project-btn {
-                margin: auto 1.2rem 1.2rem;
-                padding: 0.7rem 1.2rem;
-                font-size: 0.8rem;
-            }
-        }
-        
-        @media (max-width: 640px) {
-            .carousel-container {
-                padding: 0 55px;
-            }
-            
-            .carousel-nav-button {
-                width: 28px;
-                height: 28px;
-            }
-            
-            .project-card {
-                margin: 0 5px;
-            }
-            
-            .project-image {
-                height: 200px;
-            }
-        }
-        
-        /* Loading & Error States */
->>>>>>> 634c8b900dd331ffac5bad2e06bdf83718ebc877
         .loading-spinner {
             display: flex;
             flex-direction: column;
@@ -485,7 +289,6 @@
             100% { transform: rotate(360deg); }
         }
         
-<<<<<<< HEAD
         /* Make the layout responsive */
         @media (max-width: 1200px) {
             .project-card {
@@ -514,30 +317,6 @@
             .project-card {
                 width: 85%;
                 min-width: 280px;
-=======
-        .no-projects, .error-message {
-            width: 100%;
-            text-align: center;
-            padding: 3rem;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            color: #666;
-            font-size: 1.1rem;
-        }
-        
-        .error-message i {
-            color: #dc3545;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .carousel-container {
-                max-width: 1100px;
->>>>>>> 634c8b900dd331ffac5bad2e06bdf83718ebc877
             }
             
             .project-image {
@@ -559,7 +338,6 @@
                 padding: 0.7rem 1.2rem;
                 font-size: 0.8rem;
             }
-<<<<<<< HEAD
             
             .scroll-btn {
                 width: 40px;
@@ -573,57 +351,6 @@
             
             .scroll-right {
                 right: 5px;
-=======
-        }
-        
-        /* Slideshow navigation buttons */
-        .slide-nav-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: all 0.3s ease;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .slide-nav-btn:hover {
-            opacity: 1;
-            background: rgba(0, 0, 0, 0.8);
-        }
-        
-        .prev-btn {
-            left: 20px;
-        }
-        
-        .next-btn {
-            right: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            .slide-nav-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 14px;
-            }
-            
-            .prev-btn {
-                left: 10px;
-            }
-            
-            .next-btn {
-                right: 10px;
->>>>>>> 634c8b900dd331ffac5bad2e06bdf83718ebc877
             }
         }
     </style>
@@ -640,15 +367,6 @@
                 <div class="hero-slide"></div>
                 <div class="hero-slide"></div>
             </div>
-            
-            <!-- Add previous and next buttons -->
-            <button class="slide-nav-btn prev-btn" id="prev-slide">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <button class="slide-nav-btn next-btn" id="next-slide">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-            
             <div class="slideshow-dots">
                 <div class="slideshow-dot active" data-slide="0"></div>
                 <div class="slideshow-dot" data-slide="1"></div>
@@ -664,7 +382,6 @@
 
         <section id="projects">
             <h2>Featured Projects</h2>
-<<<<<<< HEAD
             <div class="projects-container">
                 <button class="scroll-btn scroll-left" id="scroll-left">
                     <i class="fas fa-chevron-left"></i>
@@ -677,13 +394,6 @@
                             <p>Loading featured projects...</p>
                         </div>
                     </div>
-=======
-            <div class="project-grid" id="featured-projects-container">
-                <!-- Featured projects will be loaded dynamically here -->
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    <p>Loading featured projects...</p>
->>>>>>> 634c8b900dd331ffac5bad2e06bdf83718ebc877
                 </div>
                 <button class="scroll-btn scroll-right" id="scroll-right">
                     <i class="fas fa-chevron-right"></i>
@@ -845,30 +555,6 @@
             
             // Check for chat notifications
             checkChatNotifications();
-            
-            // Get slide navigation elements
-            const prevBtn = document.getElementById('prev-slide');
-            const nextBtn = document.getElementById('next-slide');
-            
-            // Add event listeners for manual navigation
-            if (prevBtn && nextBtn) {
-                prevBtn.addEventListener('click', function() {
-                    navigateSlide(-1);
-                    stopAllSlideshowIntervals();
-                });
-                
-                nextBtn.addEventListener('click', function() {
-                    navigateSlide(1);
-                    stopAllSlideshowIntervals();
-                });
-                
-                // Also stop auto-rotation when clicking on the dot navigation
-                document.querySelectorAll('.slideshow-dot').forEach((dot, index) => {
-                    dot.addEventListener('click', function() {
-                        stopAllSlideshowIntervals();
-                    });
-                });
-            }
         });
         
         // Function to check for unread notifications and show the indicator
@@ -894,6 +580,7 @@
                 }
                 
             } catch (error) {
+                console.error('Error checking notifications:', error);
             }
         }
         
@@ -933,13 +620,10 @@
                 if (!featuredProjects || featuredProjects.length === 0) {
                     console.log('No featured projects found');
                     projectsContainer.innerHTML = '<p class="no-projects">No featured projects available at the moment.</p>';
-<<<<<<< HEAD
                     
                     // Hide scroll buttons if no projects
                     document.getElementById('scroll-left').classList.add('hidden');
                     document.getElementById('scroll-right').classList.add('hidden');
-=======
->>>>>>> 634c8b900dd331ffac5bad2e06bdf83718ebc877
                     return;
                 }
                 
@@ -1031,7 +715,6 @@
                         <small>Error: ${error.message}</small>
                     </p>
                 `;
-<<<<<<< HEAD
                 
                 // Hide scroll buttons if error
                 document.getElementById('scroll-left').classList.add('hidden');
@@ -1142,59 +825,6 @@
                 rightBtn.disabled = scrollPosition >= maxScroll;
                 rightBtn.style.opacity = scrollPosition >= maxScroll ? '0.5' : '0.9';
             });
-=======
-
-            }
-        }
-        
-        // Function to navigate slides manually
-        function navigateSlide(direction) {
-            const slides = document.querySelectorAll('.hero-slide');
-            const dots = document.querySelectorAll('.slideshow-dot');
-            
-            // Find the current active slide
-            let activeIndex = 0;
-            slides.forEach((slide, index) => {
-                if (slide.classList.contains('active')) {
-                    activeIndex = index;
-                }
-            });
-            
-            // Calculate the new index
-            let newIndex = activeIndex + direction;
-            
-            // Handle wrap-around
-            if (newIndex < 0) {
-                newIndex = slides.length - 1;
-            } else if (newIndex >= slides.length) {
-                newIndex = 0;
-            }
-            
-            // Remove active class from current slide and dot
-            slides[activeIndex].classList.remove('active');
-            dots[activeIndex].classList.remove('active');
-            
-            // Add active class to new slide and dot
-            slides[newIndex].classList.add('active');
-            dots[newIndex].classList.add('active');
-            
-            // Clear any existing automatic rotation interval
-            if (window.slideshowInterval) {
-                clearInterval(window.slideshowInterval);
-                window.slideshowInterval = null;
-            }
-        }
-        
-        // Add function to look for and stop any automatic slideshows
-        function stopAllSlideshowIntervals() {
-            // This will search for and clear any intervals that might be controlling the slideshow
-            for (let i = 1; i < 10000; i++) {
-                window.clearInterval(i);
-            }
-            
-            // Set a flag to prevent animation.js from restarting autorotation
-            window.manualSlideControl = true;
->>>>>>> 634c8b900dd331ffac5bad2e06bdf83718ebc877
         }
     </script>
 </body>
