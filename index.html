@@ -12,6 +12,13 @@
     
     <!-- Load Supabase first -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase initialized in index.html');
+    </script>
     
     <!-- Then load other scripts -->
     <script src="auth.js" defer></script>
@@ -59,6 +66,200 @@
             
             .fixed-chat-button i {
                 font-size: 26px;
+            }
+        }
+        
+        /* Enhanced Featured Projects Styles */
+        #projects {
+            padding: 5rem 0;
+            background-color: #f8f9fa;
+        }
+        
+        #projects h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            position: relative;
+            color: #333;
+        }
+        
+        #projects h2:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #333, #828282);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+        
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .project-image {
+            height: 240px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .project-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 70%, rgba(0, 0, 0, 0.4));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .project-card:hover .project-image::before {
+            opacity: 1;
+        }
+        
+        .project-card h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 1.5rem 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .project-card p {
+            color: #666;
+            margin: 0 1.5rem 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .view-project-btn {
+            margin: auto 1.5rem 1.5rem;
+            padding: 0.8rem 1.5rem;
+            background-color: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            display: block;
+        }
+        
+        .view-project-btn:hover {
+            background-color: #000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .no-projects, .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .error-message i {
+            color: #dc3545;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            grid-column: 1 / -1;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #333;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Make the layout responsive */
+        @media (max-width: 1200px) {
+            .project-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #projects {
+                padding: 3rem 0;
+            }
+            
+            #projects h2 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+            }
+            
+            .project-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1.5rem;
+                padding: 0 1.5rem;
+            }
+            
+            .project-image {
+                height: 200px;
+            }
+            
+            .project-card h3 {
+                font-size: 1.2rem;
+                margin: 1.2rem 1.2rem 0.4rem;
+            }
+            
+            .project-card p {
+                margin: 0 1.2rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .view-project-btn {
+                margin: auto 1.2rem 1.2rem;
+                padding: 0.7rem 1.2rem;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -285,19 +486,29 @@
         // Function to load featured projects from the database
         async function loadFeaturedProjects() {
             try {
-                // Use the existing Supabase client that was initialized in auth.js
+                console.log('Starting to load featured projects...');
+                
+                // Check if Supabase is initialized
                 if (!window.supabase) {
-                    throw new Error('Supabase client not initialized');
+                    console.error('Supabase client not initialized');
+                    throw new Error('Database connection not initialized');
                 }
+                
+                console.log('Fetching featured projects from database...');
                 
                 // Fetch featured projects from the database
                 const { data: featuredProjects, error } = await window.supabase
                     .from('projects')
-                    .select('id, name, category, file_url, status, created_at')
+                    .select('*')
                     .eq('is_featured', true)
                     .order('created_at', { ascending: false });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error fetching featured projects:', error);
+                    throw error;
+                }
+                
+                console.log('Featured projects fetched:', featuredProjects);
                 
                 // Get the container element
                 const projectsContainer = document.getElementById('featured-projects-container');
@@ -306,12 +517,40 @@
                 projectsContainer.innerHTML = '';
                 
                 if (!featuredProjects || featuredProjects.length === 0) {
+                    console.log('No featured projects found');
                     projectsContainer.innerHTML = '<p class="no-projects">No featured projects available at the moment.</p>';
                     return;
                 }
                 
+                console.log('Starting to render featured projects...');
+                
+                // Map category to image file
+                const categoryImageMap = {
+                    'rf-telecommunications': 'assets/Telecomunication.jpg',
+                    'energy': 'assets/Energy.jpg',
+                    'construction': 'assets/Construction.jpg',
+                    'banking': 'assets/Bank-insurance-office.jpg',
+                    'sand': 'assets/Stands.jpg',
+                    'oil-gas': 'assets/Oil-gas.jpg',
+                    'real-estate': 'assets/Real-Estate.jpg',
+                    'nuclear': 'assets/Nuclear.png',
+                    'industrial': 'assets/Industrial.jpg',
+                    'naval': 'assets/Naval.jpg',
+                    'bpo': 'assets/Bank-insurance-office.jpg',
+                    'automotive': 'assets/Automotive.jpg',
+                    'aerospace': 'assets/Aerospace.jpg',
+                    'chemistry-pharmaceutical': 'assets/Chemistry-Pharmacy.jpg'
+                };
+                
+                // Default featured project images for fallback
+                const featuredImages = [
+                    'assets/Featured Project 1.png',
+                    'assets/Featured Project 2.png',
+                    'assets/Featured Project 3.png'
+                ];
+                
                 // Display each featured project
-                featuredProjects.forEach(project => {
+                featuredProjects.forEach((project, index) => {
                     // Format category name for display
                     let categoryDisplay = 'Uncategorized';
                     if (project.category) {
@@ -325,57 +564,47 @@
                     const projectCard = document.createElement('div');
                     projectCard.className = 'project-card';
                     
-                    // Determine if we have an image or need to use a placeholder
-                    const hasImage = project.file_url;
+                    // Determine which image to use
+                    let imageUrl;
                     
-                    // Generate a random gradient for the placeholder
-                    const colors = [
-                        ['#3a7bd5', '#00d2ff'], // Blue gradient
-                        ['#f2994a', '#f2c94c'], // Orange gradient
-                        ['#11998e', '#38ef7d'], // Green gradient
-                        ['#FC5C7D', '#6A82FB'], // Pink to purple
-                        ['#833ab4', '#fd1d1d'], // Purple to red
-                        ['#4568dc', '#b06ab3']  // Blue to purple
-                    ];
-                    
-                    // Select a random gradient based on the project name
-                    const colorIndex = Math.abs(project.name.charCodeAt(0) || 0) % colors.length;
-                    const [color1, color2] = colors[colorIndex];
+                    if (project.file_url) {
+                        // Use project's own file if available and is an image
+                        const fileExt = project.file_url.split('.').pop().toLowerCase();
+                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                        
+                        if (isImage) {
+                            imageUrl = project.file_url;
+                        } else {
+                            // Use category image if file is not an image
+                            imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                        }
+                    } else {
+                        // No file, use category image
+                        imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                    }
                     
                     // Fill the project card with content
-                    if (hasImage) {
-                        // Use the actual image if available
-                        projectCard.innerHTML = `
-                            <div class="project-image" style="background-image: url('${project.file_url}')"></div>
-                            <h3>${project.name || 'Unnamed Project'}</h3>
-                            <p>${categoryDisplay}</p>
-                            <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
-                        `;
-                    } else {
-                        // Use a gradient placeholder with the project name
-                        projectCard.innerHTML = `
-                            <div class="project-image project-placeholder" style="background: linear-gradient(135deg, ${color1}, ${color2})">
-                                <div class="placeholder-content">
-                                    <div class="placeholder-icon"><i class="fas fa-building"></i></div>
-                                </div>
-                            </div>
-                            <h3>${project.name || 'Unnamed Project'}</h3>
-                            <p>${categoryDisplay}</p>
-                            <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
-                        `;
-                    }
+                    projectCard.innerHTML = `
+                        <div class="project-image" style="background-image: url('${imageUrl}')"></div>
+                        <h3>${project.name || 'Unnamed Project'}</h3>
+                        <p>${categoryDisplay}</p>
+                        <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
+                    `;
                     
                     // Add the project card to the container
                     projectsContainer.appendChild(projectCard);
                 });
                 
+                console.log('Featured projects rendered successfully');
+                
             } catch (error) {
-                console.error('Error loading featured projects:', error);
+                console.error('Error in loadFeaturedProjects:', error);
                 const projectsContainer = document.getElementById('featured-projects-container');
                 projectsContainer.innerHTML = `
                     <p class="error-message">
                         <i class="fas fa-exclamation-circle"></i>
-                        Failed to load featured projects. Please try again later.
+                        Failed to load featured projects. Please try again later.<br>
+                        <small>Error: ${error.message}</small>
                     </p>
                 `;
             }

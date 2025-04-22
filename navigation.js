@@ -144,34 +144,36 @@ async function checkUnreadMessages() {
         }
         
         // Initialize Supabase client if not already available
-        if (!window.supabase && !window.supabaseNav) {
+        if (!window.supabaseClient) {
             const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
             
             try {
-                window.supabaseNav = supabase.createClient(supabaseUrl, supabaseKey);
-                console.log('Navigation: Created supabaseNav client');
+                // Check if the createClient function is available
+                if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+                    window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+                } else {
+                    return;
+                }
             } catch (e) {
-                console.error('Navigation: Failed to create Supabase client', e);
                 return;
             }
         }
         
-        const supabaseClient = window.supabase || window.supabaseNav;
-        if (!supabaseClient) {
-            console.error('Navigation: No Supabase client available');
+        // Use the properly initialized client
+        const client = window.supabaseClient;
+        if (!client || typeof client.from !== 'function') {
             return;
         }
         
         // Check for unread chat messages
-        const { data, error, count } = await supabaseClient
+        const { data, error, count } = await client
             .from('chat_messages')
             .select('*', { count: 'exact' })
             .eq('receiver', currentUser)
             .eq('read', false);
             
         if (error) {
-            console.error('Navigation: Error checking unread messages:', error);
             return;
         }
         
@@ -183,13 +185,10 @@ async function checkUnreadMessages() {
         if (data && data.length > 0) {
             notificationDot.style.display = 'block';
             notificationDot.setAttribute('data-count', data.length);
-            console.log(`Navigation: Found ${data.length} unread messages`);
         } else {
             notificationDot.style.display = 'none';
-            console.log('Navigation: No unread messages');
         }
         
     } catch (e) {
-        console.error('Navigation: Exception checking unread messages:', e);
     }
 }

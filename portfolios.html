@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Projects - Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/logo(2).png">
     <link rel="stylesheet" href="styles.css">
@@ -63,18 +63,18 @@
                     </div>
                 </div>
                 
+                <div id="no-projects" class="no-projects" style="display: none;">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No projects found</h3>
+                    <p>There are no projects in this category yet.</p>
+                </div>
+                
                 <div id="portfolio-grid" class="portfolio-grid">
                     <!-- Projects will be loaded here dynamically -->
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>Loading projects...</p>
                     </div>
-                </div>
-                
-                <div id="no-projects" class="no-projects" style="display: none;">
-                    <i class="fas fa-folder-open"></i>
-                    <h3>No projects found</h3>
-                    <p>There are no projects in this category yet.</p>
                 </div>
             </div>
         </section>
@@ -93,44 +93,42 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Supabase
-            const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
-            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-            
-            // Check for category filter in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const categoryFilter = urlParams.get('category');
-            
-            // Check if there's a stored category in localStorage
-            const storedCategory = localStorage.getItem('selectedCategory');
-            
-            // Determine which category to use
-            let currentCategory = categoryFilter || storedCategory || 'all';
-            
-            // Update filter UI based on selected category
-            updateFilterUI(currentCategory);
-            
-            // Load projects based on the selected category
-            loadProjects(currentCategory);
-            
-            // Add click event to filter buttons
-            document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
-                button.addEventListener('click', function() {
-                    const category = this.getAttribute('data-filter');
-                    currentCategory = category;
-                    localStorage.setItem('selectedCategory', category);
-                    updateFilterUI(category);
-                    loadProjects(category);
+            // Wait a short moment for auth.js to initialize the Supabase client
+            setTimeout(() => {
+                // Check for category filter in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryFilter = urlParams.get('category');
+                
+                // Check if there's a stored category in localStorage
+                const storedCategory = localStorage.getItem('selectedCategory');
+                
+                // Determine which category to use
+                let currentCategory = categoryFilter || storedCategory || 'all';
+                
+                // Update filter UI based on selected category
+                updateFilterUI(currentCategory);
+                
+                // Load projects based on the selected category
+                loadProjects(currentCategory);
+                
+                // Add click event to filter buttons
+                document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const category = this.getAttribute('data-filter');
+                        currentCategory = category;
+                        localStorage.setItem('selectedCategory', category);
+                        updateFilterUI(category);
+                        loadProjects(category);
+                    });
                 });
-            });
-            
-            // Toggle filter dropdown
-            const filterDropdownBtn = document.querySelector('.filter-dropdown-btn');
-            filterDropdownBtn.addEventListener('click', function() {
-                const dropdownContent = document.querySelector('.filter-dropdown-content');
-                dropdownContent.classList.toggle('show');
-            });
+                
+                // Toggle filter dropdown
+                const filterDropdownBtn = document.querySelector('.filter-dropdown-btn');
+                filterDropdownBtn.addEventListener('click', function() {
+                    const dropdownContent = document.querySelector('.filter-dropdown-content');
+                    dropdownContent.classList.toggle('show');
+                });
+            }, 500);
             
             // Close dropdown when clicking outside
             window.addEventListener('click', function(event) {
@@ -154,6 +152,19 @@
                         button.classList.remove('active');
                     }
                 });
+                
+                // Update dropdown button text
+                const dropdownBtn = document.querySelector('.filter-dropdown-btn');
+                if (category === 'all') {
+                    dropdownBtn.innerHTML = 'Select Category <i class="fas fa-chevron-down"></i>';
+                    dropdownBtn.classList.remove('active');
+                } else {
+                    // Get the display name of the category
+                    const categoryButton = document.querySelector(`.filter-item[data-filter="${category}"]`);
+                    const categoryName = categoryButton ? categoryButton.textContent : formatCategoryName(category);
+                    dropdownBtn.innerHTML = `${categoryName} <i class="fas fa-chevron-down"></i>`;
+                    dropdownBtn.classList.add('active');
+                }
                 
                 // Update filter info text
                 const filterInfo = document.getElementById('category-filter-info');
@@ -190,23 +201,99 @@
                 noProjects.style.display = 'none';
                 
                 try {
-                    // Query projects from database
-                    let query = supabase.from('projects').select('*');
-                    
-                    // Apply category filter if not 'all'
-                    if (category && category !== 'all') {
-                        query = query.eq('category', category);
+                    // Check if supabase is defined (should be defined by auth.js)
+                    if (typeof supabase === 'undefined') {
+                        throw new Error('Supabase client not initialized. Please refresh the page.');
                     }
                     
-                    // Execute query
-                    const { data: projects, error } = await query;
+                    // Check if user is admin
+                    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                    const currentUser = localStorage.getItem('currentUser');
                     
-                    if (error) {
-                        throw error;
+                    console.log('User status:', isAdmin ? 'Admin' : 'Regular user', currentUser);
+                    
+                    let projects = [];
+                    
+                    if (isAdmin) {
+                        // Admin users see all projects
+                        const { data: adminProjects, error: adminError } = await supabase
+                            .from('projects')
+                            .select('*')
+                            .eq(category !== 'all' ? 'category' : 'id', category !== 'all' ? category : 'id');
+                            
+                        if (adminError) throw adminError;
+                        projects = adminProjects || [];
+                    } 
+                    else if (currentUser) {
+                        // First, get the user's numeric ID from the Users table
+                        const { data: userData, error: userError } = await supabase
+                            .from('Users')
+                            .select('id')
+                            .eq('username', currentUser)
+                            .single();
+                            
+                        if (userError) {
+                            console.error('Error fetching user ID:', userError);
+                            throw userError;
+                        }
+                        
+                        if (!userData) {
+                            throw new Error('User not found');
+                        }
+                        
+                        const userId = userData.id;
+                        console.log('Current user ID:', userId);
+                        
+                        // Get project IDs shared with this user from project_shares table
+                        const { data: sharedData, error: sharedError } = await supabase
+                            .from('project_shares')
+                            .select('project_id')
+                            .eq('user_id', userId);
+                            
+                        if (sharedError) {
+                            console.error('Error fetching shared projects:', sharedError);
+                            throw sharedError;
+                        }
+                        
+                        if (!sharedData || sharedData.length === 0) {
+                            console.log('No shared projects found');
+                            projects = [];
+                        } else {
+                            // Extract project IDs
+                            const projectIds = sharedData.map(item => item.project_id);
+                            console.log('Shared project IDs:', projectIds);
+                            
+                            // Fetch the actual projects by their IDs
+                            let query = supabase
+                                .from('projects')
+                                .select('*')
+                                .in('id', projectIds);
+                                
+                            // Apply category filter if needed
+                            if (category && category !== 'all') {
+                                query = query.eq('category', category);
+                            }
+                            
+                            const { data: projectsData, error: projectsError } = await query;
+                            
+                            if (projectsError) {
+                                console.error('Error fetching projects by IDs:', projectsError);
+                                throw projectsError;
+                            }
+                            
+                            projects = projectsData || [];
+                            console.log('Fetched shared projects:', projects.length);
+                        }
+                    }
+                    else {
+                        // Not logged in - show nothing or public projects if that's a concept
+                        projects = [];
                     }
                     
                     // Clear loading spinner
                     portfolioGrid.innerHTML = '';
+                    
+                    console.log('Projects loaded:', projects.length);
                     
                     // Check if projects were found
                     if (projects && projects.length > 0) {
@@ -220,13 +307,66 @@
                             // Set card background color based on category
                             const bgColor = getCategoryColor(project.category);
                             
+                            // Add shared badge for projects
+                            const sharedBadge = '<span class="shared-badge"><i class="fas fa-users"></i> Shared with you</span>';
+                            
+                            // Determine the image source
+                            let imageElement = '';
+                            if (project.file_url) {
+                                const fileUrl = project.file_url.toLowerCase();
+                                if (fileUrl.endsWith('.pdf')) {
+                                    // For PDF files, create a canvas to render the first page with a container
+                                    imageElement = `
+                                        <div class="pdf-container">
+                                            <div class="pdf-scroll-wrapper">
+                                                <canvas class="pdf-thumbnail" data-pdf="${project.file_url}" width="350"></canvas>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else if (fileUrl.endsWith('.doc') || fileUrl.endsWith('.docx') || 
+                                          fileUrl.endsWith('.xls') || fileUrl.endsWith('.xlsx') || 
+                                          fileUrl.endsWith('.ppt') || fileUrl.endsWith('.pptx')) {
+                                    // For Office documents, show a document thumbnail with type icon
+                                    let icon = 'fa-file-alt';
+                                    let color = '#2c5898';
+                                    
+                                    if (fileUrl.endsWith('.doc') || fileUrl.endsWith('.docx')) {
+                                        icon = 'fa-file-word';
+                                        color = '#2b579a';
+                                    } else if (fileUrl.endsWith('.xls') || fileUrl.endsWith('.xlsx')) {
+                                        icon = 'fa-file-excel';
+                                        color = '#217346';
+                                    } else if (fileUrl.endsWith('.ppt') || fileUrl.endsWith('.pptx')) {
+                                        icon = 'fa-file-powerpoint';
+                                        color = '#d24726';
+                                    }
+                                    
+                                    // Get filename from URL
+                                    const fileName = project.file_url.split('/').pop().split('?')[0];
+                                    
+                                    imageElement = `
+                                        <div class="document-preview" style="background-color: white; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                            <i class="fas ${icon}" style="font-size: 50px; color: ${color}; margin-bottom: 15px;"></i>
+                                            <div style="font-size: 14px; text-align: center; padding: 0 20px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                                ${fileName}
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    // For other file types, try to display as image
+                                    imageElement = `<img src="${project.file_url}" alt="${project.name}" onerror="this.onerror=null; this.parentNode.innerHTML = '<div class=\\'document-preview\\' style=\\'background-color: white; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;\\'><i class=\\'fas fa-file\\' style=\\'font-size: 50px; color: #999; margin-bottom: 15px;\\'></i><div style=\\'font-size: 14px; text-align: center; color: #333;\\'>Document</div></div>';">`;
+                                }
+                            } else if (project.image_url) {
+                                imageElement = `<img src="${project.image_url}" alt="${project.name}">`;
+                            }
+                            
                             card.innerHTML = `
                                 <div class="portfolio-image" style="background-color: ${bgColor};">
-                                    ${project.image_url ? `<img src="${project.image_url}" alt="${project.name}">` : ''}
+                                    ${imageElement}
+                                    ${sharedBadge}
                                 </div>
                                 <div class="portfolio-content">
                                     <h3>${project.name}</h3>
-                                    <p>${project.description || 'No description available'}</p>
                                     <div class="portfolio-meta">
                                         <span class="portfolio-category">${formatCategoryName(project.category)}</span>
                                         <span class="portfolio-status ${project.status}">${project.status}</span>
@@ -237,6 +377,9 @@
                             
                             portfolioGrid.appendChild(card);
                         });
+                        
+                        // Render PDF thumbnails
+                        renderPdfThumbnails();
                         
                         // Apply animations
                         animateProjectCards();
@@ -250,7 +393,7 @@
                     portfolioGrid.innerHTML = `
                         <div class="error-message">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <p>Error loading projects. Please try again later.</p>
+                            <p>Error loading projects: ${error.message || 'Please try again later.'}</p>
                         </div>
                     `;
                 }
@@ -285,6 +428,139 @@
                     card.style.animationDelay = `${index * 0.1}s`;
                     card.classList.add('animate-in');
                 });
+            }
+            
+            // Function to render PDF thumbnails
+            function renderPdfThumbnails() {
+                // Load PDF.js if not already loaded
+                if (!window.pdfjsLib) {
+                    // Dynamically load PDF.js library
+                    const pdfJsScript = document.createElement('script');
+                    pdfJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                    document.head.appendChild(pdfJsScript);
+                    
+                    pdfJsScript.onload = function() {
+                        // Set workerSrc property
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        // Now process all canvases
+                        processPdfCanvases();
+                    };
+                } else {
+                    // PDF.js already loaded, process the canvases directly
+                    processPdfCanvases();
+                }
+            }
+            
+            // Function to process all PDF canvases
+            function processPdfCanvases() {
+                const canvases = document.querySelectorAll('canvas.pdf-thumbnail');
+                canvases.forEach(canvas => {
+                    const pdfUrl = canvas.getAttribute('data-pdf');
+                    if (pdfUrl) {
+                        renderPdfPage(canvas, pdfUrl);
+                    }
+                });
+            }
+            
+            // Function to render the first page of a PDF
+            async function renderPdfPage(canvas, pdfUrl) {
+                try {
+                    // Load the PDF document
+                    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                    const pdf = await loadingTask.promise;
+                    
+                    // Get the first page
+                    const page = await pdf.getPage(1);
+                    
+                    // Create a viewport with a moderate scale
+                    const viewport = page.getViewport({ scale: 1 });
+                    
+                    // Calculate optimal scale based on width
+                    const containerWidth = 350; // Match the card width
+                    const scale = containerWidth / viewport.width; // Use exact fitting for width
+                    
+                    // Create a scaled viewport
+                    const scaledViewport = page.getViewport({ scale });
+                    
+                    // Set canvas dimensions to match the scaled viewport exactly
+                    canvas.width = scaledViewport.width;
+                    canvas.height = scaledViewport.height;
+                    
+                    console.log('PDF viewport dimensions:', scaledViewport.width, 'x', scaledViewport.height);
+                    
+                    // Ensure the wrapper is set up correctly
+                    const scrollWrapper = canvas.closest('.pdf-scroll-wrapper');
+                    if (scrollWrapper) {
+                        scrollWrapper.style.overflow = 'hidden';
+                    }
+                    
+                    // Set canvas styling
+                    canvas.style.width = '100%';
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '0 auto';
+                    canvas.style.backgroundColor = 'white';
+                    canvas.style.position = 'relative';
+                    
+                    // Render the PDF page
+                    const renderContext = {
+                        canvasContext: canvas.getContext('2d'),
+                        viewport: scaledViewport,
+                        background: 'white'
+                    };
+                    
+                    // Add a white background to the canvas before rendering
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    await page.render(renderContext).promise;
+                    
+                    // Mark the actual PDF content boundaries
+                    ctx.strokeStyle = '#ddd';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Add the animation-ready class
+                    if (scrollWrapper) {
+                        // Get precise height measurements
+                        const container = canvas.closest('.pdf-container');
+                        const containerHeight = container ? container.offsetHeight : 200;
+                        const contentHeight = canvas.height;
+                        
+                        // Calculate exact scroll amount (don't go beyond actual content)
+                        // Leave a small margin at the bottom so we don't cut off text
+                        const maxScroll = contentHeight - containerHeight;
+                        const safeScroll = Math.max(0, maxScroll - 5);
+                        
+                        console.log('Content height:', contentHeight);
+                        console.log('Container height:', containerHeight);
+                        console.log('Max scroll:', maxScroll);
+                        console.log('Safe scroll:', safeScroll);
+                        
+                        // Only add animation if there's actually content to scroll
+                        if (safeScroll > 10) {
+                            scrollWrapper.classList.add('animation-ready');
+                            // Set a custom property for the animation to use
+                            document.documentElement.style.setProperty('--pdf-scroll-height', `-${safeScroll}px`);
+                        } else {
+                            // Not enough content to scroll, disable animation
+                            console.log('Not enough content to scroll');
+                            scrollWrapper.classList.remove('animation-ready');
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Error rendering PDF thumbnail:', error);
+                    
+                    // Draw error state on canvas
+                    const context = canvas.getContext('2d');
+                    context.fillStyle = '#f8d7da';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    context.fillStyle = '#721c24';
+                    context.font = '14px Arial';
+                    context.textAlign = 'center';
+                    context.fillText('Could not load PDF', canvas.width/2, canvas.height/2);
+                }
             }
         });
     </script>
@@ -371,6 +647,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 180px;
+            justify-content: space-between;
+        }
+        
+        .filter-dropdown-btn.active {
+            background-color: #000000c9;
+            color: white;
         }
         
         .filter-dropdown-content {
@@ -448,9 +731,11 @@
             background-size: cover;
             background-position: center;
             position: relative;
+            overflow: hidden; /* Hide overflow initially */
+            transition: overflow 0.3s ease;
         }
         
-        .portfolio-image img {
+        .portfolio-image img, .portfolio-image canvas {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -556,21 +841,50 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 200px;
+            min-height: 150px;
             color: #666;
             background-color: #f8f9fa;
-            padding: 40px;
+            padding: 30px;
             border-radius: 10px;
             border: 2px dashed #ddd;
             text-align: center;
-            margin: 20px auto;
-            max-width: 500px;
+            margin: 20px auto 30px;
+            max-width: 600px;
         }
         
         .no-projects i {
-            font-size: 3rem;
-            margin-bottom: 15px;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
             color: #ddd;
+        }
+        
+        .no-projects h3 {
+            margin: 10px 0;
+            font-size: 1.4rem;
+        }
+        
+        .no-projects p {
+            margin: 5px 0 0;
+            font-size: 1rem;
+        }
+        
+        /* Shared badge for projects */
+        .shared-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .shared-badge i {
+            font-size: 0.9rem;
         }
         
         /* Responsive styles */
@@ -596,6 +910,80 @@
             .filter-dropdown-content {
                 width: 100%;
             }
+        }
+        
+        /* Specific styling for PDF thumbnails */
+        .pdf-thumbnail {
+            object-fit: contain !important;
+            background-color: white;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        /* Expand height on hover to allow scrolling */
+        .portfolio-image:hover {
+            overflow-y: auto; /* Enable vertical scrolling on hover */
+        }
+        
+        /* Make PDF thumbnails fill the entire space */
+        .portfolio-image canvas.pdf-thumbnail {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100%;
+            object-fit: cover !important;
+            transform-origin: top center;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Document preview styling */
+        .document-preview {
+            min-height: 100%;
+        }
+        
+        /* PDF container styles */
+        .pdf-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        /* Wrapper for scroll animation */
+        .pdf-scroll-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        
+        /* Custom property for animation height */
+        :root {
+            --pdf-scroll-height: -400px;
+        }
+        
+        /* Scroll animation on hover */
+        .pdf-container:hover .pdf-scroll-wrapper.animation-ready {
+            animation: scrollAnimation 10s ease-in-out infinite;
+        }
+        
+        /* Animation keyframes */
+        @keyframes scrollAnimation {
+            0% { transform: translateY(0); }
+            10% { transform: translateY(0); } /* Stay longer at top */
+            45% { transform: translateY(var(--pdf-scroll-height, 0px)); } /* Scroll exactly to bottom of content */
+            65% { transform: translateY(var(--pdf-scroll-height, 0px)); } /* Stay longer at bottom */
+            90% { transform: translateY(0); } /* Scroll back up */
+            100% { transform: translateY(0); }
+        }
+        
+        /* Ensure PDF thumbnails show the top part first */
+        .pdf-thumbnail {
+            object-position: top center !important;
+            position: relative;
+            top: 0;
+            left: 0;
         }
     </style>
 </body>

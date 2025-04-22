@@ -7,77 +7,49 @@ create table public."Users" (
   constraint users_username_key unique (username)
 ) TABLESPACE pg_default;
 
--- Insert test users
-INSERT INTO public."Users" (username, password, is_admin)
-VALUES ('admin', 'admin123', true),
-       ('client', 'client123', false)
-ON CONFLICT (username) DO NOTHING;
+create table public.chat_messages (
+  id serial not null,
+  sender text not null,
+  receiver text not null,
+  content text not null,
+  created_at timestamp with time zone null default now(),
+  read boolean null default false,
+  is_edited boolean null default false,
+  is_deleted boolean null default false,
+  project_id integer null,
+  constraint chat_messages_pkey primary key (id)
+) TABLESPACE pg_default;
 
-CREATE TABLE IF NOT EXISTS public.projects (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  description TEXT,
-  category TEXT NOT NULL, -- Category field for industry classification
-  client TEXT, -- Client name or identifier
-  file_url TEXT,
-  image_url TEXT, -- Project image
-  status TEXT DEFAULT 'active', -- Project status (active, completed, etc.)
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ
-);
+create index IF not exists idx_chat_messages_sender on public.chat_messages using btree (sender) TABLESPACE pg_default;
 
--- Tabela para compartilhamento de projetos
-CREATE TABLE IF NOT EXISTS public.project_shares (
-  id SERIAL PRIMARY KEY,
-  project_id UUID NOT NULL,
-  user_id INTEGER NOT NULL,
-  shared_by INTEGER NOT NULL,
-  shared_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  FOREIGN KEY (project_id) REFERENCES public.projects(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES public."Users"(id) ON DELETE CASCADE,
-  FOREIGN KEY (shared_by) REFERENCES public."Users"(id) ON DELETE SET NULL,
-  UNIQUE(project_id, user_id)
-);
+create index IF not exists idx_chat_messages_receiver on public.chat_messages using btree (receiver) TABLESPACE pg_default;
 
--- Enable row level security
-ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.project_shares ENABLE ROW LEVEL SECURITY;
+create index IF not exists idx_chat_messages_created_at on public.chat_messages using btree (created_at) TABLESPACE pg_default;
 
--- Create policies
-CREATE POLICY IF NOT EXISTS "Allow public select" ON "projects"
-FOR SELECT USING (true);
+create index IF not exists idx_chat_messages_project_id on public.chat_messages using btree (project_id) TABLESPACE pg_default;
 
-CREATE POLICY IF NOT EXISTS "Allow public insert" ON "projects"
-FOR INSERT WITH CHECK (true);
+create table public.project_shares (
+  id serial not null,
+  project_id uuid not null,
+  user_id integer not null,
+  shared_by integer not null,
+  shared_at timestamp with time zone not null default now(),
+  read boolean null,
+  constraint project_shares_pkey primary key (id),
+  constraint project_shares_project_id_user_id_key unique (project_id, user_id),
+  constraint project_shares_project_id_fkey foreign KEY (project_id) references projects (id) on delete CASCADE,
+  constraint project_shares_shared_by_fkey foreign KEY (shared_by) references "Users" (id) on delete set null,
+  constraint project_shares_user_id_fkey foreign KEY (user_id) references "Users" (id) on delete CASCADE
+) TABLESPACE pg_default;
 
-CREATE POLICY IF NOT EXISTS "Allow public update" ON "projects"
-FOR UPDATE USING (true);
-
-CREATE POLICY IF NOT EXISTS "Allow public delete" ON "projects"
-FOR DELETE USING (true);
-
--- Políticas para compartilhamentos
-CREATE POLICY IF NOT EXISTS "Allow admin manage shares" ON "project_shares" 
-FOR ALL USING (EXISTS (SELECT 1 FROM public."Users" WHERE id = auth.uid() AND is_admin = true));
-
-CREATE POLICY IF NOT EXISTS "Allow users view own shares" ON "project_shares"
-FOR SELECT USING (user_id = auth.uid());
-
--- Insert sample projects for different categories
-INSERT INTO public.projects (name, description, category, client, status)
-VALUES 
-  ('Telecom Tower Network', 'Design and implementation of telecommunication tower infrastructure', 'rf-telecommunications', 'TelecomCorp', 'active'),
-  ('Solar Farm Design', 'Large-scale solar farm architectural planning', 'energy', 'GreenEnergy Inc', 'completed'),
-  ('Highway Expansion', 'Expansion and redesign of major highway intersection', 'construction', 'State DOT', 'active'),
-  ('Modern Bank Branch', 'Contemporary banking facility with advanced security features', 'banking', 'First National Bank', 'completed'),
-  ('Exhibition Stand', 'Custom exhibition stand for international trade show', 'sand', 'Tech Innovations', 'completed'),
-  ('Oil Refinery Expansion', 'Architectural planning for refinery capacity expansion', 'oil-gas', 'PetroServices', 'active'),
-  ('Luxury Apartment Complex', 'High-end residential development with amenities', 'real-estate', 'Premium Properties', 'active'),
-  ('Nuclear Plant Safety Upgrades', 'Safety and containment system architectural redesign', 'nuclear', 'Energy Solutions', 'active'),
-  ('Manufacturing Facility', 'Modern manufacturing plant with optimized workflow', 'industrial', 'Industrial Systems', 'completed'),
-  ('Port Terminal Design', 'Cargo handling terminal with advanced logistics features', 'naval', 'Maritime Logistics', 'active'),
-  ('BPO Office Complex', 'Ergonomic and efficient workspace for call center operations', 'bpo', 'Global Services Inc', 'completed'),
-  ('Auto Dealership Design', 'Premium automobile showroom with service center', 'automotive', 'Luxury Motors', 'active'),
-  ('Aerospace Testing Facility', 'Specialized testing and development center for aerospace components', 'aerospace', 'AeroTech Innovations', 'active'),
-  ('Pharmaceutical Laboratory', 'Clean room and research laboratory complex', 'chemistry-pharmaceutical', 'MediPharm Research', 'completed')
-ON CONFLICT DO NOTHING;
+create table public.projects (
+  id uuid not null default gen_random_uuid (),
+  name text not null,
+  file_url text null,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone null,
+  status public.project_status not null default 'Incompleted'::project_status,
+  category text null,
+  is_featured boolean null default false,
+  constraint projects_pkey primary key (id)
+) TABLESPACE pg_default;
