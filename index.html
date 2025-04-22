@@ -268,7 +268,7 @@
     <header>   <script src="navigation.js"></script>    </header>
     <main>
         <section id="hero">
-            <div class="hero-slideshow">
+            <div class="hero-slideshow" id="hero-slideshow">
                 <div class="hero-slide active"></div>
                 <div class="hero-slide"></div>
                 <div class="hero-slide"></div>
@@ -286,10 +286,6 @@
             </div>
             <div class="hero-content">
                 <h1>Architecture Portfolio</h1>
-                <p></p>
-                <div class="hero-buttons">
-                    <a href="#projects" class="cta-button">View Projects</a>
-                </div>
             </div>
         </section>
 
@@ -353,7 +349,7 @@
                     <!-- Sand -->
                     <div class="category-card" data-category="sand">
                         <div class="category-overlay">
-                            <h3>Sand & Mining</h3>
+                            <h3>Stand</h3>
                         </div>
                     </div>
                     
@@ -395,7 +391,7 @@
                     <!-- BPO -->
                     <div class="category-card" data-category="bpo">
                         <div class="category-overlay">
-                            <h3>BPO</h3>
+                            <h3>GDO</h3>
                         </div>
                     </div>
                     
@@ -455,7 +451,37 @@
             
             // Load featured projects
             loadFeaturedProjects();
+            
+            // Check for chat notifications
+            checkChatNotifications();
         });
+        
+        // Function to check for unread notifications and show the indicator
+        async function checkChatNotifications() {
+            try {
+                const currentUser = localStorage.getItem('currentUser');
+                if (!currentUser || !window.supabase) return;
+                
+                // Check for unread notifications
+                const { data: notifications, error } = await window.supabase
+                    .from('notifications')
+                    .select('id')
+                    .eq('recipient_username', currentUser)
+                    .eq('read', false)
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                // Show notification indicator if there are unread notifications
+                const indicator = document.getElementById('fixed-chat-notification');
+                if (indicator && notifications && notifications.length > 0) {
+                    indicator.classList.add('active');
+                }
+                
+            } catch (error) {
+                console.error('Error checking notifications:', error);
+            }
+        }
         
         // Function to load featured projects from the database
         async function loadFeaturedProjects() {

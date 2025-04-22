@@ -28,61 +28,29 @@ function handleScrollAnimations() {
     });
 }
 
+// Ensure the Supabase client is properly available globally
+document.addEventListener('DOMContentLoaded', function() {
+    // Attempt to initialize Supabase if not already done
+    try {
+        if (typeof supabase !== 'undefined' && !window.supabase) {
+            window.supabase = supabase;
+            console.log('Supabase client made available globally');
+        }
+    } catch (error) {
+        console.error('Error setting up Supabase client:', error);
+    }
+});
 
 // Aplicar animações durante o scroll
 window.addEventListener('scroll', handleScrollAnimations);
 
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Slide animation for hero background
-    const slides = document.querySelectorAll('.hero-slide');
-    const dots = document.querySelectorAll('.slideshow-dot');
-    let currentSlide = 0;
-    let slideInterval;
-    const slideIntervalTime = 5000; // Change slide every 5 seconds
-
-    function goToSlide(slideIndex) {
-        // Remove active class from all slides and dots
-        slides.forEach(slide => slide.classList.remove('active'));
-        dots.forEach(dot => dot.classList.remove('active'));
-        
-        // Add active class to selected slide and dot
-        slides[slideIndex].classList.add('active');
-        dots[slideIndex].classList.add('active');
-        
-        // Update current slide
-        currentSlide = slideIndex;
-    }
-
-    function nextSlide() {
-        // Calculate next slide index
-        const nextIndex = (currentSlide + 1) % slides.length;
-        goToSlide(nextIndex);
-    }
-
-    // Set up dot navigation
-    dots.forEach(dot => {
-        dot.addEventListener('click', function() {
-            const slideIndex = parseInt(this.getAttribute('data-slide'));
-            
-            // Go to selected slide
-            goToSlide(slideIndex);
-            
-            // Reset interval timer
-            clearInterval(slideInterval);
-            slideInterval = setInterval(nextSlide, slideIntervalTime);
-        });
-    });
-
-    // Start the slideshow
-    if (slides.length > 0) {
-        // Initialize with first slide
-        goToSlide(0);
-        
-        // Set interval for auto-sliding
-        slideInterval = setInterval(nextSlide, slideIntervalTime);
-    }
-
+    console.log('DOM loaded - initializing slideshow');
+    
+    // Initialize animations and slideshow
+    initSlideshow();
+    
     // Smooth scrolling for "View Projects" button
     const viewProjectsButton = document.querySelector('a[href="#projects"]');
      
@@ -177,30 +145,192 @@ document.addEventListener('DOMContentLoaded', function() {
     checkScroll();
 });
 
-// This function can contain other animations you might want to add
-function initializeAnimations() {
-    // Add fade-in animations for sections
-    const sections = document.querySelectorAll('section');
+// Check if an element is in the viewport
+function isInViewport(element) {
+    const rect = element.getBoundingClientRect();
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+}
+
+// Slideshow functionality - Simplified version
+function initSlideshow() {
+    const slideshow = document.querySelector('.hero-slideshow');
+    if (!slideshow) return;
     
-    // Check if IntersectionObserver is supported
-    if ('IntersectionObserver' in window) {
-        const sectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animated');
-                    sectionObserver.unobserve(entry.target);
-                }
+    const slides = Array.from(slideshow.querySelectorAll('.hero-slide'));
+    const dots = document.querySelectorAll('.slideshow-dot');
+    if (slides.length === 0) return;
+    
+    let currentSlide = 0;
+    let autoRotateInterval;
+    let isDragging = false;
+    let startX = 0;
+    let dragDistance = 0;
+    
+    // Set the first slide as active
+    slides[0].classList.add('active');
+    if (dots.length > 0) dots[0].classList.add('active');
+    
+    // Set up drag functionality
+    slideshow.addEventListener('mousedown', dragStart);
+    slideshow.addEventListener('touchstart', dragStart, { passive: true });
+    slideshow.addEventListener('mouseup', dragEnd);
+    slideshow.addEventListener('touchend', dragEnd);
+    slideshow.addEventListener('mouseleave', dragEnd);
+    slideshow.addEventListener('mousemove', drag);
+    slideshow.addEventListener('touchmove', drag, { passive: true });
+    
+    // Set up dot navigation if dots exist
+    if (dots.length > 0) {
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                goToSlide(index);
+                resetAutoRotate();
             });
-        }, { threshold: 0.1 });
+        });
+    }
+    
+    // Start auto-rotate
+    startAutoRotate();
+    
+    // Drag Functions
+    function dragStart(e) {
+        if (e.type.includes('mouse')) e.preventDefault();
         
-        sections.forEach(section => {
-            section.classList.add('section-hidden');
-            sectionObserver.observe(section);
+        isDragging = true;
+        startX = getPositionX(e);
+        dragDistance = 0;
+        
+        // Stop auto-rotate while dragging
+        clearInterval(autoRotateInterval);
+        
+        // Add grabbing cursor
+        slideshow.style.cursor = 'grabbing';
+        
+        // Remove transition during drag for responsiveness
+        slides.forEach(slide => {
+            slide.style.transition = 'none';
         });
-    } else {
-        // Fallback for browsers that don't support IntersectionObserver
-        sections.forEach(section => {
-            section.classList.add('animated');
+    }
+    
+    function drag(e) {
+        if (!isDragging) return;
+        
+        const currentX = getPositionX(e);
+        dragDistance = currentX - startX;
+        
+        // Move current slide
+        const activeSlide = slides[currentSlide];
+        activeSlide.style.transform = `translateX(${dragDistance}px)`;
+        
+        // Move adjacent slides for continuity
+        const nextIndex = (currentSlide + 1) % slides.length;
+        const prevIndex = (currentSlide - 1 + slides.length) % slides.length;
+        
+        // Show next or previous slide based on drag direction
+        if (dragDistance < 0) {
+            // Dragging left, show next slide
+            slides[nextIndex].classList.add('temp-active');
+            slides[nextIndex].style.opacity = '1';
+            slides[nextIndex].style.zIndex = '1';
+            slides[nextIndex].style.transform = `translateX(calc(100% + ${dragDistance}px))`;
+            if (prevIndex !== nextIndex) {
+                slides[prevIndex].classList.remove('temp-active');
+                slides[prevIndex].style.opacity = '';
+                slides[prevIndex].style.zIndex = '';
+            }
+        } else if (dragDistance > 0) {
+            // Dragging right, show previous slide
+            slides[prevIndex].classList.add('temp-active');
+            slides[prevIndex].style.opacity = '1';
+            slides[prevIndex].style.zIndex = '1';
+            slides[prevIndex].style.transform = `translateX(calc(-100% + ${dragDistance}px))`;
+            if (nextIndex !== prevIndex) {
+                slides[nextIndex].classList.remove('temp-active');
+                slides[nextIndex].style.opacity = '';
+                slides[nextIndex].style.zIndex = '';
+            }
+        }
+    }
+    
+    function dragEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        // Reset cursor
+        slideshow.style.cursor = 'grab';
+        
+        // Restore transitions
+        slides.forEach(slide => {
+            slide.style.transition = 'transform 0.3s ease-out';
+            slide.classList.remove('temp-active');
+            slide.style.opacity = '';
+            slide.style.zIndex = '';
         });
+        
+        // Re-apply active state to current slide
+        slides[currentSlide].style.opacity = '1';
+        slides[currentSlide].style.zIndex = '1';
+        
+        const threshold = slideshow.offsetWidth * 0.2; // 20% threshold for slide change
+        
+        if (Math.abs(dragDistance) > threshold) {
+            // Change slide if threshold is passed
+            if (dragDistance < 0) {
+                goToNextSlide();
+            } else {
+                goToPrevSlide();
+            }
+        } else {
+            // Reset positions if threshold not passed
+            slides.forEach(slide => {
+                slide.style.transform = '';
+            });
+        }
+        
+        // Restart auto-rotate
+        startAutoRotate();
+    }
+    
+    // Helper Functions
+    function getPositionX(e) {
+        return e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+    }
+    
+    function goToSlide(index) {
+        // Remove active class from current slides
+        slides[currentSlide].classList.remove('active');
+        if (dots.length > 0) dots[currentSlide].classList.remove('active');
+        
+        // Set new slide as active
+        currentSlide = index;
+        slides[currentSlide].classList.add('active');
+        if (dots.length > 0) dots[currentSlide].classList.add('active');
+        
+        // Reset any transforms
+        slides.forEach(slide => {
+            slide.style.transform = '';
+        });
+    }
+    
+    function goToNextSlide() {
+        goToSlide((currentSlide + 1) % slides.length);
+    }
+    
+    function goToPrevSlide() {
+        goToSlide((currentSlide - 1 + slides.length) % slides.length);
+    }
+    
+    function startAutoRotate() {
+        autoRotateInterval = setInterval(goToNextSlide, 5000);
+    }
+    
+    function resetAutoRotate() {
+        clearInterval(autoRotateInterval);
+        startAutoRotate();
     }
 } 
