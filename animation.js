@@ -167,7 +167,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    document.getElementById('projects').addEventListener('animationend', animateCards);
+    const projectsElement = document.getElementById('projects');
+    if (projectsElement) {
+        projectsElement.addEventListener('animationend', animateCards);
+    }
+    else{}
     
     // Initial check
     checkScroll();

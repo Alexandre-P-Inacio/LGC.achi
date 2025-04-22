@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Projects - Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/logo(2).png">
     <link rel="stylesheet" href="styles.css">
@@ -310,14 +310,63 @@
                             // Add shared badge for projects
                             const sharedBadge = '<span class="shared-badge"><i class="fas fa-users"></i> Shared with you</span>';
                             
+                            // Determine the image source
+                            let imageElement = '';
+                            if (project.file_url) {
+                                const fileUrl = project.file_url.toLowerCase();
+                                if (fileUrl.endsWith('.pdf')) {
+                                    // For PDF files, create a canvas to render the first page with a container
+                                    imageElement = `
+                                        <div class="pdf-container">
+                                            <div class="pdf-scroll-wrapper">
+                                                <canvas class="pdf-thumbnail" data-pdf="${project.file_url}" width="350"></canvas>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else if (fileUrl.endsWith('.doc') || fileUrl.endsWith('.docx') || 
+                                          fileUrl.endsWith('.xls') || fileUrl.endsWith('.xlsx') || 
+                                          fileUrl.endsWith('.ppt') || fileUrl.endsWith('.pptx')) {
+                                    // For Office documents, show a document thumbnail with type icon
+                                    let icon = 'fa-file-alt';
+                                    let color = '#2c5898';
+                                    
+                                    if (fileUrl.endsWith('.doc') || fileUrl.endsWith('.docx')) {
+                                        icon = 'fa-file-word';
+                                        color = '#2b579a';
+                                    } else if (fileUrl.endsWith('.xls') || fileUrl.endsWith('.xlsx')) {
+                                        icon = 'fa-file-excel';
+                                        color = '#217346';
+                                    } else if (fileUrl.endsWith('.ppt') || fileUrl.endsWith('.pptx')) {
+                                        icon = 'fa-file-powerpoint';
+                                        color = '#d24726';
+                                    }
+                                    
+                                    // Get filename from URL
+                                    const fileName = project.file_url.split('/').pop().split('?')[0];
+                                    
+                                    imageElement = `
+                                        <div class="document-preview" style="background-color: white; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                            <i class="fas ${icon}" style="font-size: 50px; color: ${color}; margin-bottom: 15px;"></i>
+                                            <div style="font-size: 14px; text-align: center; padding: 0 20px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                                ${fileName}
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    // For other file types, try to display as image
+                                    imageElement = `<img src="${project.file_url}" alt="${project.name}" onerror="this.onerror=null; this.parentNode.innerHTML = '<div class=\\'document-preview\\' style=\\'background-color: white; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;\\'><i class=\\'fas fa-file\\' style=\\'font-size: 50px; color: #999; margin-bottom: 15px;\\'></i><div style=\\'font-size: 14px; text-align: center; color: #333;\\'>Document</div></div>';">`;
+                                }
+                            } else if (project.image_url) {
+                                imageElement = `<img src="${project.image_url}" alt="${project.name}">`;
+                            }
+                            
                             card.innerHTML = `
                                 <div class="portfolio-image" style="background-color: ${bgColor};">
-                                    ${project.image_url ? `<img src="${project.image_url}" alt="${project.name}">` : ''}
+                                    ${imageElement}
                                     ${sharedBadge}
                                 </div>
                                 <div class="portfolio-content">
                                     <h3>${project.name}</h3>
-                                    <p>${project.description || 'No description available'}</p>
                                     <div class="portfolio-meta">
                                         <span class="portfolio-category">${formatCategoryName(project.category)}</span>
                                         <span class="portfolio-status ${project.status}">${project.status}</span>
@@ -328,6 +377,9 @@
                             
                             portfolioGrid.appendChild(card);
                         });
+                        
+                        // Render PDF thumbnails
+                        renderPdfThumbnails();
                         
                         // Apply animations
                         animateProjectCards();
@@ -376,6 +428,139 @@
                     card.style.animationDelay = `${index * 0.1}s`;
                     card.classList.add('animate-in');
                 });
+            }
+            
+            // Function to render PDF thumbnails
+            function renderPdfThumbnails() {
+                // Load PDF.js if not already loaded
+                if (!window.pdfjsLib) {
+                    // Dynamically load PDF.js library
+                    const pdfJsScript = document.createElement('script');
+                    pdfJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                    document.head.appendChild(pdfJsScript);
+                    
+                    pdfJsScript.onload = function() {
+                        // Set workerSrc property
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                        // Now process all canvases
+                        processPdfCanvases();
+                    };
+                } else {
+                    // PDF.js already loaded, process the canvases directly
+                    processPdfCanvases();
+                }
+            }
+            
+            // Function to process all PDF canvases
+            function processPdfCanvases() {
+                const canvases = document.querySelectorAll('canvas.pdf-thumbnail');
+                canvases.forEach(canvas => {
+                    const pdfUrl = canvas.getAttribute('data-pdf');
+                    if (pdfUrl) {
+                        renderPdfPage(canvas, pdfUrl);
+                    }
+                });
+            }
+            
+            // Function to render the first page of a PDF
+            async function renderPdfPage(canvas, pdfUrl) {
+                try {
+                    // Load the PDF document
+                    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                    const pdf = await loadingTask.promise;
+                    
+                    // Get the first page
+                    const page = await pdf.getPage(1);
+                    
+                    // Create a viewport with a moderate scale
+                    const viewport = page.getViewport({ scale: 1 });
+                    
+                    // Calculate optimal scale based on width
+                    const containerWidth = 350; // Match the card width
+                    const scale = containerWidth / viewport.width; // Use exact fitting for width
+                    
+                    // Create a scaled viewport
+                    const scaledViewport = page.getViewport({ scale });
+                    
+                    // Set canvas dimensions to match the scaled viewport exactly
+                    canvas.width = scaledViewport.width;
+                    canvas.height = scaledViewport.height;
+                    
+                    console.log('PDF viewport dimensions:', scaledViewport.width, 'x', scaledViewport.height);
+                    
+                    // Ensure the wrapper is set up correctly
+                    const scrollWrapper = canvas.closest('.pdf-scroll-wrapper');
+                    if (scrollWrapper) {
+                        scrollWrapper.style.overflow = 'hidden';
+                    }
+                    
+                    // Set canvas styling
+                    canvas.style.width = '100%';
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '0 auto';
+                    canvas.style.backgroundColor = 'white';
+                    canvas.style.position = 'relative';
+                    
+                    // Render the PDF page
+                    const renderContext = {
+                        canvasContext: canvas.getContext('2d'),
+                        viewport: scaledViewport,
+                        background: 'white'
+                    };
+                    
+                    // Add a white background to the canvas before rendering
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    await page.render(renderContext).promise;
+                    
+                    // Mark the actual PDF content boundaries
+                    ctx.strokeStyle = '#ddd';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Add the animation-ready class
+                    if (scrollWrapper) {
+                        // Get precise height measurements
+                        const container = canvas.closest('.pdf-container');
+                        const containerHeight = container ? container.offsetHeight : 200;
+                        const contentHeight = canvas.height;
+                        
+                        // Calculate exact scroll amount (don't go beyond actual content)
+                        // Leave a small margin at the bottom so we don't cut off text
+                        const maxScroll = contentHeight - containerHeight;
+                        const safeScroll = Math.max(0, maxScroll - 5);
+                        
+                        console.log('Content height:', contentHeight);
+                        console.log('Container height:', containerHeight);
+                        console.log('Max scroll:', maxScroll);
+                        console.log('Safe scroll:', safeScroll);
+                        
+                        // Only add animation if there's actually content to scroll
+                        if (safeScroll > 10) {
+                            scrollWrapper.classList.add('animation-ready');
+                            // Set a custom property for the animation to use
+                            document.documentElement.style.setProperty('--pdf-scroll-height', `-${safeScroll}px`);
+                        } else {
+                            // Not enough content to scroll, disable animation
+                            console.log('Not enough content to scroll');
+                            scrollWrapper.classList.remove('animation-ready');
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Error rendering PDF thumbnail:', error);
+                    
+                    // Draw error state on canvas
+                    const context = canvas.getContext('2d');
+                    context.fillStyle = '#f8d7da';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    context.fillStyle = '#721c24';
+                    context.font = '14px Arial';
+                    context.textAlign = 'center';
+                    context.fillText('Could not load PDF', canvas.width/2, canvas.height/2);
+                }
             }
         });
     </script>
@@ -546,9 +731,11 @@
             background-size: cover;
             background-position: center;
             position: relative;
+            overflow: hidden; /* Hide overflow initially */
+            transition: overflow 0.3s ease;
         }
         
-        .portfolio-image img {
+        .portfolio-image img, .portfolio-image canvas {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -723,6 +910,80 @@
             .filter-dropdown-content {
                 width: 100%;
             }
+        }
+        
+        /* Specific styling for PDF thumbnails */
+        .pdf-thumbnail {
+            object-fit: contain !important;
+            background-color: white;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        /* Expand height on hover to allow scrolling */
+        .portfolio-image:hover {
+            overflow-y: auto; /* Enable vertical scrolling on hover */
+        }
+        
+        /* Make PDF thumbnails fill the entire space */
+        .portfolio-image canvas.pdf-thumbnail {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100%;
+            object-fit: cover !important;
+            transform-origin: top center;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Document preview styling */
+        .document-preview {
+            min-height: 100%;
+        }
+        
+        /* PDF container styles */
+        .pdf-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        /* Wrapper for scroll animation */
+        .pdf-scroll-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        
+        /* Custom property for animation height */
+        :root {
+            --pdf-scroll-height: -400px;
+        }
+        
+        /* Scroll animation on hover */
+        .pdf-container:hover .pdf-scroll-wrapper.animation-ready {
+            animation: scrollAnimation 10s ease-in-out infinite;
+        }
+        
+        /* Animation keyframes */
+        @keyframes scrollAnimation {
+            0% { transform: translateY(0); }
+            10% { transform: translateY(0); } /* Stay longer at top */
+            45% { transform: translateY(var(--pdf-scroll-height, 0px)); } /* Scroll exactly to bottom of content */
+            65% { transform: translateY(var(--pdf-scroll-height, 0px)); } /* Stay longer at bottom */
+            90% { transform: translateY(0); } /* Scroll back up */
+            100% { transform: translateY(0); }
+        }
+        
+        /* Ensure PDF thumbnails show the top part first */
+        .pdf-thumbnail {
+            object-position: top center !important;
+            position: relative;
+            top: 0;
+            left: 0;
         }
     </style>
 </body>

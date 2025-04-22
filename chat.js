@@ -91,7 +91,7 @@ async function loadUsers() {
 
     // Add a system notifications item at the top
     const systemDiv = document.createElement('div');
-    systemDiv.className = 'user-item system-user';
+    systemDiv.className = 'user-item system-user active';
     systemDiv.dataset.username = 'system';
     systemDiv.innerHTML = `
         <div class="user-avatar system-avatar"><i class="fas fa-bell"></i></div>
