@@ -1,159 +1,2069 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolios</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
-    <script src="assets/js/portfolios.js" defer></script>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; frame-src 'self' data: blob: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co https://docs.google.com; object-src 'self' blob: data: https://*.supabase.co;">
+    <title>Projects - Architecture Portfolio</title>
+    <link rel="icon" type="image/png" href="assets/logo(2).png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- jQuery required for Turn.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Turn.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <!-- PDF.js for PDF processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js worker
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                console.log('PDF.js worker configured');
+            } else {
+                console.error('PDF.js library not loaded');
+            }
+        });
+    </script>
+    
+    <!-- Load Supabase first -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Make Supabase globally accessible
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Checking supabase:', typeof supabase);
+            if (typeof supabase !== 'undefined') {
+                window.supabase = supabase;
+                console.log('Supabase made globally available');
+            }
+        });
+    </script>
+    
+    <!-- Load other scripts -->
+    <script src="auth.js" defer></script>
+    <script src="animation.js" defer></script>
+    <script src="navigation.js"></script>
 </head>
 <body>
-    <div class="main-wrapper">
-        <header>
-            <h1>LABORATORIO GENERATIVO DE COMPUTO</h1>
-            <nav>
-                <div class="logo">
-                    <img src="assets/images/LGC_logo.svg" alt="LGC Logo" class="desktop-logo">
-                    <img src="assets/images/LGC_logo2.svg" alt="LGC Logo" class="mobile-logo">
-                </div>
-                <div class="nav-links">
-                    <a href="index.html">Home</a>
-                    <a href="projects.html">Proyectos</a>
-                    <a href="portfolios.html" class="active">Portafolios</a>
-                    <a href="aboutus.html">Nosotros</a>
-                </div>
-                <div class="hamburger">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </nav>
-        </header>
+    <header>
+        <!-- Navigation will be inserted by navigation.js -->
+    </header>
 
-        <div class="content-wrapper">
-            <section class="portfolios-section">
-                <h2 class="section-title">Portafolios de Proyectos</h2>
-                <p class="section-description">Explora los portafolios de proyectos arquitectónicos desarrollados por nuestros estudiantes utilizando herramientas computacionales generativas.</p>
-                
-                <div class="portfolio-grid">
-                    <!-- Portfolio 1 -->
-                    <article class="portfolio-card">
-                        <div class="portfolio-image">
-                            <img src="assets/images/portfolios/portfolio1.jpg" alt="Portfolio 1">
-                        </div>
-                        <div class="portfolio-info">
-                            <h3>Espacios Paramétricos</h3>
-                            <p class="student-name">Por: María González</p>
-                            <p class="portfolio-description">Exploración de geometrías complejas generadas mediante algoritmos paramétricos para crear espacios arquitectónicos innovadores.</p>
-                            <a href="#" class="btn-secondary">Ver portafolio</a>
-                        </div>
-                    </article>
-                    
-                    <!-- Portfolio 2 -->
-                    <article class="portfolio-card">
-                        <div class="portfolio-image">
-                            <img src="assets/images/portfolios/portfolio2.jpg" alt="Portfolio 2">
-                        </div>
-                        <div class="portfolio-info">
-                            <h3>Morfogénesis Digital</h3>
-                            <p class="student-name">Por: Carlos Ramírez</p>
-                            <p class="portfolio-description">Estudio de procesos de diseño emergente inspirados en patrones naturales y sistemas auto-organizados.</p>
-                            <a href="#" class="btn-secondary">Ver portafolio</a>
-                        </div>
-                    </article>
-                    
-                    <!-- Portfolio 3 -->
-                    <article class="portfolio-card">
-                        <div class="portfolio-image">
-                            <img src="assets/images/portfolios/portfolio3.jpg" alt="Portfolio 3">
-                        </div>
-                        <div class="portfolio-info">
-                            <h3>Arquitectura Adaptativa</h3>
-                            <p class="student-name">Por: Ana López</p>
-                            <p class="portfolio-description">Investigación sobre sistemas arquitectónicos que responden a condiciones ambientales mediante algoritmos de machine learning.</p>
-                            <a href="#" class="btn-secondary">Ver portafolio</a>
-                        </div>
-                    </article>
-                    
-                    <!-- Portfolio 4 -->
-                    <article class="portfolio-card">
-                        <div class="portfolio-image">
-                            <img src="assets/images/portfolios/portfolio4.jpg" alt="Portfolio 4">
-                        </div>
-                        <div class="portfolio-info">
-                            <h3>Fabricación Digital</h3>
-                            <p class="student-name">Por: Roberto Méndez</p>
-                            <p class="portfolio-description">Desarrollo de prototipos arquitectónicos utilizando técnicas avanzadas de fabricación digital y manufactura aditiva.</p>
-                            <a href="#" class="btn-secondary">Ver portafolio</a>
-                        </div>
-                    </article>
-                    
-                    <!-- Portfolio 5 -->
-                    <article class="portfolio-card">
-                        <div class="portfolio-image">
-                            <img src="assets/images/portfolios/portfolio5.jpg" alt="Portfolio 5">
-                        </div>
-                        <div class="portfolio-info">
-                            <h3>Biomímesis Computacional</h3>
-                            <p class="student-name">Por: Laura Torres</p>
-                            <p class="portfolio-description">Aplicación de principios biomiméticos a través de algoritmos generativos para soluciones arquitectónicas sostenibles.</p>
-                            <a href="#" class="btn-secondary">Ver portafolio</a>
-                        </div>
-                    </article>
-                    
-                    <!-- Portfolio 6 -->
-                    <article class="portfolio-card">
-                        <div class="portfolio-image">
-                            <img src="assets/images/portfolios/portfolio6.jpg" alt="Portfolio 6">
-                        </div>
-                        <div class="portfolio-info">
-                            <h3>Urbanismo Algorítmico</h3>
-                            <p class="student-name">Por: Daniel Martínez</p>
-                            <p class="portfolio-description">Modelos urbanos generativos que optimizan flujos, densidades y relaciones espaciales en entornos urbanos complejos.</p>
-                            <a href="#" class="btn-secondary">Ver portafolio</a>
-                        </div>
-                    </article>
+    <main>
+        <section id="portfolios">
+            <div class="container">
+                <div class="portfolio-header">
+                    <h2>Our Projects</h2>
+                    <p id="category-filter-info">Showing all projects</p>
                 </div>
                 
-                <div class="pagination">
-                    <a href="#" class="active">1</a>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <a href="#" class="next">Siguiente →</a>
+                <div class="portfolio-filters">
+                    <button class="filter-button active" data-filter="all">All Categories</button>
+                    <div class="filter-dropdown">
+                        <button class="filter-dropdown-btn">Select Category <i class="fas fa-chevron-down"></i></button>
+                        <div class="filter-dropdown-content">
+                            <button class="filter-item" data-filter="rf-telecommunications">RF Telecommunications</button>
+                            <button class="filter-item" data-filter="energy">Energy</button>
+                            <button class="filter-item" data-filter="construction">Construction</button>
+                            <button class="filter-item" data-filter="banking">Bank Insurance Office</button>
+                            <button class="filter-item" data-filter="sand">Stand</button>
+                            <button class="filter-item" data-filter="oil-gas">Oil & Gas</button>
+                            <button class="filter-item" data-filter="real-estate">Real Estate</button>
+                            <button class="filter-item" data-filter="nuclear">Nuclear</button>
+                            <button class="filter-item" data-filter="industrial">Industrial</button>
+                            <button class="filter-item" data-filter="naval">Naval</button>
+                            <button class="filter-item" data-filter="bpo">BPO</button>
+                            <button class="filter-item" data-filter="automotive">Automotive</button>
+                            <button class="filter-item" data-filter="aerospace">Aerospace</button>
+                            <button class="filter-item" data-filter="chemistry-pharmaceutical">Chemistry-Pharmaceutical</button>
+                        </div>
+                    </div>
                 </div>
-            </section>
-        </div>
-
-        <footer>
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Contacto</h3>
-                    <p>Av. Universidad 3000, CU, Coyoacán, 04510 Ciudad de México, CDMX</p>
-                    <p>Email: contacto@lgc.unam.mx</p>
-                    <p>Teléfono: +52 (55) 5622-1234</p>
+                
+                <div id="no-projects" class="no-projects" style="display: none;">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No projects found</h3>
+                    <p>There are no projects in this category yet.</p>
                 </div>
-                <div class="footer-section">
-                    <h3>Enlaces</h3>
-                    <ul>
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="projects.html">Proyectos</a></li>
-                        <li><a href="portfolios.html">Portafolios</a></li>
-                        <li><a href="aboutus.html">Nosotros</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Síguenos</h3>
-                    <div class="social-links">
-                        <a href="#"><img src="assets/images/facebook.svg" alt="Facebook"></a>
-                        <a href="#"><img src="assets/images/twitter.svg" alt="Twitter"></a>
-                        <a href="#"><img src="assets/images/instagram.svg" alt="Instagram"></a>
+                
+                <div id="portfolio-grid" class="portfolio-grid">
+                    <!-- Projects will be loaded here dynamically -->
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading projects...</p>
                     </div>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>© 2023 Laboratorio Generativo de Cómputo. Todos los derechos reservados.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="social-links">
+                <a href="https://www.instagram.com/lgcarchi/"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/profile.php?id=100094347141527"><i class="fab fa-facebook"></i></a>
+                <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
             </div>
-        </footer>
+            <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <!-- File Viewer Modal -->
+    <div id="file-viewer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-file-title">File Preview</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="file-info-bar">
+                <div class="file-type-icon" id="file-type-icon">DOC</div>
+                <span id="file-info">Loading file information...</span>
+            </div>
+            <div class="modal-body">
+                <div id="file-viewer-container">
+                    <!-- Turn.js Flipbook container -->
+                    <div id="flipbook-wrapper">
+                        <div id="flipbook"></div>
+                        <div class="flipbook-nav">
+                            <button id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
+                            <button id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    
+                    <!-- Original preview elements -->
+                    <iframe id="file-iframe" width="100%" height="600" style="display: none;"></iframe>
+                    <img id="file-image" style="display: none;" />
+                    <div id="file-unsupported" style="display: none;">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>This file type cannot be previewed</h3>
+                        <p>The file may need to be downloaded to be viewed.</p>
+                        <a id="file-download-link" href="#" class="action-button">
+                            <i class="fas fa-download"></i> Download File
+                        </a>
+                    </div>
+                    
+                    <!-- Loading indicator -->
+                    <div class="modal-loading" id="file-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading file...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="file-actions">
+                <button class="file-action-button" id="zoom-in-button">
+                    <i class="fas fa-search-plus"></i> Zoom In
+                </button>
+                <button class="file-action-button" id="zoom-out-button">
+                    <i class="fas fa-search-minus"></i> Zoom Out
+                </button>
+                <a id="download-button" href="#" class="file-action-button">
+                    <i class="fas fa-download"></i> Download
+                </a>
+            </div>
+        </div>
     </div>
+    
+    <script>
+        // Remove the Turn.js detection and loading functions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a short moment for auth.js to initialize the Supabase client
+            setTimeout(() => {
+                // Check for category filter in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryFilter = urlParams.get('category');
+                
+                // Check if there's a stored category in localStorage
+                const storedCategory = localStorage.getItem('selectedCategory');
+                
+                // Determine which category to use
+                let currentCategory = categoryFilter || storedCategory || 'all';
+                
+                // Update filter UI based on selected category
+                updateFilterUI(currentCategory);
+                
+                // Load projects based on the selected category
+                loadProjects(currentCategory);
+                
+                // Add click event to filter buttons
+                document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const category = this.getAttribute('data-filter');
+                        currentCategory = category;
+                        localStorage.setItem('selectedCategory', category);
+                        updateFilterUI(category);
+                        loadProjects(category);
+                    });
+                });
+                
+                // Initialize the file viewer modal
+                initFileViewer();
+                
+                // Add click event listeners to "View Details" buttons
+                document.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('view-button') || e.target.closest('.view-button')) {
+                        e.preventDefault();
+                        const card = e.target.closest('.portfolio-card');
+                        
+                        if (card) {
+                            const fileUrl = card.getAttribute('data-file-url');
+                            const fileName = card.getAttribute('data-file-name');
+                            
+                            if (fileUrl) {
+                                showFileInModal(fileUrl, fileName);
+                            } else {
+                                alert('No file available for this project');
+                            }
+                        }
+                    }
+                });
+                
+                // Toggle filter dropdown
+                const filterDropdownBtn = document.querySelector('.filter-dropdown-btn');
+                filterDropdownBtn.addEventListener('click', function() {
+                    const dropdownContent = document.querySelector('.filter-dropdown-content');
+                    dropdownContent.classList.toggle('show');
+                });
+            }, 500);
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(event) {
+                if (!event.target.matches('.filter-dropdown-btn') && !event.target.closest('.filter-dropdown-content')) {
+                    const dropdowns = document.querySelectorAll('.filter-dropdown-content');
+                    dropdowns.forEach(dropdown => {
+                        if (dropdown.classList.contains('show')) {
+                            dropdown.classList.remove('show');
+                        }
+                    });
+                }
+            });
+            
+            // Function to initialize file viewer
+            function initFileViewer() {
+                // Get modal elements
+                const modal = document.getElementById('file-viewer-modal');
+                const closeBtn = modal.querySelector('.close-modal');
+                const flipbook = document.getElementById('flipbook');
+                const prevBtn = document.getElementById('prev-page-btn');
+                const nextBtn = document.getElementById('next-page-btn');
+                const imgPreview = document.getElementById('file-image');
+                const zoomInButton = document.getElementById('zoom-in-button');
+                const zoomOutButton = document.getElementById('zoom-out-button');
+                
+                // Configure PDF.js worker
+                if (typeof pdfjsLib !== 'undefined') {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                }
+                
+                // Set initial zoom level
+                let currentZoom = 1;
+                
+                // Make the flipbook responsive
+                window.addEventListener('resize', function() {
+                    if (flipbook && $(flipbook).turn("is")) {
+                        const parent = flipbook.parentElement;
+                        if (parent) {
+                            const width = parent.clientWidth * 0.9;
+                            $(flipbook).turn("size", width, 600);
+                        }
+                    }
+                });
+                
+                // Close modal when clicking the close button
+                closeBtn.addEventListener('click', () => {
+                    // Add closing animation class
+                    modal.classList.add('closing');
+                    
+                    // Wait for animation to complete before hiding
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        modal.classList.remove('closing');
+                        
+                        // Destroy any existing flipbook
+                        if (flipbook && $(flipbook).turn("is")) {
+                            $(flipbook).turn("destroy");
+                            flipbook.innerHTML = '';
+                        }
+                    }, 300); // Match this with the animation duration
+                });
+                
+                // Close modal when clicking outside the modal content
+                window.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        // Add closing animation class
+                        modal.classList.add('closing');
+                        
+                        // Wait for animation to complete before hiding
+                        setTimeout(() => {
+                            modal.style.display = 'none';
+                            modal.classList.remove('closing');
+                            
+                            // Destroy any existing flipbook
+                            if (flipbook && $(flipbook).turn("is")) {
+                                $(flipbook).turn("destroy");
+                                flipbook.innerHTML = '';
+                            }
+                        }, 300); // Match this with the animation duration
+                    }
+                });
+                
+                // Navigation buttons for flipbook
+                $(prevBtn).off('click').on('click', function(e) {
+                    e.preventDefault();
+                    try {
+                        // Safe way to check if Turn.js is initialized
+                        if ($(flipbook).data().turn) {
+                            $(flipbook).turn('previous');
+                        }
+                    } catch (err) {
+                        console.error('Error on previous button:', err);
+                    }
+                    return false;
+                });
+                
+                $(nextBtn).off('click').on('click', function(e) {
+                    e.preventDefault();
+                    try {
+                        // Safe way to check if Turn.js is initialized
+                        if ($(flipbook).data().turn) {
+                            $(flipbook).turn('next');
+                        }
+                    } catch (err) {
+                        console.error('Error on next button:', err);
+                    }
+                    return false;
+                });
+                
+                // Zoom controls for images
+                zoomInButton.addEventListener('click', function() {
+                    if (currentZoom < 3) {
+                        currentZoom += 0.2;
+                        imgPreview.style.transform = `scale(${currentZoom})`;
+                    }
+                });
+                
+                zoomOutButton.addEventListener('click', function() {
+                    if (currentZoom > 0.5) {
+                        currentZoom -= 0.2;
+                        imgPreview.style.transform = `scale(${currentZoom})`;
+                    }
+                });
+            }
+            
+            // Show file in modal with appropriate preview based on file type
+            async function showFileInModal(fileUrl, fileName) {
+                const modal = document.getElementById('file-viewer-modal');
+                const title = document.getElementById('modal-file-title');
+                const iframe = document.getElementById('file-iframe');
+                const imgPreview = document.getElementById('file-image');
+                const unsupportedView = document.getElementById('file-unsupported');
+                const downloadLink = document.getElementById('file-download-link');
+                const downloadButton = document.getElementById('download-button');
+                const fileLoading = document.getElementById('file-loading');
+                const fileInfo = document.getElementById('file-info');
+                const fileTypeIcon = document.getElementById('file-type-icon');
+                const flipbook = document.getElementById('flipbook');
+                const flipbookWrapper = document.getElementById('flipbook-wrapper');
+                const prevBtn = document.getElementById('prev-page-btn');
+                const nextBtn = document.getElementById('next-page-btn');
+                
+                // Reset zoom
+                imgPreview.style.transform = 'scale(1)';
+                
+                // Show loading indicator
+                fileLoading.style.display = 'flex';
+                
+                // Hide all preview elements initially
+                iframe.style.display = 'none';
+                imgPreview.style.display = 'none';
+                unsupportedView.style.display = 'none';
+                flipbookWrapper.style.display = 'none';
+                flipbook.style.display = 'none';
+                
+                // Destroy any existing Turn.js instance
+                try {
+                    if ($(flipbook).data().turn) {
+                        $(flipbook).turn('destroy');
+                    }
+                } catch (e) {
+                    console.log('No existing Turn instance to destroy:', e);
+                }
+                
+                // Reset flipbook container
+                flipbook.innerHTML = '';
+                
+                // Set the modal title to the file name
+                title.textContent = fileName || 'File Preview';
+                
+                // Set download links
+                downloadLink.href = fileUrl;
+                downloadLink.setAttribute('download', fileName || 'download');
+                downloadButton.href = fileUrl;
+                downloadButton.setAttribute('download', fileName || 'download');
+                
+                // Determine file type and update file info
+                const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
+                const fileTypeMap = {
+                    'jpg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+                    'jpeg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+                    'png': { type: 'Image', icon: 'PNG', color: '#28a745' },
+                    'gif': { type: 'Image', icon: 'GIF', color: '#fd7e14' },
+                    'svg': { type: 'Image', icon: 'SVG', color: '#6610f2' },
+                    'webp': { type: 'Image', icon: 'WP', color: '#20c997' },
+                    'pdf': { type: 'Document', icon: 'PDF', color: '#dc3545' },
+                    'txt': { type: 'Text', icon: 'TXT', color: '#6c757d' },
+                    'html': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+                    'htm': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+                    'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
+                    'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
+                    'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
+                    'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
+                };
+                
+                const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
+                fileInfo.textContent = `${fileType.type} • ${formatFileSize(1024 * 1024)} • ${formatDate(new Date())}`;
+                fileTypeIcon.textContent = fileType.icon;
+                fileTypeIcon.style.background = fileType.color;
+                
+                // Show or hide zoom buttons based on file type
+                const canZoom = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension);
+                document.getElementById('zoom-in-button').style.display = canZoom ? 'flex' : 'none';
+                document.getElementById('zoom-out-button').style.display = canZoom ? 'flex' : 'none';
+                
+                // Show modal
+                modal.style.display = 'block';
+                
+                if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
+                    // Image preview
+                    imgPreview.onload = function() {
+                        fileLoading.style.display = 'none';
+                        imgPreview.style.display = 'block';
+                        
+                        // Ensure image fits properly
+                        const containerWidth = document.getElementById('file-viewer-container').offsetWidth * 0.9;
+                        const containerHeight = document.getElementById('file-viewer-container').offsetHeight * 0.9;
+                        
+                        // Adjust image size if needed
+                        if (imgPreview.naturalWidth > containerWidth || imgPreview.naturalHeight > containerHeight) {
+                            const widthRatio = containerWidth / imgPreview.naturalWidth;
+                            const heightRatio = containerHeight / imgPreview.naturalHeight;
+                            const scale = Math.min(widthRatio, heightRatio) * 0.95; // 5% safety margin
+                            
+                            imgPreview.style.maxWidth = Math.floor(imgPreview.naturalWidth * scale) + 'px';
+                            imgPreview.style.maxHeight = Math.floor(imgPreview.naturalHeight * scale) + 'px';
+                        }
+                    };
+                    imgPreview.onerror = function() {
+                        fileLoading.style.display = 'none';
+                        unsupportedView.style.display = 'block';
+                    };
+                    imgPreview.src = fileUrl;
+                } 
+                else if (['pdf'].includes(fileExtension)) {
+                    // PDF Flipbook using PDF.js and Turn.js
+                    flipbookWrapper.style.display = 'block';
+                    
+                    try {
+                        console.log('Starting PDF processing for flipbook');
+                        // First check if libraries are loaded
+                        if (typeof pdfjsLib === 'undefined') {
+                            throw new Error('PDF.js library not loaded');
+                        }
+                        
+                        if (typeof $ === 'undefined' || typeof $.fn.turn === 'undefined') {
+                            throw new Error('Turn.js library not loaded');
+                        }
+                        
+                        // Load the PDF file
+                        console.log('Loading PDF from URL:', fileUrl);
+                        pdfjsLib.getDocument(fileUrl).promise.then(function(pdf) {
+                            console.log('PDF loaded successfully with', pdf.numPages, 'pages');
+                            
+                            // Store number of pages globally
+                            window.numPages = pdf.numPages;
+                            
+                            // Clear existing content first
+                            flipbook.innerHTML = '';
+                            
+                            // Create a new container for Turn.js to avoid issues with reuse
+                            const flipContainer = document.createElement('div');
+                            flipContainer.id = 'flipbook-pages';
+                            flipContainer.className = 'flipbook-container';
+                            flipbook.appendChild(flipContainer);
+                            
+                            // Initialize the flipbook with only the exact required pages
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const pageDiv = document.createElement('div');
+                                pageDiv.className = 'page';
+                                pageDiv.id = `page-${i}`;
+                                pageDiv.style.position = 'relative';
+                                pageDiv.style.overflow = 'hidden';
+                                
+                                // Loading placeholder
+                                const placeholder = document.createElement('div');
+                                placeholder.style.position = 'absolute';
+                                placeholder.style.top = '50%';
+                                placeholder.style.left = '50%';
+                                placeholder.style.transform = 'translate(-50%, -50%)';
+                                placeholder.style.color = '#999';
+                                placeholder.textContent = `Loading page ${i}...`;
+                                pageDiv.appendChild(placeholder);
+                                
+                                // Page number for reference
+                                const pageNumber = document.createElement('div');
+                                pageNumber.textContent = i;
+                                pageNumber.style.position = 'absolute';
+                                pageNumber.style.bottom = '10px';
+                                pageNumber.style.right = '10px';
+                                pageNumber.style.fontSize = '12px';
+                                pageNumber.style.color = '#999';
+                                pageNumber.style.zIndex = '100';
+                                pageDiv.appendChild(pageNumber);
+                                
+                                flipContainer.appendChild(pageDiv);
+                            }
+                            
+                            // Initialize the flipbook with explicit numeric dimensions
+                            setTimeout(() => {
+                                try {
+                                    $(flipContainer).turn({
+                                        width: 680,
+                                        height: 530,
+                                        autoCenter: true,
+                                        display: 'single',
+                                        duration: 600,
+                                        acceleration: true,
+                                        gradients: true,
+                                        elevation: 50,
+                                        page: 1,
+                                        padding: 10,
+                                        margin: 10,
+                                        when: {
+                                            turning: function(event, page, view) {
+                                                // Load current page with high quality
+                                                loadPageContent(page);
+                                                
+                                                // Pre-load adjacent pages for smoother experience
+                                                if (page > 1) loadPageContent(page - 1);
+                                                if (page < pdf.numPages) loadPageContent(page + 1);
+                                            },
+                                            turned: function(event, page, view) {
+                                                // Update navigation button states
+                                                prevBtn.disabled = page <= 1;
+                                                nextBtn.disabled = page >= pdf.numPages;
+                                            }
+                                        }
+                                    });
+                                    
+                                    console.log('Turn.js initialized successfully');
+                                    
+                                    // Load the first page
+                                    loadPageContent(1);
+                                    
+                                    // Make navigation buttons work
+                                    $(prevBtn).off('click').on('click', function() {
+                                        try {
+                                            $(flipContainer).turn('previous');
+                                        } catch (e) {
+                                            console.error('Error navigating to previous page:', e);
+                                        }
+                                        return false;
+                                    });
+                                    
+                                    $(nextBtn).off('click').on('click', function() {
+                                        try {
+                                            $(flipContainer).turn('next');
+                                        } catch (e) {
+                                            console.error('Error navigating to next page:', e);
+                                        }
+                                        return false;
+                                    });
+                                    
+                                    // Hide loading indicator
+                                    fileLoading.style.display = 'none';
+                                    flipbook.style.display = 'block';
+                                    
+                                } catch (turnError) {
+                                    console.error('Error initializing Turn.js:', turnError);
+                                    fallbackToPdfViewer(fileUrl);
+                                }
+                            }, 100); // Small delay to ensure DOM is ready
+                            
+                            // Function to directly render PDF page to a canvas
+                            async function loadPageContent(pageNum) {
+                                if (pageNum < 1 || pageNum > pdf.numPages) return;
+                                
+                                const pageDiv = document.getElementById(`page-${pageNum}`);
+                                if (!pageDiv || pageDiv.querySelector('canvas')) return;
+                                
+                                try {
+                                    const page = await pdf.getPage(pageNum);
+                                    
+                                    // Get the viewport at scale 1.0
+                                    const viewport = page.getViewport({scale: 1.0});
+                                    const containerWidth = 650;
+                                    const containerHeight = 500;
+                                    
+                                    // Calculate scale to fit entirely within container
+                                    // Use a slightly smaller scale factor to ensure nothing gets cut off
+                                    const scaleX = (containerWidth - 2) / viewport.width; // 10px padding on each side
+                                    const scaleY = (containerHeight - 2) / viewport.height; // 10px padding on each side
+                                    let scale = Math.min(scaleX, scaleY) * 1; // 5% reduction for safety margin
+                                    
+                                    // Account for device pixel ratio for higher resolution
+                                    const pixelRatio = window.devicePixelRatio || 1;
+                                    const scaledViewport = page.getViewport({scale: scale});
+                                    
+                                    // Create high-resolution canvas
+                                    const canvas = document.createElement('canvas');
+                                    const context = canvas.getContext('2d');
+                                    
+                                    // Set canvas dimensions to match the scaled viewport with pixel ratio
+                                    canvas.width = Math.floor(scaledViewport.width * pixelRatio);
+                                    canvas.height = Math.floor(scaledViewport.height * pixelRatio);
+                                    canvas.style.width = Math.floor(scaledViewport.width) + 'px';
+                                    canvas.style.height = Math.floor(scaledViewport.height) + 'px';
+                                    
+                                    // Scale context for high DPI display
+                                    context.scale(pixelRatio, pixelRatio);
+                                    
+                                    // Apply high-quality rendering settings
+                                    context.imageSmoothingEnabled = true;
+                                    context.imageSmoothingQuality = 'high';
+                                    
+                                    // Position canvas in center of page with enough margin
+                                    canvas.style.position = 'absolute';
+                                    canvas.style.top = '50%';
+                                    canvas.style.left = '50%';
+                                    canvas.style.transform = 'translate(-50%, -50%)';
+                                    
+                                    // Clear the page div and add the canvas
+                                    pageDiv.innerHTML = '';
+                                    pageDiv.appendChild(canvas);
+                                    
+                                    // Add page number in a way that doesn't overlap content
+                                    const pageNumber = document.createElement('div');
+                                    pageNumber.textContent = pageNum;
+                                    pageNumber.style.position = 'absolute';
+                                    pageNumber.style.bottom = '5px';
+                                    pageNumber.style.right = '5px';
+                                    pageNumber.style.fontSize = '10px';
+                                    pageNumber.style.color = '#333';
+                                    pageNumber.style.background = 'rgba(255,255,255,0.7)';
+                                    pageNumber.style.padding = '2px 5px';
+                                    pageNumber.style.borderRadius = '8px';
+                                    pageNumber.style.zIndex = '2';
+                                    pageDiv.appendChild(pageNumber);
+                                    
+                                    // Render the PDF page with enhanced quality settings
+                                    const renderContext = {
+                                        canvasContext: context,
+                                        viewport: scaledViewport,
+                                        background: 'white',
+                                        renderInteractiveForms: true
+                                    };
+                                    
+                                    await page.render(renderContext).promise;
+                                    console.log(`Page ${pageNum} rendered successfully`);
+                                    
+                                } catch (error) {
+                                    console.error(`Error rendering page ${pageNum}:`, error);
+                                    pageDiv.innerHTML = `<div style="padding: 20px; text-align: center;">
+                                        Error loading page ${pageNum}<br>
+                                        <small>${error.message}</small>
+                                    </div>`;
+                                }
+                            }
+                            
+                        }).catch(function(error) {
+                            console.error('Error loading PDF:', error);
+                            fallbackToPdfViewer(fileUrl);
+                        });
+                    } catch (e) {
+                        console.error('General error in PDF processing:', e);
+                        fallbackToPdfViewer(fileUrl);
+                    }
+                }
+                else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExtension)) {
+                    // Use Google Docs Viewer for Office files
+                    iframe.onload = function() {
+                        fileLoading.style.display = 'none';
+                        iframe.style.display = 'block';
+                    };
+                    iframe.onerror = function() {
+                        fileLoading.style.display = 'none';
+                        unsupportedView.style.display = 'block';
+                    };
+                    iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+                }
+                else {
+                    // Unsupported file type
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
+                }
+            }
+            
+            // Fallback function for PDF viewing
+            function fallbackToPdfViewer(pdfUrl) {
+                console.log('Using fallback PDF viewer');
+                const fileLoading = document.getElementById('file-loading');
+                const flipbookWrapper = document.getElementById('flipbook-wrapper');
+                const iframe = document.getElementById('file-iframe');
+                const unsupportedView = document.getElementById('file-unsupported');
+                
+                fileLoading.style.display = 'none';
+                flipbookWrapper.style.display = 'none';
+                
+                iframe.onload = function() {
+                    fileLoading.style.display = 'none';
+                    iframe.style.display = 'block';
+                };
+                iframe.onerror = function() {
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
+                };
+                iframe.src = pdfUrl;
+            }
+            
+            // Function to update filter UI
+            function updateFilterUI(category) {
+                // Update filter buttons
+                document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
+                    if (button.getAttribute('data-filter') === category) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                });
+                
+                // Update dropdown button text
+                const dropdownBtn = document.querySelector('.filter-dropdown-btn');
+                if (category === 'all') {
+                    dropdownBtn.innerHTML = 'Select Category <i class="fas fa-chevron-down"></i>';
+                    dropdownBtn.classList.remove('active');
+                } else {
+                    // Get the display name of the category
+                    const categoryButton = document.querySelector(`.filter-item[data-filter="${category}"]`);
+                    const categoryName = categoryButton ? categoryButton.textContent : formatCategoryName(category);
+                    dropdownBtn.innerHTML = `${categoryName} <i class="fas fa-chevron-down"></i>`;
+                    dropdownBtn.classList.add('active');
+                }
+                
+                // Update filter info text
+                const filterInfo = document.getElementById('category-filter-info');
+                if (category === 'all') {
+                    filterInfo.textContent = 'Showing all projects';
+                } else {
+                    // Get the display name of the category
+                    const categoryButton = document.querySelector(`.filter-item[data-filter="${category}"]`);
+                    const categoryName = categoryButton ? categoryButton.textContent : formatCategoryName(category);
+                    filterInfo.textContent = `Showing projects in ${categoryName}`;
+                }
+            }
+            
+            // Format category name for display
+            function formatCategoryName(category) {
+                return category
+                    .split('-')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+            }
+            
+            // Function to load projects
+            async function loadProjects(category) {
+                // Show loading spinner
+                const portfolioGrid = document.getElementById('portfolio-grid');
+                const noProjects = document.getElementById('no-projects');
+                
+                portfolioGrid.innerHTML = `
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading projects...</p>
+                    </div>
+                `;
+                noProjects.style.display = 'none';
+                
+                try {
+                    // Check if supabase is defined (should be defined by auth.js)
+                    if (typeof supabase === 'undefined') {
+                        throw new Error('Supabase client not initialized. Please refresh the page.');
+                    }
+                    
+                    // Check if user is admin
+                    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                    const currentUser = localStorage.getItem('currentUser');
+                    
+                    console.log('User status:', isAdmin ? 'Admin' : 'Regular user', currentUser);
+                    
+                    let projects = [];
+                    
+                    if (isAdmin) {
+                        // Admin users see all projects
+                        const { data: adminProjects, error: adminError } = await supabase
+                            .from('projects')
+                            .select('*')
+                            .eq(category !== 'all' ? 'category' : 'id', category !== 'all' ? category : 'id');
+                            
+                        if (adminError) throw adminError;
+                        projects = adminProjects || [];
+                    } 
+                    else if (currentUser) {
+                        // First, get the user's numeric ID from the Users table
+                        const { data: userData, error: userError } = await supabase
+                            .from('Users')
+                            .select('id')
+                            .eq('username', currentUser)
+                            .single();
+                            
+                        if (userError) {
+                            console.error('Error fetching user ID:', userError);
+                            throw userError;
+                        }
+                        
+                        if (!userData) {
+                            throw new Error('User not found');
+                        }
+                        
+                        const userId = userData.id;
+                        console.log('Current user ID:', userId);
+                        
+                        // Get project IDs shared with this user from project_shares table
+                        const { data: sharedData, error: sharedError } = await supabase
+                            .from('project_shares')
+                            .select('project_id')
+                            .eq('user_id', userId);
+                            
+                        if (sharedError) {
+                            console.error('Error fetching shared projects:', sharedError);
+                            throw sharedError;
+                        }
+                        
+                        if (!sharedData || sharedData.length === 0) {
+                            console.log('No shared projects found');
+                            projects = [];
+                        } else {
+                            // Extract project IDs
+                            const projectIds = sharedData.map(item => item.project_id);
+                            console.log('Shared project IDs:', projectIds);
+                            
+                            // Fetch the actual projects by their IDs
+                            let query = supabase
+                                .from('projects')
+                                .select('*')
+                                .in('id', projectIds);
+                                
+                            // Apply category filter if needed
+                            if (category && category !== 'all') {
+                                query = query.eq('category', category);
+                            }
+                            
+                            const { data: projectsData, error: projectsError } = await query;
+                            
+                            if (projectsError) {
+                                console.error('Error fetching projects by IDs:', projectsError);
+                                throw projectsError;
+                            }
+                            
+                            projects = projectsData || [];
+                            console.log('Fetched shared projects:', projects.length);
+                        }
+                    }
+                    else {
+                        // Not logged in - show nothing or public projects if that's a concept
+                        projects = [];
+                    }
+                    
+                    // Clear loading spinner
+                    portfolioGrid.innerHTML = '';
+                    
+                    console.log('Projects loaded:', projects.length);
+                    
+                    // Check if projects were found
+                    if (projects && projects.length > 0) {
+                        // Display projects
+                        projects.forEach(project => {
+                            // Create project card
+                            const card = document.createElement('div');
+                            card.className = 'portfolio-card';
+                            card.setAttribute('data-category', project.category);
+                            
+                            // Store file URL and name as data attributes for the view details button
+                            if (project.file_url) {
+                                card.setAttribute('data-file-url', project.file_url);
+                                // Extract file name from URL
+                                const fileName = project.file_url.split('/').pop().split('?')[0];
+                                card.setAttribute('data-file-name', fileName);
+                            }
+                            
+                            // Set card background color based on category
+                            const bgColor = getCategoryColor(project.category);
+                            
+                            // Add shared badge for projects
+                            const sharedBadge = '<span class="shared-badge"><i class="fas fa-users"></i> Shared with you</span>';
+                            
+                            // Determine the image source
+                            let imageElement = '';
+                            if (project.file_url) {
+                                const fileUrl = project.file_url.toLowerCase();
+                                if (fileUrl.endsWith('.pdf')) {
+                                    // For PDF files, create a canvas to render the first page with a container
+                                    imageElement = `
+                                        <div class="pdf-container">
+                                            <div class="pdf-scroll-wrapper">
+                                                <canvas class="pdf-thumbnail" data-pdf="${project.file_url}" width="350"></canvas>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else if (fileUrl.endsWith('.doc') || fileUrl.endsWith('.docx') || 
+                                          fileUrl.endsWith('.xls') || fileUrl.endsWith('.xlsx') || 
+                                          fileUrl.endsWith('.ppt') || fileUrl.endsWith('.pptx')) {
+                                    // For Office documents, show a document thumbnail with type icon
+                                    let icon = 'fa-file-alt';
+                                    let color = '#2c5898';
+                                    
+                                    if (fileUrl.endsWith('.doc') || fileUrl.endsWith('.docx')) {
+                                        icon = 'fa-file-word';
+                                        color = '#2b579a';
+                                    } else if (fileUrl.endsWith('.xls') || fileUrl.endsWith('.xlsx')) {
+                                        icon = 'fa-file-excel';
+                                        color = '#217346';
+                                    } else if (fileUrl.endsWith('.ppt') || fileUrl.endsWith('.pptx')) {
+                                        icon = 'fa-file-powerpoint';
+                                        color = '#d24726';
+                                    }
+                                    
+                                    // Get filename from URL
+                                    const fileName = project.file_url.split('/').pop().split('?')[0];
+                                    
+                                    imageElement = `
+                                        <div class="document-preview" style="background-color: white; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                            <i class="fas ${icon}" style="font-size: 50px; color: ${color}; margin-bottom: 15px;"></i>
+                                            <div style="font-size: 14px; text-align: center; padding: 0 20px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                                ${fileName}
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    // For other file types, try to display as image
+                                    imageElement = `<img src="${project.file_url}" alt="${project.name}" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/svgs/solid/file.svg'; this.style.padding='40px'; this.style.background='white';">`;
+                                }
+                            } else if (project.image_url) {
+                                imageElement = `<img src="${project.image_url}" alt="${project.name}">`;
+                            }
+                            
+                            card.innerHTML = `
+                                <div class="portfolio-image" style="background-color: ${bgColor};">
+                                    ${imageElement}
+                                    ${sharedBadge}
+                                </div>
+                                <div class="portfolio-content">
+                                    <h3>${project.name}</h3>
+                                    <div class="portfolio-meta">
+                                        <span class="portfolio-category">${formatCategoryName(project.category)}</span>
+                                        <span class="portfolio-status ${project.status}">${project.status}</span>
+                                    </div>
+                                    <a href="#" class="view-button">View Details</a>
+                                </div>
+                            `;
+                            
+                            portfolioGrid.appendChild(card);
+                        });
+                        
+                        // Render PDF thumbnails
+                        renderPdfThumbnails();
+                        
+                        // Apply animations
+                        animateProjectCards();
+                    } else {
+                        // Show no projects message
+                        noProjects.style.display = 'flex';
+                        portfolioGrid.innerHTML = '';
+                    }
+                } catch (error) {
+                    console.error('Error loading projects:', error);
+                    portfolioGrid.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Error loading projects: ${error.message || 'Please try again later.'}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Function to get category color
+            function getCategoryColor(category) {
+                const colors = {
+                    'rf-telecommunications': '#3498db',
+                    'energy': '#2ecc71',
+                    'construction': '#e67e22',
+                    'banking': '#34495e',
+                    'sand': '#f1c40f',
+                    'oil-gas': '#e74c3c',
+                    'real-estate': '#9b59b6',
+                    'nuclear': '#16a085',
+                    'industrial': '#7f8c8d',
+                    'naval': '#3498db',
+                    'bpo': '#2c3e50',
+                    'automotive': '#c0392b',
+                    'aerospace': '#1abc9c',
+                    'chemistry-pharmaceutical': '#8e44ad'
+                };
+                
+                return colors[category] || '#cccccc';
+            }
+            
+            // Function to animate project cards
+            function animateProjectCards() {
+                const cards = document.querySelectorAll('.portfolio-card');
+                cards.forEach((card, index) => {
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    card.classList.add('animate-in');
+                });
+            }
+            
+            // Function to render PDF thumbnails
+            function renderPdfThumbnails() {
+                // Load PDF.js if not already loaded
+                if (!window.pdfjsLib) {
+                    // Dynamically load PDF.js library
+                    const pdfJsScript = document.createElement('script');
+                    pdfJsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js';
+                    document.head.appendChild(pdfJsScript);
+                    
+                    pdfJsScript.onload = function() {
+                        // Set workerSrc property
+                        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                        // Now process all canvases
+                        processPdfCanvases();
+                    };
+                    
+                    pdfJsScript.onerror = function() {
+                        console.error('Failed to load PDF.js library');
+                    };
+                } else {
+                    // PDF.js already loaded, process the canvases directly
+                    processPdfCanvases();
+                }
+            }
+            
+            // Function to process all PDF canvases
+            function processPdfCanvases() {
+                const canvases = document.querySelectorAll('canvas.pdf-thumbnail');
+                canvases.forEach(canvas => {
+                    const pdfUrl = canvas.getAttribute('data-pdf');
+                    if (pdfUrl) {
+                        renderPdfPage(canvas, pdfUrl);
+                    }
+                });
+            }
+            
+            // Function to render the first page of a PDF
+            async function renderPdfPage(canvas, pdfUrl) {
+                try {
+                    // Load the PDF document
+                    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                    const pdf = await loadingTask.promise;
+                    
+                    // Get the first page
+                    const page = await pdf.getPage(1);
+                    
+                    // Create a viewport with a moderate scale
+                    const viewport = page.getViewport({ scale: 1 });
+                    
+                    // Calculate optimal scale based on width
+                    const containerWidth = 350; // Match the card width
+                    const scale = containerWidth / viewport.width; // Use exact fitting for width
+                    
+                    // Create a scaled viewport
+                    const scaledViewport = page.getViewport({ scale });
+                    
+                    // Set canvas dimensions to match the scaled viewport exactly
+                    canvas.width = scaledViewport.width;
+                    canvas.height = scaledViewport.height;
+                    
+                    console.log('PDF viewport dimensions:', scaledViewport.width, 'x', scaledViewport.height);
+                    
+                    // Ensure the wrapper is set up correctly
+                    const scrollWrapper = canvas.closest('.pdf-scroll-wrapper');
+                    if (scrollWrapper) {
+                        scrollWrapper.style.overflow = 'hidden';
+                    }
+                    
+                    // Set canvas styling
+                    canvas.style.width = '100%';
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '0 auto';
+                    canvas.style.backgroundColor = 'white';
+                    canvas.style.position = 'relative';
+                    
+                    // Render the PDF page
+                    const renderContext = {
+                        canvasContext: canvas.getContext('2d'),
+                        viewport: scaledViewport,
+                        background: 'white'
+                    };
+                    
+                    // Add a white background to the canvas before rendering
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    await page.render(renderContext).promise;
+                    
+                    // Mark the actual PDF content boundaries
+                    ctx.strokeStyle = '#ddd';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Add the animation-ready class
+                    if (scrollWrapper) {
+                        // Get precise height measurements
+                        const container = canvas.closest('.pdf-container');
+                        const containerHeight = container ? container.offsetHeight : 200;
+                        const contentHeight = canvas.height;
+                        
+                        // Calculate exact scroll amount (don't go beyond actual content)
+                        // Leave a small margin at the bottom so we don't cut off text
+                        const maxScroll = contentHeight - containerHeight;
+                        const safeScroll = Math.max(0, maxScroll - 5);
+                        
+                        console.log('Content height:', contentHeight);
+                        console.log('Container height:', containerHeight);
+                        console.log('Max scroll:', maxScroll);
+                        console.log('Safe scroll:', safeScroll);
+                        
+                        // Only add animation if there's actually content to scroll
+                        if (safeScroll > 10) {
+                            scrollWrapper.classList.add('animation-ready');
+                            // Set a custom property for the animation to use
+                            document.documentElement.style.setProperty('--pdf-scroll-height', `-${safeScroll}px`);
+                        } else {
+                            // Not enough content to scroll, disable animation
+                            console.log('Not enough content to scroll');
+                            scrollWrapper.classList.remove('animation-ready');
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Error rendering PDF thumbnail:', error);
+                    
+                    // Draw error state on canvas
+                    const context = canvas.getContext('2d');
+                    context.fillStyle = '#f8d7da';
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    context.fillStyle = '#721c24';
+                    context.font = '14px Arial';
+                    context.textAlign = 'center';
+                    context.fillText('Could not load PDF', canvas.width/2, canvas.height/2);
+                }
+            }
+            
+            // Function to format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+            
+            // Function to format date
+            function formatDate(date) {
+                if (!date) return '';
+                
+                return date.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        });
+    </script>
+    
+    <style>
+        /* Portfolio Page Styles */
+        #portfolios {
+            padding: 120px 0 60px;
+            background-color: #f8f9fa;
+            min-height: 80vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .portfolio-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .portfolio-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .portfolio-header h2::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 3px;
+            background: #000000c9;
+            bottom: -10px;
+            left: 25%;
+        }
+        
+        #category-filter-info {
+            font-size: 1.1rem;
+            color: #666;
+            margin-top: 20px;
+        }
+        
+        .portfolio-filters {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .filter-button {
+            padding: 8px 16px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-button.active {
+            background-color: #000000c9;
+            color: white;
+        }
+        
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .filter-dropdown-btn {
+            padding: 8px 16px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 180px;
+            justify-content: space-between;
+        }
+        
+        .filter-dropdown-btn.active {
+            background-color: #000000c9;
+            color: white;
+        }
+        
+        .filter-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 220px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 1;
+            border-radius: 8px;
+            padding: 8px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .filter-dropdown-content.show {
+            display: block;
+        }
+        
+        .filter-item {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .filter-item.active {
+            background-color: #f1f1f1;
+            font-weight: 500;
+        }
+        
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            min-height: 200px;
+        }
+        
+        .portfolio-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .portfolio-card.animate-in {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .portfolio-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .portfolio-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden; /* Hide overflow initially */
+            transition: overflow 0.3s ease;
+        }
+        
+        .portfolio-image img, .portfolio-image canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .portfolio-content {
+            padding: 20px;
+        }
+        
+        .portfolio-content h3 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .portfolio-content p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .portfolio-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .portfolio-category {
+            background-color: #f1f1f1;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        
+        .portfolio-status {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+        }
+        
+        .portfolio-status.active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .portfolio-status.completed {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .view-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #000000c9;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .view-button:hover {
+            background-color: #111;
+            transform: translateY(-2px);
+        }
+        
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            grid-column: 1 / -1;
+            color: #666;
+        }
+        
+        .loading-spinner i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #000000c9;
+        }
+        
+        .error-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            grid-column: 1 / -1;
+            color: #721c24;
+            background-color: #f8d7da;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .error-message i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .no-projects {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px;
+            color: #666;
+            background-color: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px dashed #ddd;
+            text-align: center;
+            margin: 20px auto 30px;
+            max-width: 600px;
+        }
+        
+        .no-projects i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ddd;
+        }
+        
+        .no-projects h3 {
+            margin: 10px 0;
+            font-size: 1.4rem;
+        }
+        
+        .no-projects p {
+            margin: 5px 0 0;
+            font-size: 1rem;
+        }
+        
+        /* Shared badge for projects */
+        .shared-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .shared-badge i {
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .portfolio-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-dropdown {
+                width: 100%;
+            }
+            
+            .filter-dropdown-btn {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .filter-dropdown-content {
+                width: 100%;
+            }
+        }
+        
+        /* Specific styling for PDF thumbnails */
+        .pdf-thumbnail {
+            object-fit: contain !important;
+            background-color: white;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        /* Expand height on hover to allow scrolling */
+        .portfolio-image:hover {
+            overflow-y: auto; /* Enable vertical scrolling on hover */
+        }
+        
+        /* Make PDF thumbnails fill the entire space */
+        .portfolio-image canvas.pdf-thumbnail {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100%;
+            object-fit: cover !important;
+            transform-origin: top center;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Document preview styling */
+        .document-preview {
+            min-height: 100%;
+        }
+        
+        /* PDF container styles */
+        .pdf-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        /* Wrapper for scroll animation */
+        .pdf-scroll-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        
+        /* Custom property for animation height */
+        :root {
+            --pdf-scroll-height: -400px;
+        }
+        
+        /* Scroll animation on hover */
+        .pdf-container:hover .pdf-scroll-wrapper.animation-ready {
+            animation: scrollAnimation 10s ease-in-out infinite;
+        }
+        
+        /* Animation keyframes */
+        @keyframes scrollAnimation {
+            0% { transform: translateY(0); }
+            10% { transform: translateY(0); } /* Stay longer at top */
+            45% { transform: translateY(var(--pdf-scroll-height, 0px)); } /* Scroll exactly to bottom of content */
+            65% { transform: translateY(var(--pdf-scroll-height, 0px)); } /* Stay longer at bottom */
+            90% { transform: translateY(0); } /* Scroll back up */
+            100% { transform: translateY(0); }
+        }
+        
+        /* Ensure PDF thumbnails show the top part first */
+        .pdf-thumbnail {
+            object-position: top center !important;
+            position: relative;
+            top: 0;
+            left: 0;
+        }
+        
+        /* File Viewer Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            height: 100vh;
+            width: 65%;
+            max-width: 800px;
+            position: relative;
+            margin: 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            animation: slideIn 0.4s forwards;
+            border-radius: 0;
+            overflow: hidden;
+        }
+        
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+        }
+        
+        .modal.closing .modal-content {
+            animation: slideOut 0.3s forwards;
+        }
+        
+        .modal-header {
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-body {
+            min-height: 500px;
+            padding: 0;
+            overflow: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #file-viewer-container {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: visible; /* Changed from hidden to visible */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        #flipbook-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            position: relative;
+            padding: 20px 0;
+            min-height: 500px;
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: visible; /* Changed from hidden to visible */
+        }
+        
+        #flipbook {
+            width: 100%;
+            height: 100%;
+            flex: 1;
+            margin: 0 auto;
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #flipbook .page {
+            background-color: white;
+            background-size: 100% 100%;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flipbook-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .flipbook-nav button {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            pointer-events: auto;
+            opacity: 0.7;
+            margin: 0 10px;
+        }
+        
+        .flipbook-nav button:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+            opacity: 1;
+        }
+        
+        .flipbook-nav button:disabled {
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+        
+        #prev-page-btn {
+            left: auto;
+            margin-right: 10px;
+        }
+        
+        #next-page-btn {
+            right: auto;
+            margin-left: 10px;
+        }
+        
+        /* Responsive styling for modal */
+        @media (max-width: 992px) {
+            .modal-content {
+                width: 75%;
+                max-width: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 100%;
+                max-width: none;
+            }
+            
+            #file-viewer-container {
+                min-height: auto;
+            }
+            
+            .flipbook-nav button {
+                width: 36px;
+                height: 36px;
+            }
+        }
+        
+        /* Modal header styles */
+        .modal-header {
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 80%;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        /* Modal footer styles */
+        .modal-footer {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #eee;
+        }
+        
+        /* File iframe styles */
+        #file-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+        }
+        
+        /* Updated Flipbook Styles */
+        #flipbook-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            position: relative;
+            padding: 20px 0;
+            min-height: 500px;
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: visible; /* Changed from hidden to visible */
+        }
+        
+        #flipbook {
+            width: 100%;
+            height: 100%;
+            flex: 1;
+            margin: 0 auto;
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #flipbook .page {
+            background-color: white;
+            background-size: 100% 100%;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flipbook-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .flipbook-nav button {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            pointer-events: auto;
+            opacity: 0.7;
+            margin: 0 10px;
+        }
+        
+        /* Modal content size adjustments */
+        .modal-body {
+            min-height: 500px;
+            padding: 0;
+        }
+        
+        /* Ensure the file viewer takes up enough space */
+        #file-viewer-container {
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            overflow: visible; /* Changed from hidden to visible */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        /* Image sizing in the smaller modal */
+        #file-image {
+            max-width: 90%;
+            max-height: calc(100vh - 200px);
+            object-fit: contain;
+            margin: 0 auto;
+            image-rendering: -webkit-optimize-contrast; /* Improves image sharpness on Webkit browsers */
+            image-rendering: crisp-edges; /* Modern browsers */
+            transform-origin: center;
+        }
+        
+        /* Image preview quality improvements */
+        .modal img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            backface-visibility: hidden; /* Fix for some blurring on transform */
+        }
+        
+        /* Admin-style file viewer styling */
+        .file-info-bar {
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .file-type-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-right: 15px;
+        }
+        
+        .file-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+        
+        .file-action-button {
+            padding: 6px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .file-action-button:hover {
+            background-color: #e9ecef;
+            border-color: #ccc;
+        }
+        
+        .modal-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 5;
+        }
+        
+        .modal-loading .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        .modal-loading p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Reset para o slideshow */
+        .hero-slideshow {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .hero-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            transform: none !important;
+            z-index: 0;
+        }
+        
+        .hero-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+        
+        /* Remover todos os estilos que podem interferir */
+        .hero-slide.slide-enter-next,
+        .hero-slide.slide-enter-prev,
+        .hero-slide.slide-exit-next,
+        .hero-slide.slide-exit-prev,
+        .hero-slide.temp-active {
+            animation: none !important;
+            transform: none !important;
+        }
+    </style>
 </body>
 </html>
