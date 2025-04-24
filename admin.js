@@ -46,6 +46,40 @@ async function ensureProjectsTable() {
         
         if (error) {
             console.error('Error checking projects table:', error);
+            
+            // If the error is about invalid UUID, it might be related to schema issues
+            if (error.message && error.message.includes('invalid input syntax for type uuid')) {
+                console.warn('UUID error encountered when checking projects table. Attempting to fix schema...');
+                
+                try {
+                    // Create the table with proper UUID schema
+                    const { error: rpcError } = await supabase.rpc('create_projects_table_if_not_exists', {
+                        force_recreate: false
+                    });
+                    
+                    if (rpcError) {
+                        console.error('Error creating projects table with RPC:', rpcError);
+                        return false;
+                    }
+                    
+                    // Try selecting again to verify
+                    const { data: verifyData, error: verifyError } = await supabase
+                        .from('projects')
+                        .select('*', { count: 'exact', head: true });
+                        
+                    if (verifyError) {
+                        console.error('Error verifying table after fix attempt:', verifyError);
+                        return false;
+                    }
+                    
+                    console.log('Table issue fixed successfully. Count:', verifyData?.count || 0);
+                    return true;
+                } catch (rpcException) {
+                    console.error('Exception in RPC fix attempt:', rpcException);
+                    return false;
+                }
+            }
+            
             return false;
         }
         
@@ -232,6 +266,16 @@ async function loadProjects(page = 1, filters = {}) {
 
         if (error) {
             console.error('Error loading projects:', error);
+            
+            // Check if this is the common "invalid input syntax for type uuid: id" error
+            if (error.message && error.message.includes('invalid input syntax for type uuid: "id"')) {
+                console.warn('Encountered common UUID format error. This typically happens on first admin login.');
+                // Try again after a short delay (this often resolves the issue)
+                setTimeout(() => {
+                    loadProjects(page, filters);
+                }, 500);
+                return;
+            }
             
             // Try a basic query as admin
             const { data: adminData, error: adminError } = await supabase.auth.getSession();
@@ -431,7 +475,7 @@ function updateProjectsTable(projects) {
                         <a href="project-form.html?id=${project.id}" class="action-button edit-button" title="Edit">
                             <i class="fas fa-edit" style="font-size: 16px; color: white;"></i>
                         </a>
-                        <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete">
+                        <button class="action-button delete-button" data-id="${project.id}" title="Delete">
                             <i class="fas fa-trash-alt" style="font-size: 16px; color: white;"></i>
                         </button>
                         <button class="action-button share-button" onclick="showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')" title="Share">
@@ -455,6 +499,18 @@ function updateProjectsTable(projects) {
         }
         
         projectsContainer.appendChild(row);
+    });
+    
+    // Add event listeners for delete buttons
+    document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const projectId = this.getAttribute('data-id');
+            if (projectId) {
+                deleteProject(projectId);
+            } else {
+                console.error('Delete button clicked but no project ID found');
+            }
+        });
     });
 }
 
@@ -497,6 +553,23 @@ async function deleteProject(projectId) {
     }
 
     try {
+        // Check that projectId is a valid UUID
+        console.log('Attempting to delete project with ID:', projectId);
+        
+        if (!projectId || typeof projectId !== 'string') {
+            console.error('Invalid project ID (null or not a string):', projectId);
+            alert('Error: Invalid project ID');
+            return;
+        }
+        
+        // Basic UUID format validation (not perfect but catches obvious issues)
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(projectId)) {
+            console.error('Project ID is not a valid UUID format:', projectId);
+            alert('Error: Invalid project ID format');
+            return;
+        }
+
         // Get the project to check if it has a file to delete
         const { data: project, error: getError } = await supabase
             .from('projects')
@@ -529,21 +602,21 @@ async function deleteProject(projectId) {
         }
 
         // Delete the project record
-    const { error } = await supabase
+        const { error } = await supabase
             .from('projects')
-        .delete()
-        .eq('id', projectId);
+            .delete()
+            .eq('id', projectId);
 
-    if (error) {
-        console.error('Error deleting project:', error);
+        if (error) {
+            console.error('Error deleting project:', error);
             alert('Error deleting project: ' + error.message);
-        return;
-    }
+            return;
+        }
 
         // Reload data
         await updateStats();
         await loadProjects(currentPage, getCurrentFilters());
-    alert('Project deleted successfully!');
+        alert('Project deleted successfully!');
     } catch (err) {
         console.error('Error in deleteProject:', err);
         alert('An unexpected error occurred while deleting the project.');
