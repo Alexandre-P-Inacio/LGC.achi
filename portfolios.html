@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -174,6 +172,7 @@
                 // Check for category filter in URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const categoryFilter = urlParams.get('category');
+                const projectId = urlParams.get('project');
                 
                 // Check if there's a stored category in localStorage
                 const storedCategory = localStorage.getItem('selectedCategory');
@@ -185,7 +184,7 @@
                 updateFilterUI(currentCategory);
                 
                 // Load projects based on the selected category
-                loadProjects(currentCategory);
+                loadProjects(currentCategory, projectId);
                 
                 // Add click event to filter buttons
                 document.querySelectorAll('.filter-button, .filter-item').forEach(button => {
@@ -210,6 +209,14 @@
                         if (card) {
                             const fileUrl = card.getAttribute('data-file-url');
                             const fileName = card.getAttribute('data-file-name');
+                            const projectId = card.getAttribute('data-project-id');
+                            
+                            // Save project ID in URL without page reload
+                            if (projectId) {
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('project', projectId);
+                                window.history.pushState({}, '', url);
+                            }
                             
                             if (fileUrl) {
                                 showFileInModal(fileUrl, fileName);
@@ -772,7 +779,7 @@
             }
             
             // Function to load projects
-            async function loadProjects(category) {
+            async function loadProjects(category, projectIdToOpen = null) {
                 // Show loading spinner
                 const portfolioGrid = document.getElementById('portfolio-grid');
                 const noProjects = document.getElementById('no-projects');
@@ -801,10 +808,14 @@
                     
                     if (isAdmin) {
                         // Admin users see all projects
-                        const { data: adminProjects, error: adminError } = await supabase
-                            .from('projects')
-                            .select('*')
-                            .eq(category !== 'all' ? 'category' : 'id', category !== 'all' ? category : 'id');
+                        let query = supabase.from('projects').select('*');
+                        
+                        // Only apply category filter if not "all"
+                        if (category !== 'all') {
+                            query = query.eq('category', category);
+                        }
+                        
+                        const { data: adminProjects, error: adminError } = await query;
                             
                         if (adminError) throw adminError;
                         projects = adminProjects || [];
@@ -882,12 +893,16 @@
                     
                     // Check if projects were found
                     if (projects && projects.length > 0) {
+                        // Variable to track if we need to open a project
+                        let projectToOpen = null;
+                        
                         // Display projects
                         projects.forEach(project => {
                             // Create project card
                             const card = document.createElement('div');
                             card.className = 'portfolio-card';
                             card.setAttribute('data-category', project.category);
+                            card.setAttribute('data-project-id', project.id);
                             
                             // Store file URL and name as data attributes for the view details button
                             if (project.file_url) {
@@ -895,6 +910,14 @@
                                 // Extract file name from URL
                                 const fileName = project.file_url.split('/').pop().split('?')[0];
                                 card.setAttribute('data-file-name', fileName);
+                            }
+                            
+                            // Check if this is the project to open
+                            if (projectIdToOpen && project.id === projectIdToOpen) {
+                                projectToOpen = {
+                                    fileUrl: project.file_url,
+                                    fileName: project.file_url ? project.file_url.split('/').pop().split('?')[0] : null
+                                };
                             }
                             
                             // Set card background color based on category
@@ -976,6 +999,13 @@
                         
                         // Apply animations
                         animateProjectCards();
+                        
+                        // If there's a project to open automatically, do it now
+                        if (projectToOpen && projectToOpen.fileUrl) {
+                            setTimeout(() => {
+                                showFileInModal(projectToOpen.fileUrl, projectToOpen.fileName);
+                            }, 500); // Small delay to ensure everything is loaded
+                        }
                     } else {
                         // Show no projects message
                         noProjects.style.display = 'flex';
