@@ -9,8 +9,12 @@ console.log('Using Supabase client from global scope in admin.js');
 // Global variables
 let allProjects = [];
 let currentPage = 1;
-const projectsPerPage = 10;
+const projectsPerPage = 6; // Changed from 10 to 6 items per page
 let allUsers = []; // Para armazenar todos os usuários
+
+// Global variable for user pagination
+let userCurrentPage = 1;
+const usersPerPage = 6; // Changed from 10 to 6 items per page
 
 // Função de logout para substituir a que estava em auth.js
 async function logout() {
@@ -459,20 +463,54 @@ function updateProjectsTable(projects) {
 }
 
 // Update pagination controls
-function updatePagination(currentPage, totalPages) {
-    const pageNumbers = document.getElementById('page-numbers');
-    pageNumbers.innerHTML = '';
+function updatePagination(currentPage, totalPages, section = 'projects') {
+    const prefix = section === 'users' ? 'users-' : '';
+    const pageNumbersContainer = document.getElementById(`${prefix}page-numbers`);
+    
+    pageNumbersContainer.innerHTML = '';
     
     // Don't show pagination if there's only one page
     if (totalPages <= 1) {
-        document.querySelector('.pagination-container').style.display = 'none';
+        document.querySelector(`#${prefix}page-numbers`).parentElement.style.display = 'none';
         return;
     } else {
-        document.querySelector('.pagination-container').style.display = 'flex';
+        document.querySelector(`#${prefix}page-numbers`).parentElement.style.display = 'flex';
     }
     
-    // Create page number buttons
-    for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+    // Determine range of page numbers to show
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    // Adjust start if we're near the end
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+    
+    // Add first page button if not in range
+    if (startPage > 1) {
+        const firstPageBtn = document.createElement('button');
+        firstPageBtn.classList.add('page-number');
+        firstPageBtn.textContent = '1';
+        firstPageBtn.addEventListener('click', () => {
+            if (section === 'users') {
+                loadUsers(1, getUserFilters());
+            } else {
+                loadProjects(1, getCurrentFilters());
+            }
+        });
+        pageNumbersContainer.appendChild(firstPageBtn);
+        
+        // Add ellipsis if there's a gap
+        if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.classList.add('page-ellipsis');
+            ellipsis.textContent = '...';
+            pageNumbersContainer.appendChild(ellipsis);
+        }
+    }
+    
+    // Create page number buttons for the range
+    for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.classList.add('page-number');
         if (i === currentPage) {
@@ -480,14 +518,37 @@ function updatePagination(currentPage, totalPages) {
         }
         pageBtn.textContent = i;
         pageBtn.addEventListener('click', () => {
-            loadProjects(i, getCurrentFilters());
+            if (section === 'users') {
+                loadUsers(i, getUserFilters());
+            } else {
+                loadProjects(i, getCurrentFilters());
+            }
         });
-        pageNumbers.appendChild(pageBtn);
+        pageNumbersContainer.appendChild(pageBtn);
     }
     
-    // Update prev/next buttons
-    document.getElementById('prev-page').disabled = currentPage === 1;
-    document.getElementById('next-page').disabled = currentPage === totalPages;
+    // Add last page button if not in range
+    if (endPage < totalPages) {
+        // Add ellipsis if there's a gap
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.classList.add('page-ellipsis');
+            ellipsis.textContent = '...';
+            pageNumbersContainer.appendChild(ellipsis);
+        }
+        
+        const lastPageBtn = document.createElement('button');
+        lastPageBtn.classList.add('page-number');
+        lastPageBtn.textContent = totalPages;
+        lastPageBtn.addEventListener('click', () => {
+            if (section === 'users') {
+                loadUsers(totalPages, getUserFilters());
+            } else {
+                loadProjects(totalPages, getCurrentFilters());
+            }
+        });
+        pageNumbersContainer.appendChild(lastPageBtn);
+    }
 }
 
 // Delete project
@@ -766,6 +827,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         await updateStats();
         await loadProjects();
         
+        // Initialize user management
+        await loadUsers();
+        
         // Add event listeners for search and filter
         const searchButton = document.querySelector('.search-button');
         if (searchButton) {
@@ -788,7 +852,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
         
-        // Add pagination event listeners
+        // Add pagination event listeners for projects
         const prevPage = document.getElementById('prev-page');
         if (prevPage) {
             prevPage.addEventListener('click', () => {
@@ -804,6 +868,49 @@ document.addEventListener('DOMContentLoaded', async () => {
                 loadProjects(++currentPage, getCurrentFilters());
             });
         }
+        
+        // User management event listeners
+        const userSearchInput = document.getElementById('search-users');
+        if (userSearchInput) {
+            userSearchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchUsers();
+                }
+            });
+        }
+        
+        const roleFilter = document.getElementById('role-filter');
+        if (roleFilter) {
+            roleFilter.addEventListener('change', filterUsers);
+        }
+        
+        // Add user button
+        const addUserButton = document.getElementById('add-user-button');
+        if (addUserButton) {
+            addUserButton.addEventListener('click', () => showUserModal());
+        }
+        
+        // User modal close button
+        const closeModalButtons = document.querySelectorAll('.close-modal');
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Find the parent modal
+                const modal = this.closest('.modal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
         
         // Logout button
         const logoutButton = document.getElementById('logout-button');
@@ -1230,8 +1337,8 @@ async function loadUsers() {
     try {
         const { data, error } = await supabase
             .from('Users')
-            .select('id, username, is_admin')
-            .order('username');
+            .select('*')
+            .order('created_at', { ascending: false });
             
         if (error) {
             console.error('Error loading users:', error);
@@ -1955,6 +2062,26 @@ async function toggleFeaturedStatus(projectId, isFeatured) {
         
         console.log('Toggling featured status:', { projectId, isFeatured });
         
+        // If trying to feature a project, check the current number of featured projects
+        if (isFeatured) {
+            const { data: featuredProjects, error: countError } = await supabase
+                .from('projects')
+                .select('id')
+                .eq('is_featured', true);
+
+            if (countError) {
+                console.error('Error counting featured projects:', countError);
+                throw countError;
+            }
+
+            // Check if we've reached the maximum (6) featured projects
+            if (featuredProjects.length >= 6) {
+                hideLoadingIndicator();
+                showNotification('Maximum number of featured projects (6) reached. Please unfeature another project first.', 'error');
+                return;
+            }
+        }
+        
         // Update the project in the database
         const { data, error } = await supabase
             .from('projects')
@@ -2021,3 +2148,752 @@ async function toggleFeaturedStatus(projectId, isFeatured) {
         showNotification('Error updating featured status. Please try again.', 'error');
     }
 } 
+
+// Get current filters for user section
+function getUserFilters() {
+    return {
+        searchTerm: document.getElementById('search-users')?.value || '',
+        roleFilter: document.getElementById('role-filter')?.value || 'all'
+    };
+}
+
+// Load users with pagination
+async function loadUsers(page = 1, filters = {}) {
+    try {
+        console.log('Loading users with filters:', filters);
+        
+        // Set current page
+        userCurrentPage = page;
+        
+        // Get filters
+        const currentFilters = {...getUserFilters(), ...filters};
+        
+        console.log('Attempting to load from "Users" table...');
+        // Use the capital "Users" table name since that's what we saw in the database schema
+        // Don't request created_at since it doesn't exist
+        // Also filter to only show users where added_by_admin is true
+        let { data, error } = await supabase
+            .from('Users')
+            .select('id, username, password, is_admin, added_by_admin')
+            .eq('added_by_admin', true)  // Only show users with added_by_admin = true
+            .order('id', { ascending: false }); // Order by ID instead of created_at
+            
+        console.log('Users loading result:', { data, error, count: data?.length || 0 });
+
+        if (error) {
+            console.error('Error loading users:', error);
+            // Display error message in the table
+            const usersContainer = document.getElementById('users-container');
+            if (usersContainer) {
+                usersContainer.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 2rem;">
+                            <p>Error loading users: ${error.message}</p>
+                            <p>Please check the console for more details.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+            return;
+        }
+        
+        // If no data or empty array, show message in table
+        if (!data || data.length === 0) {
+            console.log('No users found - displaying empty state');
+            const usersContainer = document.getElementById('users-container');
+            if (usersContainer) {
+                usersContainer.innerHTML = `
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 2rem;">
+                            <p>No users found. Add your first user by clicking the "Add New User" button above.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+            return;
+        }
+
+        // Store all users
+        allUsers = data || [];
+        console.log('Loaded users:', allUsers);
+        
+        // Apply filters if any
+        let filteredUsers = allUsers;
+        
+        // Filter by search term
+        if (currentFilters.searchTerm) {
+            const searchTerm = currentFilters.searchTerm.toLowerCase();
+            filteredUsers = filteredUsers.filter(user => 
+                user.username?.toLowerCase().includes(searchTerm)
+            );
+            
+            // Update search input if needed
+            const searchInput = document.getElementById('search-users');
+            if (searchInput && searchInput.value !== currentFilters.searchTerm) {
+                searchInput.value = currentFilters.searchTerm;
+            }
+        }
+        
+        // Filter by role
+        if (currentFilters.roleFilter && currentFilters.roleFilter !== 'all') {
+            if (currentFilters.roleFilter === 'admin') {
+                filteredUsers = filteredUsers.filter(user => user.is_admin === true);
+            } else if (currentFilters.roleFilter === 'user') {
+                filteredUsers = filteredUsers.filter(user => user.is_admin === false);
+            }
+            
+            // Update role filter select if needed
+            const roleFilter = document.getElementById('role-filter');
+            if (roleFilter && roleFilter.value !== currentFilters.roleFilter) {
+                roleFilter.value = currentFilters.roleFilter;
+            }
+        }
+        
+        // Calculate pagination
+        const startIndex = (page - 1) * usersPerPage;
+        const endIndex = startIndex + usersPerPage;
+        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+        
+        // Update the users table
+        updateUsersTable(paginatedUsers);
+        
+        // Update pagination controls
+        updatePagination(page, totalPages, 'users');
+
+    } catch (err) {
+        console.error('Error in loadUsers:', err);
+        // Display error in the table
+        const usersContainer = document.getElementById('users-container');
+        if (usersContainer) {
+            usersContainer.innerHTML = `
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 2rem;">
+                        <p>Error loading users: ${err.message}</p>
+                        <p>Please check the console for more details.</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
+// Function to update the users table
+function updateUsersTable(users) {
+    console.log('Updating users table with:', users);
+    const usersContainer = document.getElementById('users-container');
+    
+    // Make sure the container exists
+    if (!usersContainer) {
+        console.error('Users container element not found!');
+        return;
+    }
+    
+    usersContainer.innerHTML = '';
+
+    if (!users || users.length === 0) {
+        usersContainer.innerHTML = `
+            <tr>
+                <td colspan="3" style="text-align: center; padding: 2rem;">
+                    <p>No users found. Add your first user by clicking the "Add New User" button above.</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    users.forEach(user => {
+        // Create a row
+        const row = document.createElement('tr');
+        row.setAttribute('data-user-id', user.id);
+        
+        try {
+            // Create badge for added_by_admin - removing the Admin Created badge
+            let adminBadge = '';
+            
+            // Create table row with improved structure for alignment
+            row.innerHTML = `
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="role-container">
+                        <span class="status-badge ${user.is_admin ? 'status-completed' : 'status-in-progress'}">
+                            ${user.is_admin ? 'ADMIN' : 'USER'}
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="#" class="action-button edit-button" onclick="showUserModal('${user.id}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+        } catch (e) {
+            console.error('Error creating row for user:', e, user);
+            row.innerHTML = `
+                <td colspan="3">
+                    Error displaying user: ${e.message}
+                </td>
+            `;
+        }
+        
+        usersContainer.appendChild(row);
+    });
+}
+
+// Search users
+function searchUsers() {
+    const searchTerm = document.getElementById('search-users').value.trim();
+    console.log('Searching for users:', searchTerm);
+    
+    // Reset to first page when searching
+    loadUsers(1, {searchTerm: searchTerm});
+}
+
+// Filter users
+function filterUsers() {
+    const roleFilter = document.getElementById('role-filter').value;
+    console.log('Filtering users by role:', roleFilter);
+    
+    // Reset to first page when filtering
+    loadUsers(1, {roleFilter: roleFilter});
+}
+
+// Initialize user management
+document.addEventListener('DOMContentLoaded', async () => {
+    // If we're on the admin page
+    if (document.getElementById('users-container')) {
+        // Load initial users
+        await loadUsers();
+        
+        // Add event listeners
+        const searchUsersButton = document.querySelector('.search-button');
+        if (searchUsersButton) {
+            searchUsersButton.addEventListener('click', searchUsers);
+        }
+        
+        const searchInput = document.getElementById('search-users');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    searchUsers();
+                }
+            });
+        }
+    }
+}); 
+
+// Add or edit user in the database
+async function saveUser() {
+    try {
+        // Get form values
+        const userId = document.getElementById('user-id').value;
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('user-password').value;
+        const isAdmin = document.getElementById('user-role').value === 'admin';
+        
+        // Validate form
+        if (!username) {
+            alert('Username is required');
+            return;
+        }
+
+        // Show loading indicator
+        showLoadingIndicator('Checking username availability...');
+        
+        // We'll always use 'Users' with capital U as our table name
+        const tableName = 'Users';
+        
+        // For new users or when username is changed, check if the username already exists
+        if (!userId) {
+            // Check if username already exists
+            const { data: existingUsers, error: checkError } = await supabase
+                .from(tableName)
+                .select('id')
+                .eq('username', username);
+                
+            if (checkError) {
+                throw checkError;
+            }
+            
+            if (existingUsers && existingUsers.length > 0) {
+                hideLoadingIndicator();
+                alert(`Username "${username}" is already taken. Please choose a different username.`);
+                return;
+            }
+        }
+        
+        // Create user data object
+        const userData = {
+            username,
+            is_admin: isAdmin
+        };
+        
+        // Add password only if provided (for updates)
+        if (password) {
+            userData.password = password;
+        }
+        
+        // Show loading indicator
+        showLoadingIndicator('Saving user...');
+        
+        if (userId) {
+            // For updates, check if username changed and if the new username is already taken
+            if (window.originalUsername && window.originalUsername !== username) {
+                const { data: existingUsers, error: checkError } = await supabase
+                    .from(tableName)
+                    .select('id')
+                    .eq('username', username);
+                    
+                if (checkError) {
+                    throw checkError;
+                }
+                
+                if (existingUsers && existingUsers.length > 0) {
+                    hideLoadingIndicator();
+                    alert(`Username "${username}" is already taken. Please choose a different username.`);
+                    return;
+                }
+            }
+            
+            // Update existing user
+            const { data, error } = await supabase
+                .from(tableName)
+                .update(userData)
+                .eq('id', userId);
+                
+            if (error) throw error;
+            showNotification('User updated successfully', 'success');
+        } else {
+            // For new users, password is required
+            if (!password) {
+                alert('Password is required for new users');
+                hideLoadingIndicator();
+                return;
+            }
+            
+            // Set added_by_admin to true for new users
+            userData.added_by_admin = true;
+            
+            // Create new user
+            const { data, error } = await supabase
+                .from(tableName)
+                .insert([userData]);
+                
+            if (error) throw error;
+            showNotification('User created successfully', 'success');
+        }
+        
+        // Close the modal
+        closeUserModal();
+        
+        // Reload users
+        loadUsers(userCurrentPage, getUserFilters());
+        
+    } catch (error) {
+        console.error('Error saving user:', error);
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+            alert(`Username already exists. Please choose a different username.`);
+        } else {
+            showNotification(`Error: ${error.message}`, 'error');
+        }
+    } finally {
+        hideLoadingIndicator();
+    }
+}
+
+// Delete a user
+async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user?')) {
+        return;
+    }
+    
+    try {
+        // Show loading indicator
+        showLoadingIndicator('Deleting user...');
+        
+        // Get current username to prevent self-deletion
+        const currentUsername = localStorage.getItem('currentUser');
+        
+        // Get the username of the user being deleted
+        const { data, error: userError } = await supabase
+            .from('Users')
+            .select('username')
+            .eq('id', userId)
+            .single();
+            
+        if (userError) throw userError;
+        
+        // Prevent self-deletion
+        if (data.username === currentUsername) {
+            throw new Error("You cannot delete your own account");
+        }
+        
+        // Delete the user
+        const { error } = await supabase
+            .from('Users')
+            .delete()
+            .eq('id', userId);
+            
+        if (error) throw error;
+        
+        // Show success message
+        showNotification('User deleted successfully', 'success');
+        
+        // Reload users
+        loadUsers(userCurrentPage, getUserFilters());
+        
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        showNotification(`Error: ${error.message}`, 'error');
+    } finally {
+        hideLoadingIndicator();
+    }
+}
+
+// Show user modal for adding or editing a user
+function showUserModal(userId = null) {
+    console.log('Opening user modal for user ID:', userId);
+    
+    // Reset form
+    document.getElementById('user-form').reset();
+    document.getElementById('user-id').value = '';
+    
+    // Set title based on whether we're adding or editing
+    document.getElementById('user-modal-title').textContent = userId ? 'Edit User' : 'Add New User';
+    
+    // If user ID is provided, load user data
+    if (userId) {
+        console.log('Loading user data for editing...');
+        loadUserData(userId);
+    }
+    
+    // Show modal with animation
+    const modal = document.getElementById('user-modal');
+    modal.classList.add('show');
+    
+    // Prevent body scrolling
+    document.body.style.overflow = 'hidden';
+}
+
+// Close user modal
+function closeUserModal() {
+    // Hide modal with animation
+    const modal = document.getElementById('user-modal');
+    modal.classList.remove('show');
+    
+    // Restore body scrolling
+    document.body.style.overflow = '';
+}
+
+// Helper function to show loading indicator
+function showLoadingIndicator(message = 'Loading...') {
+    // Create loading overlay if it doesn't exist
+    let loadingOverlay = document.getElementById('loading-overlay');
+    if (!loadingOverlay) {
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loading-overlay';
+        loadingOverlay.className = 'loading-overlay';
+        
+        const spinnerContainer = document.createElement('div');
+        spinnerContainer.className = 'loading-spinner-container';
+        
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+        
+        const messageElement = document.createElement('div');
+        messageElement.id = 'loading-message';
+        messageElement.className = 'loading-message';
+        
+        spinnerContainer.appendChild(spinner);
+        spinnerContainer.appendChild(messageElement);
+        loadingOverlay.appendChild(spinnerContainer);
+        
+        document.body.appendChild(loadingOverlay);
+    }
+    
+    // Update message
+    const messageElement = document.getElementById('loading-message');
+    if (messageElement) {
+        messageElement.textContent = message;
+    }
+    
+    // Show overlay
+    loadingOverlay.style.display = 'flex';
+}
+
+// Helper function to hide loading indicator
+function hideLoadingIndicator() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
+// Helper function to show notification
+function showNotification(message, type = 'info') {
+    // Create notification container if it doesn't exist
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.className = 'notification-container';
+        document.body.appendChild(notificationContainer);
+    }
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    
+    // Add icon based on type
+    let icon = 'info-circle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'exclamation-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
+    
+    notification.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add to container
+    notificationContainer.appendChild(notification);
+    
+    // Show with animation
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Hide after delay
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 5000);
+}
+
+// Function to create a test user
+async function createTestUser() {
+    try {
+        console.log('Creating a test user...');
+        
+        // We'll use 'Users' with capital U for our table name
+        const tableName = 'Users';
+        
+        // Create a random test user with timestamp to ensure uniqueness
+        const timestamp = Date.now();
+        const random = Math.floor(Math.random() * 10000);
+        const testUser = {
+            username: `testuser_${timestamp}_${random}`,
+            password: `password${random}`,
+            is_admin: false,
+            added_by_admin: true
+            // No created_at field as it doesn't exist in the table
+        };
+        
+        // Show loading indicator
+        showLoadingIndicator('Creating test user...');
+        
+        // Insert the test user
+        const { data, error } = await supabase
+            .from(tableName)
+            .insert([testUser])
+            .select();
+            
+        if (error) {
+            hideLoadingIndicator();
+            console.error('Error creating test user:', error);
+            alert(`Error creating test user: ${error.message}`);
+            return null;
+        }
+        
+        console.log('Test user created successfully:', data);
+        
+        // Reload the users list
+        loadUsers();
+        
+        hideLoadingIndicator();
+        
+        // Show success notification
+        showNotification(`Test user created: ${testUser.username}`, 'success');
+        
+        // Show details in alert
+        setTimeout(() => {
+            alert(`Test user created successfully!\n\nUsername: ${testUser.username}\nPassword: ${testUser.password}`);
+        }, 500); // Small delay to ensure notification appears first
+        
+        return data?.[0] || null;
+    } catch (e) {
+        hideLoadingIndicator();
+        console.error('Exception creating test user:', e);
+        alert(`Exception creating test user: ${e.message}`);
+        return null;
+    }
+}
+
+// Add CSS for improved pagination and search styles
+document.addEventListener('DOMContentLoaded', function() {
+    // Add CSS if not already present
+    if (!document.getElementById('enhanced-styles')) {
+        const styleElement = document.createElement('style');
+        styleElement.id = 'enhanced-styles';
+        styleElement.textContent = `
+            /* Improved Search Bar */
+            .search-container {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 15px;
+                width: 100%;
+            }
+            
+            .search-input {
+                flex: 1;
+                padding: 10px 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: border-color 0.2s, box-shadow 0.2s;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            }
+            
+            .search-input:focus {
+                border-color: #3a7bd5;
+                box-shadow: 0 1px 3px rgba(58,123,213,0.15);
+                outline: none;
+            }
+            
+            .search-button {
+                background-color: #3a7bd5;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 16px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: background-color 0.2s, transform 0.1s;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            }
+            
+            .search-button:hover {
+                background-color: #2d6bc0;
+            }
+            
+            .search-button:active {
+                transform: translateY(1px);
+            }
+            
+            /* Improved Pagination */
+            .pagination-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20px;
+                gap: 8px;
+            }
+            
+            .page-button, .page-number {
+                min-width: 36px;
+                height: 36px;
+                border-radius: 6px;
+                border: 1px solid #e0e0e0;
+                background-color: white;
+                color: #555;
+                font-size: 14px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            }
+            
+            .page-button {
+                padding: 0 12px;
+            }
+            
+            .page-button:hover:not(:disabled), .page-number:hover:not(.active) {
+                background-color: #f5f5f5;
+                border-color: #d0d0d0;
+            }
+            
+            .page-number.active {
+                background-color: #3a7bd5;
+                color: white;
+                border-color: #3a7bd5;
+                font-weight: 500;
+            }
+            
+            .page-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            
+            /* Filter Dropdown */
+            .filter-select {
+                padding: 10px 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                font-size: 14px;
+                background-color: white;
+                transition: border-color 0.2s, box-shadow 0.2s;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+                cursor: pointer;
+            }
+            
+            .filter-select:focus {
+                border-color: #3a7bd5;
+                outline: none;
+            }
+        `;
+        document.head.appendChild(styleElement);
+    }
+});
+
+// Load user data for editing
+async function loadUserData(userId) {
+    // Show loading indicator
+    showLoadingIndicator('Loading user data...');
+    
+    // Use 'Users' with capital U as our table name
+    const tableName = 'Users';
+    
+    try {
+        // Get user data
+        const { data, error } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('id', userId)
+            .single();
+        
+        hideLoadingIndicator();
+        
+        if (error) {
+            console.error('Error loading user:', error);
+            showNotification(`Error: ${error.message}`, 'error');
+            return;
+        }
+        
+        // Populate form
+        document.getElementById('user-id').value = data.id;
+        document.getElementById('username').value = data.username || '';
+        document.getElementById('user-role').value = data.is_admin ? 'admin' : 'user';
+        
+        // Store the original username for comparison later
+        window.originalUsername = data.username;
+        
+        // Note: We don't populate the password field for security
+    } catch (err) {
+        hideLoadingIndicator();
+        console.error('Error in loadUserData:', err);
+        showNotification('Failed to load user data', 'error');
+    }
+}

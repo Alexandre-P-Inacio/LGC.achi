@@ -324,10 +324,31 @@ nav {
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
 }
 
+.add-user-button {
+    background: linear-gradient(135deg, #28a745, #5fd97a);
+    color: white;
+    padding: 0.7rem 1.4rem;
+    border-radius: 50px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
+}
+
 .add-project-button:hover {
     background: linear-gradient(135deg, #218838, #28a745);
     transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+    box-shadow: none;
+}
+
+.add-user-button:hover {
+    background: linear-gradient(135deg, #218838, #28a745);
+    transform: translateY(-3px);
+    box-shadow: none;
 }
 
 /* Search and Filter */
