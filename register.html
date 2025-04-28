@@ -111,8 +111,33 @@
                     return;
                 }
                 
-                if (password.length < 6) {
-                    showError('Password must be at least 6 characters long');
+                // Enhanced password validation
+                if (password.length < 8) {
+                    showError('Password must be at least 8 characters long');
+                    return;
+                }
+                
+                // Check for uppercase letters
+                if (!/[A-Z]/.test(password)) {
+                    showError('Password must contain at least one uppercase letter');
+                    return;
+                }
+                
+                // Check for lowercase letters
+                if (!/[a-z]/.test(password)) {
+                    showError('Password must contain at least one lowercase letter');
+                    return;
+                }
+                
+                // Check for numbers
+                if (!/[0-9]/.test(password)) {
+                    showError('Password must contain at least one number');
+                    return;
+                }
+                
+                // Check for special characters
+                if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                    showError('Password must contain at least one special character');
                     return;
                 }
                 

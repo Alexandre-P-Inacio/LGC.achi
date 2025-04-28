@@ -353,6 +353,14 @@ function getFileNameFromUrl(url) {
             }
         }
         
+        // Truncate long filenames to keep UI clean
+        if (fileName.length > 15) {
+            const extension = fileName.split('.').pop();
+            const name = fileName.substring(0, fileName.lastIndexOf('.'));
+            const truncatedName = name.substring(0, 10) + '...';
+            fileName = truncatedName + '.' + extension;
+        }
+        
         return fileName;
     } catch (e) {
         console.error('Error parsing file URL:', e);
@@ -2477,6 +2485,50 @@ async function saveUser() {
         if (!username) {
             alert('Username is required');
             return;
+        }
+        
+        // For new users, password is required and must pass validation
+        if (!userId && !password) {
+            alert('Password is required for new users');
+            return;
+        }
+        
+        // If password is provided (new user or changing password), validate it
+        if (password) {
+            // Check if validatePassword is available from auth.js
+            if (typeof validatePassword === 'function') {
+                const passwordValidation = validatePassword(password);
+                if (!passwordValidation.valid) {
+                    alert(passwordValidation.error);
+                    return;
+                }
+            } else {
+                // Fallback validation if validatePassword function is not available
+                if (password.length < 8) {
+                    alert('Password must be at least 8 characters long');
+                    return;
+                }
+                
+                if (!/[A-Z]/.test(password)) {
+                    alert('Password must contain at least one uppercase letter');
+                    return;
+                }
+                
+                if (!/[a-z]/.test(password)) {
+                    alert('Password must contain at least one lowercase letter');
+                    return;
+                }
+                
+                if (!/[0-9]/.test(password)) {
+                    alert('Password must contain at least one number');
+                    return;
+                }
+                
+                if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                    alert('Password must contain at least one special character');
+                    return;
+                }
+            }
         }
 
         // Show loading indicator

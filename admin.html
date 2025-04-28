@@ -512,10 +512,15 @@
             display: inline-flex;
             align-items: center;
             transition: var(--transition);
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .file-link i {
             margin-right: 0.5rem;
+            flex-shrink: 0;
         }
         
         .file-link:hover {
@@ -537,6 +542,8 @@
             background: transparent;
             cursor: pointer;
             box-shadow: none;
+            min-width: 140px;
+            justify-content: center;
         }
         
         .add-project-button i {
@@ -949,6 +956,30 @@
             font-size: 0.8rem;
         }
         
+        .password-requirements {
+            margin-top: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            border-left: 3px solid #333;
+        }
+        
+        .password-requirements small {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .password-requirements ul {
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+            font-size: 0.75rem;
+            color: #555;
+        }
+        
+        .password-requirements li {
+            margin-bottom: 3px;
+        }
+        
         #user-modal .form-actions {
             display: flex;
             justify-content: flex-end;
@@ -1334,6 +1365,16 @@
                         <label for="user-password">Password</label>
                         <input type="password" id="user-password" placeholder="Enter password">
                         <small>Leave blank to keep current password when editing</small>
+                        <div class="password-requirements">
+                            <small>Password must contain:</small>
+                            <ul>
+                                <li>At least 8 characters</li>
+                                <li>At least 1 uppercase letter</li>
+                                <li>At least 1 lowercase letter</li>
+                                <li>At least 1 number</li>
+                                <li>At least 1 special character (!@#$%^&*...)</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="user-role">Role</label>

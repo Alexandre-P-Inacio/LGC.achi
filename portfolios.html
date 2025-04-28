@@ -7,6 +7,7 @@
     <title>Projects - Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/logo(2).png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- jQuery required for Turn.js -->
@@ -44,6 +45,7 @@
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
     <script src="navigation.js"></script>
+    <script src="client-dashboard.js" defer></script>
 </head>
 <body>
     <header>
@@ -97,6 +99,118 @@
             </div>
         </section>
     </main>
+
+    <!-- Client Dashboard Popup -->
+    <div id="client-dashboard-overlay" class="dashboard-overlay">
+        <div class="dashboard-popup">
+            <div class="dashboard-popup-header">
+                <h2>Practices</h2>
+                <button class="close-dashboard" onclick="closeDashboard()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="dashboard-popup-content">
+                <p>Select a practice area below</p>
+                <div class="category-grid">
+                    <!-- RF Telecommunications -->
+                    <div class="category-card" data-category="rf-telecommunications">
+                        <div class="category-overlay">
+                            <h3>RF & Telecommunications</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Energy -->
+                    <div class="category-card" data-category="energy">
+                        <div class="category-overlay">
+                            <h3>Energy</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Construction -->
+                    <div class="category-card" data-category="construction">
+                        <div class="category-overlay">
+                            <h3>Construction</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Bank Insurance Office -->
+                    <div class="category-card" data-category="banking">
+                        <div class="category-overlay">
+                            <h3>Banking & Finance</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Sand -->
+                    <div class="category-card" data-category="sand">
+                        <div class="category-overlay">
+                            <h3>Stand</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Oil & Gas -->
+                    <div class="category-card" data-category="oil-gas">
+                        <div class="category-overlay">
+                            <h3>Oil & Gas</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Real Estate -->
+                    <div class="category-card" data-category="real-estate">
+                        <div class="category-overlay">
+                            <h3>Real Estate</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Nuclear -->
+                    <div class="category-card" data-category="nuclear">
+                        <div class="category-overlay">
+                            <h3>Nuclear</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Industrial -->
+                    <div class="category-card" data-category="industrial">
+                        <div class="category-overlay">
+                            <h3>Industrial</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Naval -->
+                    <div class="category-card" data-category="naval">
+                        <div class="category-overlay">
+                            <h3>Naval</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- BPO -->
+                    <div class="category-card" data-category="bpo">
+                        <div class="category-overlay">
+                            <h3>GDO</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Automotive -->
+                    <div class="category-card" data-category="automotive">
+                        <div class="category-overlay">
+                            <h3>Automotive</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Aerospace -->
+                    <div class="category-card" data-category="aerospace">
+                        <div class="category-overlay">
+                            <h3>Aerospace</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Chemistry-Pharmaceutical -->
+                    <div class="category-card" data-category="chemistry-pharmaceutical">
+                        <div class="category-overlay">
+                            <h3>Chemistry & Pharmaceutical</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="footer-content">

@@ -51,6 +51,36 @@ try {
     };
 }
 
+// Password validation function
+function validatePassword(password) {
+    // Check length
+    if (password.length < 8) {
+        return { valid: false, error: 'Password must be at least 8 characters long' };
+    }
+    
+    // Check for uppercase letters
+    if (!/[A-Z]/.test(password)) {
+        return { valid: false, error: 'Password must contain at least one uppercase letter' };
+    }
+    
+    // Check for lowercase letters
+    if (!/[a-z]/.test(password)) {
+        return { valid: false, error: 'Password must contain at least one lowercase letter' };
+    }
+    
+    // Check for numbers
+    if (!/[0-9]/.test(password)) {
+        return { valid: false, error: 'Password must contain at least one number' };
+    }
+    
+    // Check for special characters
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        return { valid: false, error: 'Password must contain at least one special character' };
+    }
+    
+    return { valid: true };
+}
+
 // Auth state change listener
 supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN') {
@@ -65,6 +95,12 @@ supabase.auth.onAuthStateChange((event, session) => {
 async function register(username, password) {
     try {
         console.log('Attempting to register user:', username);
+        
+        // Validate password
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+            return { success: false, error: passwordValidation.error };
+        }
         
         // Check if user already exists (case insensitive)
         const { data: existingUsers, error: checkError } = await supabase
