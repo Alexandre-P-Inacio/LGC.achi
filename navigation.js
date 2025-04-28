@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <a href="index.html" class="logo">
                 <img src="assets/LGC LOGO.png" alt="LGC Logo" class="logo-image">
             </a>
+            <div class="hamburger-menu">
+                <div class="bar1"></div>
+                <div class="bar2"></div>
+                <div class="bar3"></div>
+            </div>
             <ul class="nav-links">
                 <li><a href="index.html" id="nav-home">Home</a></li>
                 <li><a href="portfolios.html" id="nav-portfolios">Portfolios</a></li>
@@ -19,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </ul>
         </nav>
     </header>
+    <div class="menu-backdrop"></div>
     `;
  
     // Check if a header tag already exists
@@ -61,7 +67,10 @@ document.addEventListener('DOMContentLoaded', function() {
  
     // Check if user is logged in (integration with existing authentication system)
     const currentUser = localStorage.getItem('currentUser');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const isAdminRaw = localStorage.getItem('isAdmin');
+    const isAdmin = isAdminRaw === 'true' || isAdminRaw === true;
+    
+    console.log('User login status:', { currentUser, isAdmin, isAdminRaw });
     
     if (currentUser) {
         // Hide the authentication buttons
@@ -81,10 +90,26 @@ document.addEventListener('DOMContentLoaded', function() {
             // Different menu options based on user role
             let userMenu = '';
             
-            if (isAdmin) {
-                userMenu = `<span>Hello, ${currentUser}</span> | <a href="admin.html">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+            // Force admin menu if username is 'admin'
+            if (isAdmin || currentUser === 'admin') {
+                console.log('Building admin menu');
+                localStorage.setItem('isAdmin', 'true'); // Ensure the flag is properly set
+                userMenu = `
+                    <div class="user-greeting"><span>Hello, ${currentUser}</span></div>
+                    <div class="user-nav-links">
+                        <a href="admin.html" class="admin-link">Admin Dashboard</a>
+                    </div>
+                    <a href="#" id="logout-link" class="logout-link">Logout</a>
+                `;
             } else {
-                userMenu = `<span>Hello, ${currentUser}</span> | <a href="#client-dashboard" id="nav-dashboard" onclick="showDashboard(); return false;">My Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+                console.log('Building regular user menu');
+                userMenu = `
+                    <div class="user-greeting"><span>Hello, ${currentUser}</span></div>
+                    <div class="user-nav-links">
+                        <a href="#client-dashboard" id="nav-dashboard" class="dashboard-link" onclick="showDashboard(); return false;">My Dashboard</a>
+                    </div>
+                    <a href="#" id="logout-link" class="logout-link">Logout</a>
+                `;
             }
             
             userElement.innerHTML = userMenu;
@@ -128,6 +153,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             // Otherwise, default link behavior will navigate to index.html#about
+        });
+    }
+    
+    // Toggle mobile menu
+    const hamburger = document.querySelector('.hamburger-menu');
+    const navLinks = document.querySelector('.nav-links');
+    const backdrop = document.querySelector('.menu-backdrop');
+    
+    if (hamburger) {
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+            backdrop.classList.toggle('active');
+            
+            // Disable body scroll when menu is open
+            if (navLinks.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // Close mobile menu when a link is clicked
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', function() {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+                backdrop.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+        
+        // Close menu when clicking on backdrop
+        backdrop.addEventListener('click', function() {
+            hamburger.classList.remove('active');
+            navLinks.classList.remove('active');
+            backdrop.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+        
+        // Close menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+                backdrop.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         });
     }
 });
@@ -192,3 +265,14 @@ async function checkUnreadMessages() {
     } catch (e) {
     }
 }
+
+// Debug helper function to set admin status
+window.setAdminStatus = function(isAdmin) {
+    localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
+    console.log('Admin status set to', isAdmin ? 'true' : 'false');
+    console.log('Current localStorage values:', {
+        currentUser: localStorage.getItem('currentUser'),
+        isAdmin: localStorage.getItem('isAdmin')
+    });
+    console.log('Reload the page to see changes');
+};

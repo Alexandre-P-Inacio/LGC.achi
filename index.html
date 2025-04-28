@@ -3,12 +3,30 @@
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; frame-src 'self' data: blob: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co https://docs.google.com; object-src 'self' blob: data: https://*.supabase.co;">
     <title>Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- jQuery required for Turn.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Turn.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <!-- PDF.js for PDF processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js worker
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                console.log('PDF.js worker configured');
+            } else {
+                console.error('PDF.js library not loaded');
+            }
+        });
+    </script>
     
     <!-- Load Supabase first -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -563,6 +581,61 @@
         </div>
     </footer>
     
+    <!-- File Viewer Modal -->
+    <div id="file-viewer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-file-title">File Preview</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="file-info-bar">
+                <div class="file-type-icon" id="file-type-icon">DOC</div>
+                <span id="file-info">Loading file information...</span>
+            </div>
+            <div class="modal-body">
+                <div id="file-viewer-container">
+                    <!-- Turn.js Flipbook container -->
+                    <div id="flipbook-wrapper">
+                        <div id="flipbook"></div>
+                        <div class="flipbook-nav">
+                            <button id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
+                            <button id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    
+                    <!-- Original preview elements -->
+                    <iframe id="file-iframe" width="100%" height="600" style="display: none;"></iframe>
+                    <img id="file-image" style="display: none;" />
+                    <div id="file-unsupported" style="display: none;">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>This file type cannot be previewed</h3>
+                        <p>The file may need to be downloaded to be viewed.</p>
+                        <a id="file-download-link" href="#" class="action-button">
+                            <i class="fas fa-download"></i> Download File
+                        </a>
+                    </div>
+                    
+                    <!-- Loading indicator -->
+                    <div class="modal-loading" id="file-loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading file...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="file-actions">
+                <button class="file-action-button" id="zoom-in-button">
+                    <i class="fas fa-search-plus"></i> Zoom In
+                </button>
+                <button class="file-action-button" id="zoom-out-button">
+                    <i class="fas fa-search-minus"></i> Zoom Out
+                </button>
+                <a id="download-button" href="#" class="file-action-button">
+                    <i class="fas fa-download"></i> Download
+                </a>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // Check login status when loading the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -719,7 +792,7 @@
                         <div class="project-image" style="background-image: url('${imageUrl}')"></div>
                         <h3>${project.name || 'Unnamed Project'}</h3>
                         <p>${categoryDisplay}</p>
-                        <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
+                        <a href="javascript:void(0)" class="view-project-btn" data-file-url="${project.file_url || ''}" data-project-id="${project.id}" data-file-name="${project.file_url ? project.file_url.split('/').pop().split('?')[0] : ''}">View Project</a>
                     `;
                     
                     // Add the project card to the container
@@ -727,6 +800,24 @@
                 });
                 
                 console.log('Featured projects rendered successfully');
+                
+                // Add event listeners to the "View Project" buttons
+                document.querySelectorAll('.view-project-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const fileUrl = this.getAttribute('data-file-url');
+                        const fileName = this.getAttribute('data-file-name');
+                        const projectId = this.getAttribute('data-project-id');
+                        
+                        if (fileUrl) {
+                            // Show file directly in modal
+                            showFileInModal(fileUrl, fileName);
+                        } else {
+                            // Fallback to the portfolios page if no file is available
+                            window.location.href = `portfolios.html?project=${projectId}`;
+                        }
+                    });
+                });
                 
                 // Hide right button if 3 or fewer projects
                 if (featuredProjects.length <= 3) {
@@ -1223,5 +1314,834 @@
             setTimeout(novoSlideshow, 100);
         });
     </script>
+    
+    <script>
+        // Initialize file viewer when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for scripts to load
+            setTimeout(initFileViewer, 500);
+        });
+        
+        // Function to initialize file viewer
+        function initFileViewer() {
+            // Get modal elements
+            const modal = document.getElementById('file-viewer-modal');
+            if (!modal) return; // Exit if modal not found
+            
+            const closeBtn = modal.querySelector('.close-modal');
+            const flipbook = document.getElementById('flipbook');
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            const imgPreview = document.getElementById('file-image');
+            const zoomInButton = document.getElementById('zoom-in-button');
+            const zoomOutButton = document.getElementById('zoom-out-button');
+            
+            // Configure PDF.js worker
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+            }
+            
+            // Set initial zoom level
+            let currentZoom = 1;
+            
+            // Make the flipbook responsive
+            window.addEventListener('resize', function() {
+                if (flipbook && $(flipbook).turn("is")) {
+                    const parent = flipbook.parentElement;
+                    if (parent) {
+                        const width = parent.clientWidth * 0.9;
+                        $(flipbook).turn("size", width, 600);
+                    }
+                }
+            });
+            
+            // Close modal when clicking the close button
+            closeBtn.addEventListener('click', () => {
+                // Add closing animation class
+                modal.classList.add('closing');
+                
+                // Wait for animation to complete before hiding
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.classList.remove('closing');
+                    
+                    // Destroy any existing flipbook
+                    if (flipbook && $(flipbook).turn("is")) {
+                        $(flipbook).turn("destroy");
+                        flipbook.innerHTML = '';
+                    }
+                }, 300); // Match this with the animation duration
+            });
+            
+            // Close modal when clicking outside the modal content
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    // Add closing animation class
+                    modal.classList.add('closing');
+                    
+                    // Wait for animation to complete before hiding
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        modal.classList.remove('closing');
+                        
+                        // Destroy any existing flipbook
+                        if (flipbook && $(flipbook).turn("is")) {
+                            $(flipbook).turn("destroy");
+                            flipbook.innerHTML = '';
+                        }
+                    }, 300); // Match this with the animation duration
+                }
+            });
+            
+            // Navigation buttons for flipbook
+            $(prevBtn).off('click').on('click', function(e) {
+                e.preventDefault();
+                try {
+                    // Safe way to check if Turn.js is initialized
+                    if ($(flipbook).data().turn) {
+                        $(flipbook).turn('previous');
+                    }
+                } catch (err) {
+                    console.error('Error on previous button:', err);
+                }
+                return false;
+            });
+            
+            $(nextBtn).off('click').on('click', function(e) {
+                e.preventDefault();
+                try {
+                    // Safe way to check if Turn.js is initialized
+                    if ($(flipbook).data().turn) {
+                        $(flipbook).turn('next');
+                    }
+                } catch (err) {
+                    console.error('Error on next button:', err);
+                }
+                return false;
+            });
+            
+            // Zoom controls for images
+            zoomInButton.addEventListener('click', function() {
+                if (currentZoom < 3) {
+                    currentZoom += 0.2;
+                    imgPreview.style.transform = `scale(${currentZoom})`;
+                }
+            });
+            
+            zoomOutButton.addEventListener('click', function() {
+                if (currentZoom > 0.5) {
+                    currentZoom -= 0.2;
+                    imgPreview.style.transform = `scale(${currentZoom})`;
+                }
+            });
+        }
+        
+        // Show file in modal with appropriate preview based on file type
+        async function showFileInModal(fileUrl, fileName) {
+            const modal = document.getElementById('file-viewer-modal');
+            const title = document.getElementById('modal-file-title');
+            const iframe = document.getElementById('file-iframe');
+            const imgPreview = document.getElementById('file-image');
+            const unsupportedView = document.getElementById('file-unsupported');
+            const downloadLink = document.getElementById('file-download-link');
+            const downloadButton = document.getElementById('download-button');
+            const fileLoading = document.getElementById('file-loading');
+            const fileInfo = document.getElementById('file-info');
+            const fileTypeIcon = document.getElementById('file-type-icon');
+            const flipbook = document.getElementById('flipbook');
+            const flipbookWrapper = document.getElementById('flipbook-wrapper');
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            
+            // Reset zoom
+            imgPreview.style.transform = 'scale(1)';
+            
+            // Show loading indicator
+            fileLoading.style.display = 'flex';
+            
+            // Hide all preview elements initially
+            iframe.style.display = 'none';
+            imgPreview.style.display = 'none';
+            unsupportedView.style.display = 'none';
+            flipbookWrapper.style.display = 'none';
+            flipbook.style.display = 'none';
+            
+            // Destroy any existing Turn.js instance
+            try {
+                if ($(flipbook).data().turn) {
+                    $(flipbook).turn('destroy');
+                }
+            } catch (e) {
+                console.log('No existing Turn instance to destroy:', e);
+            }
+            
+            // Reset flipbook container
+            flipbook.innerHTML = '';
+            
+            // Set the modal title to the file name
+            title.textContent = fileName || 'File Preview';
+            
+            // Set download links
+            downloadLink.href = fileUrl;
+            downloadLink.setAttribute('download', fileName || 'download');
+            downloadButton.href = fileUrl;
+            downloadButton.setAttribute('download', fileName || 'download');
+            
+            // Determine file type and update file info
+            const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
+            const fileTypeMap = {
+                'jpg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+                'jpeg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+                'png': { type: 'Image', icon: 'PNG', color: '#28a745' },
+                'gif': { type: 'Image', icon: 'GIF', color: '#fd7e14' },
+                'svg': { type: 'Image', icon: 'SVG', color: '#6610f2' },
+                'webp': { type: 'Image', icon: 'WP', color: '#20c997' },
+                'pdf': { type: 'Document', icon: 'PDF', color: '#dc3545' },
+                'txt': { type: 'Text', icon: 'TXT', color: '#6c757d' },
+                'html': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+                'htm': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+                'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
+                'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
+                'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
+                'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
+            };
+            
+            const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
+            fileInfo.textContent = `${fileType.type} • ${formatFileSize(1024 * 1024)} • ${formatDate(new Date())}`;
+            fileTypeIcon.textContent = fileType.icon;
+            fileTypeIcon.style.background = fileType.color;
+            
+            // Show or hide zoom buttons based on file type
+            const canZoom = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension);
+            document.getElementById('zoom-in-button').style.display = canZoom ? 'flex' : 'none';
+            document.getElementById('zoom-out-button').style.display = canZoom ? 'flex' : 'none';
+            
+            // Show modal
+            modal.style.display = 'block';
+            
+            if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
+                // Image preview
+                imgPreview.onload = function() {
+                    fileLoading.style.display = 'none';
+                    imgPreview.style.display = 'block';
+                    
+                    // Ensure image fits properly
+                    const containerWidth = document.getElementById('file-viewer-container').offsetWidth * 0.9;
+                    const containerHeight = document.getElementById('file-viewer-container').offsetHeight * 0.9;
+                    
+                    // Adjust image size if needed
+                    if (imgPreview.naturalWidth > containerWidth || imgPreview.naturalHeight > containerHeight) {
+                        const widthRatio = containerWidth / imgPreview.naturalWidth;
+                        const heightRatio = containerHeight / imgPreview.naturalHeight;
+                        const scale = Math.min(widthRatio, heightRatio) * 0.95; // 5% safety margin
+                        
+                        imgPreview.style.maxWidth = Math.floor(imgPreview.naturalWidth * scale) + 'px';
+                        imgPreview.style.maxHeight = Math.floor(imgPreview.naturalHeight * scale) + 'px';
+                    }
+                };
+                imgPreview.onerror = function() {
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
+                };
+                imgPreview.src = fileUrl;
+            } 
+            else if (['pdf'].includes(fileExtension)) {
+                // PDF Flipbook using PDF.js and Turn.js
+                flipbookWrapper.style.display = 'block';
+                
+                try {
+                    // First check if libraries are loaded
+                    if (typeof pdfjsLib === 'undefined') {
+                        throw new Error('PDF.js library not loaded');
+                    }
+                    
+                    if (typeof $ === 'undefined' || typeof $.fn.turn === 'undefined') {
+                        throw new Error('Turn.js library not loaded');
+                    }
+                    
+                    // Load the PDF file
+                    pdfjsLib.getDocument(fileUrl).promise.then(function(pdf) {
+                        // Store number of pages globally
+                        window.numPages = pdf.numPages;
+                        
+                        // Clear existing content first
+                        flipbook.innerHTML = '';
+                        
+                        // Create a new container for Turn.js to avoid issues with reuse
+                        const flipContainer = document.createElement('div');
+                        flipContainer.id = 'flipbook-pages';
+                        flipContainer.className = 'flipbook-container';
+                        flipbook.appendChild(flipContainer);
+                        
+                        // Initialize the flipbook with only the exact required pages
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const pageDiv = document.createElement('div');
+                            pageDiv.className = 'page';
+                            pageDiv.id = `page-${i}`;
+                            pageDiv.style.position = 'relative';
+                            pageDiv.style.overflow = 'hidden';
+                            
+                            // Loading placeholder
+                            const placeholder = document.createElement('div');
+                            placeholder.style.position = 'absolute';
+                            placeholder.style.top = '50%';
+                            placeholder.style.left = '50%';
+                            placeholder.style.transform = 'translate(-50%, -50%)';
+                            placeholder.style.color = '#999';
+                            placeholder.textContent = `Loading page ${i}...`;
+                            pageDiv.appendChild(placeholder);
+                            
+                            // Page number for reference
+                            const pageNumber = document.createElement('div');
+                            pageNumber.textContent = i;
+                            pageNumber.style.position = 'absolute';
+                            pageNumber.style.bottom = '10px';
+                            pageNumber.style.right = '10px';
+                            pageNumber.style.fontSize = '12px';
+                            pageNumber.style.color = '#999';
+                            pageNumber.style.zIndex = '100';
+                            pageDiv.appendChild(pageNumber);
+                            
+                            flipContainer.appendChild(pageDiv);
+                        }
+                        
+                        // Initialize the flipbook with explicit numeric dimensions
+                        setTimeout(() => {
+                            try {
+                                $(flipContainer).turn({
+                                    width: 680,
+                                    height: 530,
+                                    autoCenter: true,
+                                    display: 'single',
+                                    duration: 600,
+                                    acceleration: true,
+                                    gradients: true,
+                                    elevation: 50,
+                                    page: 1,
+                                    padding: 10,
+                                    margin: 10,
+                                    when: {
+                                        turning: function(event, page, view) {
+                                            // Load current page with high quality
+                                            loadPageContent(page);
+                                            
+                                            // Pre-load adjacent pages for smoother experience
+                                            if (page > 1) loadPageContent(page - 1);
+                                            if (page < pdf.numPages) loadPageContent(page + 1);
+                                        },
+                                        turned: function(event, page, view) {
+                                            // Update navigation button states
+                                            prevBtn.disabled = page <= 1;
+                                            nextBtn.disabled = page >= pdf.numPages;
+                                        }
+                                    }
+                                });
+                                
+                                // Load the first page
+                                loadPageContent(1);
+                                
+                                // Make navigation buttons work
+                                $(prevBtn).off('click').on('click', function() {
+                                    try {
+                                        $(flipContainer).turn('previous');
+                                    } catch (e) {
+                                        console.error('Error navigating to previous page:', e);
+                                    }
+                                    return false;
+                                });
+                                
+                                $(nextBtn).off('click').on('click', function() {
+                                    try {
+                                        $(flipContainer).turn('next');
+                                    } catch (e) {
+                                        console.error('Error navigating to next page:', e);
+                                    }
+                                    return false;
+                                });
+                                
+                                // Hide loading indicator
+                                fileLoading.style.display = 'none';
+                                flipbook.style.display = 'block';
+                                
+                            } catch (turnError) {
+                                console.error('Error initializing Turn.js:', turnError);
+                                fallbackToPdfViewer(fileUrl);
+                            }
+                        }, 100); // Small delay to ensure DOM is ready
+                        
+                        // Function to directly render PDF page to a canvas
+                        async function loadPageContent(pageNum) {
+                            if (pageNum < 1 || pageNum > pdf.numPages) return;
+                            
+                            const pageDiv = document.getElementById(`page-${pageNum}`);
+                            if (!pageDiv || pageDiv.querySelector('canvas')) return;
+                            
+                            try {
+                                const page = await pdf.getPage(pageNum);
+                                
+                                // Get the viewport at scale 1.0
+                                const viewport = page.getViewport({scale: 1.0});
+                                const containerWidth = 650;
+                                const containerHeight = 500;
+                                
+                                // Calculate scale to fit entirely within container
+                                const scaleX = (containerWidth - 2) / viewport.width;
+                                const scaleY = (containerHeight - 2) / viewport.height;
+                                let scale = Math.min(scaleX, scaleY) * 1;
+                                
+                                // Account for device pixel ratio for higher resolution
+                                const pixelRatio = window.devicePixelRatio || 1;
+                                const scaledViewport = page.getViewport({scale: scale});
+                                
+                                // Create high-resolution canvas
+                                const canvas = document.createElement('canvas');
+                                const context = canvas.getContext('2d');
+                                
+                                // Set canvas dimensions to match the scaled viewport with pixel ratio
+                                canvas.width = Math.floor(scaledViewport.width * pixelRatio);
+                                canvas.height = Math.floor(scaledViewport.height * pixelRatio);
+                                canvas.style.width = Math.floor(scaledViewport.width) + 'px';
+                                canvas.style.height = Math.floor(scaledViewport.height) + 'px';
+                                
+                                // Scale context for high DPI display
+                                context.scale(pixelRatio, pixelRatio);
+                                
+                                // Apply high-quality rendering settings
+                                context.imageSmoothingEnabled = true;
+                                context.imageSmoothingQuality = 'high';
+                                
+                                // Position canvas in center of page with enough margin
+                                canvas.style.position = 'absolute';
+                                canvas.style.top = '50%';
+                                canvas.style.left = '50%';
+                                canvas.style.transform = 'translate(-50%, -50%)';
+                                
+                                // Clear the page div and add the canvas
+                                pageDiv.innerHTML = '';
+                                pageDiv.appendChild(canvas);
+                                
+                                // Add page number 
+                                const pageNumber = document.createElement('div');
+                                pageNumber.textContent = pageNum;
+                                pageNumber.style.position = 'absolute';
+                                pageNumber.style.bottom = '5px';
+                                pageNumber.style.right = '5px';
+                                pageNumber.style.fontSize = '10px';
+                                pageNumber.style.color = '#333';
+                                pageNumber.style.background = 'rgba(255,255,255,0.7)';
+                                pageNumber.style.padding = '2px 5px';
+                                pageNumber.style.borderRadius = '8px';
+                                pageNumber.style.zIndex = '2';
+                                pageDiv.appendChild(pageNumber);
+                                
+                                // Render the PDF page with enhanced quality settings
+                                const renderContext = {
+                                    canvasContext: context,
+                                    viewport: scaledViewport,
+                                    background: 'white',
+                                    renderInteractiveForms: true
+                                };
+                                
+                                await page.render(renderContext).promise;
+                                
+                            } catch (error) {
+                                console.error(`Error rendering page ${pageNum}:`, error);
+                                pageDiv.innerHTML = `<div style="padding: 20px; text-align: center;">
+                                    Error loading page ${pageNum}<br>
+                                    <small>${error.message}</small>
+                                </div>`;
+                            }
+                        }
+                        
+                    }).catch(function(error) {
+                        console.error('Error loading PDF:', error);
+                        fallbackToPdfViewer(fileUrl);
+                    });
+                } catch (e) {
+                    console.error('General error in PDF processing:', e);
+                    fallbackToPdfViewer(fileUrl);
+                }
+            }
+            else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExtension)) {
+                // Use Google Docs Viewer for Office files
+                iframe.onload = function() {
+                    fileLoading.style.display = 'none';
+                    iframe.style.display = 'block';
+                };
+                iframe.onerror = function() {
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
+                };
+                iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+            }
+            else {
+                // Unsupported file type
+                fileLoading.style.display = 'none';
+                unsupportedView.style.display = 'block';
+            }
+        }
+        
+        // Fallback function for PDF viewing
+        function fallbackToPdfViewer(pdfUrl) {
+            console.log('Using fallback PDF viewer');
+            const fileLoading = document.getElementById('file-loading');
+            const flipbookWrapper = document.getElementById('flipbook-wrapper');
+            const iframe = document.getElementById('file-iframe');
+            const unsupportedView = document.getElementById('file-unsupported');
+            
+            fileLoading.style.display = 'none';
+            flipbookWrapper.style.display = 'none';
+            
+            iframe.onload = function() {
+                fileLoading.style.display = 'none';
+                iframe.style.display = 'block';
+            };
+            iframe.onerror = function() {
+                fileLoading.style.display = 'none';
+                unsupportedView.style.display = 'block';
+            };
+            iframe.src = pdfUrl;
+        }
+        
+        // Function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Function to format date
+        function formatDate(date) {
+            if (!date) return '';
+            
+            return date.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+    </script>
+    <style>
+        /* File Viewer Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            height: 100vh;
+            width: 65%;
+            max-width: 800px;
+            position: relative;
+            margin: 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            animation: slideIn 0.4s forwards;
+            border-radius: 0;
+            overflow: hidden;
+        }
+        
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+        }
+        
+        .modal.closing .modal-content {
+            animation: slideOut 0.3s forwards;
+        }
+        
+        .modal-header {
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 80%;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #333;
+        }
+        
+        .modal-body {
+            min-height: 500px;
+            padding: 0;
+            overflow: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #file-viewer-container {
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            overflow: visible;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        #file-iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+        }
+        
+        #file-image {
+            max-width: 90%;
+            max-height: calc(100vh - 200px);
+            object-fit: contain;
+            margin: 0 auto;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            transform-origin: center;
+        }
+        
+        .modal img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            backface-visibility: hidden;
+        }
+        
+        #flipbook-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            position: relative;
+            padding: 20px 0;
+            min-height: 500px;
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: visible;
+        }
+        
+        #flipbook {
+            width: 100%;
+            height: 100%;
+            flex: 1;
+            margin: 0 auto;
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #flipbook .page {
+            background-color: white;
+            background-size: 100% 100%;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flipbook-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .flipbook-nav button {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            pointer-events: auto;
+            opacity: 0.7;
+            margin: 0 10px;
+        }
+        
+        .flipbook-nav button:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+            opacity: 1;
+        }
+        
+        .flipbook-nav button:disabled {
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+        
+        #prev-page-btn {
+            left: auto;
+            margin-right: 10px;
+        }
+        
+        #next-page-btn {
+            right: auto;
+            margin-left: 10px;
+        }
+        
+        .file-info-bar {
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .file-type-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-right: 15px;
+        }
+        
+        .file-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            gap: 10px;
+        }
+        
+        .file-action-button {
+            padding: 6px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .file-action-button:hover {
+            background-color: #e9ecef;
+            border-color: #ccc;
+        }
+        
+        .modal-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 5;
+        }
+        
+        .modal-loading .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        .modal-loading p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive styling for modal */
+        @media (max-width: 992px) {
+            .modal-content {
+                width: 75%;
+                max-width: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 100%;
+                max-width: none;
+            }
+            
+            #file-viewer-container {
+                min-height: auto;
+            }
+            
+            .flipbook-nav button {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
 </body>
 </html>
