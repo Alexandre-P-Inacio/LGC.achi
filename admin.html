@@ -1097,6 +1097,15 @@
     </style>
 </head>
 <body onload="checkAdminAccess(); updateStats(); loadProjects(); loadUsers();">
+    <button id="admin-hamburger" class="admin-hamburger" aria-label="Open menu">&#9776;</button>
+    <div id="admin-mobile-menu" class="admin-mobile-menu">
+      <div class="admin-mobile-menu-content">
+        <span class="admin-mobile-welcome">Welcome, admin</span>
+        <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Site</a>
+        <a href="#" id="admin-mobile-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </div>
+    </div>
+    <div id="admin-mobile-overlay" class="admin-mobile-overlay"></div>
     <header>
         <nav>
             <div class="logo">
@@ -1969,6 +1978,31 @@
                 day: 'numeric' 
             });
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var burger = document.getElementById('admin-hamburger');
+            var menu = document.getElementById('admin-mobile-menu');
+            var overlay = document.getElementById('admin-mobile-overlay');
+            var logout = document.getElementById('admin-mobile-logout');
+            if (burger && menu && overlay) {
+                burger.addEventListener('click', function() {
+                    menu.classList.add('open');
+                    overlay.classList.add('open');
+                });
+                overlay.addEventListener('click', function() {
+                    menu.classList.remove('open');
+                    overlay.classList.remove('open');
+                });
+                if (logout) {
+                    logout.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // Chame sua função de logout aqui:
+                        if (typeof logout === 'function') logout();
+                        else window.location.href = 'login.html';
+                    });
+                }
+            }
+        });
     </script>
 </body>
 </html> 

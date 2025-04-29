@@ -963,6 +963,196 @@ label[for="project-gallery"]:after {
     }
 }
 
+@media (max-width: 600px) {
+    .admin-main {
+        padding: 0.5rem;
+        margin-top: 70px;
+    }
+    .admin-section {
+        padding: 1rem;
+    }
+    .stats-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .stat-card {
+        flex-direction: row;
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    .add-project-button, .add-user-button {
+        width: 100%;
+        justify-content: center;
+        font-size: 1rem;
+        padding: 0.8rem 0;
+    }
+    .search-filter-container {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+    .search-container, .filter-container {
+        width: 100%;
+        max-width: 100%;
+    }
+    .search-container input {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.7rem 1rem;
+    }
+    .filter-select {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.7rem 1rem;
+    }
+    .projects-table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+    .projects-table, .projects-table thead, .projects-table tbody, .projects-table tr, .projects-table th, .projects-table td {
+        display: block;
+        width: 100%;
+    }
+    .projects-table thead {
+        display: none;
+    }
+    .projects-table tr {
+        margin-bottom: 1.2rem;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        padding: 1rem 0.7rem;
+    }
+    .projects-table td {
+        border: none;
+        padding: 0.4rem 0.2rem;
+        text-align: left;
+        font-size: 1rem;
+        position: relative;
+    }
+    .projects-table td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #888;
+        display: block;
+        margin-bottom: 2px;
+        font-size: 0.85em;
+    }
+    .projects-table .action-buttons {
+        justify-content: flex-start;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .pagination-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .pagination-button {
+        width: 100%;
+        font-size: 1rem;
+        padding: 0.7rem 0;
+    }
+    .action-button {
+        font-size: 1.1rem;
+        padding: 0.7rem 0.7rem;
+        margin-right: 0.2rem;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    .stat-label {
+        font-size: 0.85rem;
+    }
+    .logo {
+        font-size: 1.1rem;
+        gap: 0.4rem;
+    }
+    .admin-hamburger {
+        display: block;
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 2002;
+        background: #222;
+        color: #fff;
+        border: none;
+        font-size: 2rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .admin-mobile-menu {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 220px;
+        height: 100vh;
+        background: #fff;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+        z-index: 2003;
+        transition: left 0.3s;
+        padding-top: 60px;
+    }
+    .admin-mobile-menu.open {
+        display: block;
+        animation: slideInMenu 0.3s;
+    }
+    @keyframes slideInMenu {
+        from { left: -220px; opacity: 0; }
+        to { left: 0; opacity: 1; }
+    }
+    .admin-mobile-menu-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        padding: 1.5rem 1rem;
+    }
+    .admin-mobile-menu-content a {
+        color: #222;
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.5rem 0;
+    }
+    .admin-mobile-menu-content a:hover {
+        color: #28a745;
+    }
+    .admin-mobile-welcome {
+        font-size: 1rem;
+        color: #888;
+        margin-bottom: 0.5rem;
+    }
+    .admin-mobile-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.2);
+        z-index: 2001;
+    }
+    .admin-mobile-overlay.open {
+        display: block;
+    }
+    header, nav, .logo, .nav-links {
+        display: none !important;
+    }
+}
+@media (min-width: 601px) {
+    .admin-hamburger, .admin-mobile-menu, .admin-mobile-overlay {
+        display: none !important;
+    }
+}
+
 /* Error message */
 .error-message {
     background-color: #ffebee;

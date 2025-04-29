@@ -458,53 +458,41 @@ function updateProjectsTable(projects) {
                     .join(' ');
             }
             
-            // Create project title with featured tag if applicable
-            const projectTitleHtml = `
-                <div class="project-title">
-                    ${project.name || 'Unnamed Project'}
-                    ${project.is_featured ? '<span class="feature-tag"><i class="fas fa-star"></i> Featured</span>' : ''}
-                </div>
-            `;
-            
-            // Create table row with basic data
+            // Monta o HTML colapsável
             row.innerHTML = `
-                <td>
-                    ${projectTitleHtml}
-                </td>
-                <td>
-                    <span class="category-badge">${categoryDisplay}</span>
-                </td>
-                <td>${createdDate}</td>
-                <td>
-                    ${project.file_url 
-                        ? `<a href="javascript:void(0)" class="file-link" onclick="showFileInModal('${project.file_url}', '${fileInfo.name}')">${fileInfo.name}</a>` 
-                        : 'No file'}
-                </td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                <td>${fileInfo.type}</td>
-                <td>
-                    <div class="action-buttons">
-                        <a href="project-form.html?id=${project.id}" class="action-button edit-button" title="Edit">
-                            <i class="fas fa-edit" style="font-size: 16px; color: white;"></i>
-                        </a>
-                        <button class="action-button delete-button" data-id="${project.id}" title="Delete">
-                            <i class="fas fa-trash-alt" style="font-size: 16px; color: white;"></i>
-                        </button>
-                        <button class="action-button share-button" onclick="showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')" title="Share">
-                            <i class="fas fa-share-alt" style="font-size: 16px; color: white;"></i>
-                        </button>
-                        <button class="action-button feature-button${project.is_featured ? ' featured' : ''}" 
-                                onclick="toggleFeaturedStatus('${project.id}', ${!project.is_featured})" 
-                                title="${project.is_featured ? 'Remove from featured' : 'Add to featured'}">
-                            <i class="${project.is_featured ? 'fas' : 'far'} fa-star" style="font-size: 16px; color: white;"></i>
-                        </button>
+              <td colspan="8">
+                <div class="project-title" style="cursor:pointer; font-weight:bold; margin-bottom:8px; display: flex; align-items: center; justify-content: space-between;" onclick="toggleProjectDetails(this)">
+                  <span>
+                    ${project.name || 'Unnamed Project'}
+                    ${project.is_featured ? '<span class=\"feature-tag\" style=\"margin-left:8px;\"><i class=\"fas fa-star\"></i> Featured</span>' : ''}
+                  </span>
+                  <div class=\"card-menu\" style=\"position: relative; display: inline-block;\">
+                    <button class=\"menu-btn\" onclick=\"event.stopPropagation();toggleMenu(this)\" style=\"background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; transition: background 0.15s;\">
+                      <i class=\"fas fa-ellipsis-h\"></i>
+                    </button>
+                    <div class=\"menu-dropdown\" style=\"display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;\">
+                      <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"fas fa-edit\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
+                      <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"fas fa-trash-alt\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
+                      <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"fas fa-share-alt\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
+                      <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
                     </div>
-                </td>
+                  </div>
+                </div>
+                <div class="project-details" style="display:none; margin-top:10px;">
+                  <span class="category-badge">${categoryDisplay}</span>
+                  <span class="status-badge ${statusClass}">${statusText}</span>
+                  <div>${fileInfo.type}</div>
+                  <div>${project.file_url 
+                    ? `<a href=\"javascript:void(0)\" class=\"file-link\" onclick=\"showFileInModal('${project.file_url}', '${fileInfo.name}')\">${fileInfo.name}</a>` 
+                    : 'No file'}</div>
+                  <div>${createdDate}</div>
+                </div>
+              </td>
             `;
         } catch (e) {
             console.error('Error creating row for project:', e, project);
             row.innerHTML = `
-                <td colspan="8">
+                <td colspan=\"8\">
                     Error displaying project: ${e.message}
                 </td>
             `;
@@ -524,6 +512,28 @@ function updateProjectsTable(projects) {
             }
         });
     });
+
+    // --- DROPDOWN MENU JS ---
+    // Add dropdown toggle logic (only once)
+    if (!window.__menuDropdownInjected) {
+        window.__menuDropdownInjected = true;
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.card-menu').forEach(menu => {
+                const dropdown = menu.querySelector('.menu-dropdown');
+                if (dropdown && !menu.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        });
+        window.toggleMenu = function(btn) {
+            const menu = btn.parentElement;
+            const dropdown = menu.querySelector('.menu-dropdown');
+            // Fecha todos os outros
+            document.querySelectorAll('.card-menu .menu-dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
+            // Toggle o atual
+            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+        }
+    }
 }
 
 // Update pagination controls
@@ -2392,11 +2402,18 @@ function updateUsersTable(users) {
             // Create badge for added_by_admin - removing the Admin Created badge
             let adminBadge = '';
             
-            // Create table row with improved structure for alignment
+            // Nome e 3 pontinhos juntos na primeira célula
             row.innerHTML = `
-                <td>
-                    <div style="display: flex; align-items: center;">
-                        <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
+                <td style="position: relative;">
+                    <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
+                    <div class="card-menu mobile-actions" style="position: absolute; top: 50%; right: -150px; transform: translateY(-50%); display: none;">
+                        <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="menu-dropdown" style="display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;">
+                            <button class="action-button edit-button" onclick="showUserModal('${user.id}')" title="Edit" style="width: 44px; height: 44px; border-radius: 10px;"><i class="fas fa-edit" style="color: #fff; font-size: 1.25em;"></i></button>
+                            <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="Delete" style="width: 44px; height: 44px; border-radius: 10px;"><i class="fas fa-trash-alt" style="color: #fff; font-size: 1.25em;"></i></button>
+                        </div>
                     </div>
                 </td>
                 <td>
@@ -2406,11 +2423,11 @@ function updateUsersTable(users) {
                         </span>
                     </div>
                 </td>
-                <td>
-                    <div class="action-buttons">
-                        <a href="#" class="action-button edit-button" onclick="showUserModal('${user.id}')" title="Edit">
+                <td style="padding-right: 0;">
+                    <div class="desktop-actions" style="display: flex; gap: 8px; justify-content: flex-end; width: 100%;">
+                        <button class="action-button edit-button" onclick="showUserModal('${user.id}')" title="Edit">
                             <i class="fas fa-edit"></i>
-                        </a>
+                        </button>
                         <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="Delete">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -2428,6 +2445,28 @@ function updateUsersTable(users) {
         
         usersContainer.appendChild(row);
     });
+
+    // --- DROPDOWN MENU JS ---
+    // Add dropdown toggle logic (only once)
+    if (!window.__userMenuDropdownInjected) {
+        window.__userMenuDropdownInjected = true;
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.card-menu').forEach(menu => {
+                const dropdown = menu.querySelector('.menu-dropdown');
+                if (dropdown && !menu.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        });
+        window.toggleMenu = function(btn) {
+            const menu = btn.parentElement;
+            const dropdown = menu.querySelector('.menu-dropdown');
+            // Fecha todos os outros
+            document.querySelectorAll('.card-menu .menu-dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
+            // Toggle o atual
+            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+        }
+    }
 }
 
 // Search users
@@ -3021,4 +3060,57 @@ async function loadUserData(userId) {
         console.error('Error in loadUserData:', err);
         showNotification('Failed to load user data', 'error');
     }
+}
+
+// Função global para expandir/colapsar detalhes do projeto
+function toggleProjectDetails(titleElem) {
+  const details = titleElem.parentElement.querySelector('.project-details');
+  if (details) {
+    details.style.display = (details.style.display === 'none' || details.style.display === '') ? 'block' : 'none';
+  }
+}
+
+// Adicionar CSS responsivo para garantir que mobile-actions aparece só no mobile
+if (!document.getElementById('user-actions-responsive-style')) {
+    const style = document.createElement('style');
+    style.id = 'user-actions-responsive-style';
+    style.innerHTML = `
+      .desktop-actions { display: flex; gap: 8px; }
+      .mobile-actions { display: none; }
+      @media (max-width: 700px) {
+        .desktop-actions { display: none !important; }
+        .mobile-actions { display: block !important; }
+      }
+    `;
+    document.head.appendChild(style);
+}
+
+// Adicionar CSS para remover padding-right da última célula da tabela de usuários
+if (!document.getElementById('users-table-actions-padding-fix')) {
+    const style = document.createElement('style');
+    style.id = 'users-table-actions-padding-fix';
+    style.innerHTML = `
+      #users-container td:last-child { padding-right: 0 !important; }
+    `;
+    document.head.appendChild(style);
+}
+
+// Adicionar CSS para remover scroll da tabela de user management
+if (!document.getElementById('users-table-no-scroll')) {
+    const style = document.createElement('style');
+    style.id = 'users-table-no-scroll';
+    style.innerHTML = `
+      .projects-table-container, #users-container, .projects-table {
+        overflow: hidden !important;
+        max-width: 100% !important;
+      }
+      .projects-table {
+        table-layout: fixed;
+        width: 100%;
+      }
+      .admin-section {
+        overflow-x: hidden !important;
+      }
+    `;
+    document.head.appendChild(style);
 }
