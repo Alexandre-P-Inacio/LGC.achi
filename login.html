@@ -3,23 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
+    <!-- Remove CSP to avoid issues during development -->
     <title>Login - Architecture Portfolio</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Load Supabase -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script>
-        // Ensure Supabase is globally accessible
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Checking supabase:', typeof supabase);
-            if (typeof supabase !== 'undefined') {
-                window.supabase = supabase;
-                console.log('Supabase made available globally');
-            }
-        });
-    </script>
-    <!-- Load auth.js after Supabase -->
-    <script src="auth.js" defer></script>
     
     <style>
         .error-message {
@@ -55,6 +41,24 @@
         .back-button:hover {
             background-color: #95a5a6;
         }
+        
+        #debug-info {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        
+        #show-debug {
+            color: #7f8c8d;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+            text-align: center;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -77,11 +81,75 @@
                 </div>
             </form>
             <p class="auth-link">Don't have an account? <a href="register.html">Register here</a></p>
+            
+            <a id="show-debug" onclick="toggleDebug()">Show Debug Info</a>
+            <div id="debug-info"></div>
         </div>
     </div>
 
+    <!-- Load auth.js - add async attribute and a retry mechanism -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Function to load script with retry mechanism
+        function loadScript(src, retries = 3, delay = 1000) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+                
+                script.onload = () => {
+                    console.log(`Script ${src} loaded successfully`);
+                    resolve();
+                };
+                
+                script.onerror = () => {
+                    if (retries > 0) {
+                        console.warn(`Failed to load ${src}, retrying... (${retries} attempts left)`);
+                        setTimeout(() => {
+                            document.head.removeChild(script);
+                            loadScript(src, retries - 1, delay).then(resolve).catch(reject);
+                        }, delay);
+                    } else {
+                        console.error(`Failed to load ${src} after multiple attempts`);
+                        addDebugInfo(`Failed to load script: ${src}`);
+                        reject(new Error(`Failed to load ${src}`));
+                    }
+                };
+                
+                document.head.appendChild(script);
+            });
+        }
+        
+        // Function to toggle debug info visibility
+        function toggleDebug() {
+            const debugInfo = document.getElementById('debug-info');
+            if (debugInfo.style.display === 'none' || !debugInfo.style.display) {
+                debugInfo.style.display = 'block';
+                document.getElementById('show-debug').textContent = 'Hide Debug Info';
+            } else {
+                debugInfo.style.display = 'none';
+                document.getElementById('show-debug').textContent = 'Show Debug Info';
+            }
+        }
+        
+        // Function to add debug info
+        function addDebugInfo(message) {
+            const debugInfo = document.getElementById('debug-info');
+            const timestamp = new Date().toLocaleTimeString();
+            debugInfo.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+        }
+        
+        // When document is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            addDebugInfo('Page loaded, attempting to load auth.js...');
+            
+            try {
+                await loadScript('auth.js');
+                addDebugInfo('auth.js loaded successfully');
+            } catch (error) {
+                addDebugInfo(`Error loading auth.js: ${error.message}`);
+                console.error('Failed to load auth.js:', error);
+            }
+            
             const loginForm = document.getElementById('loginForm');
             const errorMessage = document.getElementById('error-message');
             
@@ -98,9 +166,7 @@
                 loginForm.insertBefore(infoMessage, loginForm.firstChild);
             }
             
-            // Test login with admin
-            console.log('You can use admin/admin123 for testing if normal login fails');
-            
+            // Add event listener for login form submission
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -116,14 +182,20 @@
                     return;
                 }
                 
+                addDebugInfo(`Login attempt for user: ${username}`);
+                
                 try {
-                    // Check if login function is available
-                    if (typeof login !== 'function') {
+                    // Check if authFunctions is available
+                    if (typeof window.authFunctions !== 'object' || typeof window.authFunctions.login !== 'function') {
                         console.error('Login function not available!');
+                        addDebugInfo('Auth functions not available - using fallback');
+                        
                         // Alternative option: direct login as admin for testing
                         if (username === 'admin' && password === 'admin123') {
+                            addDebugInfo('Using fallback admin login');
                             localStorage.setItem('currentUser', 'admin');
                             localStorage.setItem('isAdmin', 'true');
+                            localStorage.setItem('userId', '1');
                             
                             // Handle redirect if exists
                             if (redirectUrl) {
@@ -133,21 +205,33 @@
                             }
                             return;
                         }
-                        showError('Error in the login system. Please try again later.');
+                        
+                        showError('Login system unavailable. Please try again later or contact support.');
                         return;
                     }
                     
-                    // Try to login - the redirect will be handled in the login function
-                    const result = await login(username, password);
-                    console.log('Login result:', result);
+                    // Try to login using the authFunctions
+                    addDebugInfo('Sending login request...');
+                    const result = await window.authFunctions.login(username, password);
+                    addDebugInfo(`Login result: ${JSON.stringify(result)}`);
                     
-                    if (!result.success) {
+                    if (result.error) {
                         // Login failed
+                        addDebugInfo(`Login failed: ${result.error}`);
                         showError(result.error || 'Incorrect username or password');
+                    } else {
+                        // Login successful, redirect
+                        addDebugInfo('Login successful, redirecting...');
+                        if (redirectUrl) {
+                            window.location.href = redirectUrl;
+                        } else {
+                            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                            window.location.href = isAdmin ? 'admin.html' : 'index.html';
+                        }
                     }
-                    // No need for success case as the login function handles the redirect
                 } catch (error) {
                     console.error('Error during login:', error);
+                    addDebugInfo(`Login error: ${error.message}`);
                     showError('An error occurred during login: ' + (error.message || 'Unknown error'));
                 }
             });
@@ -155,6 +239,7 @@
             function showError(message) {
                 errorMessage.textContent = message;
                 errorMessage.style.display = 'block';
+                addDebugInfo(`Error displayed: ${message}`);
             }
         });
     </script>

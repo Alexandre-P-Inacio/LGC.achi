@@ -14,16 +14,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
     <!-- PDF.js for PDF processing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script>
-        // Initialize the Supabase client correctly
-        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
-        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Supabase client initialized in admin.html');
-    </script>
-    <script src="auth.js" defer></script>
-    <script src="admin.js" defer></script>
+    <script src="auth.js"></script>
+    <script src="new-admin.js"></script>
     <style>
         :root {
             --primary-color: #333;
