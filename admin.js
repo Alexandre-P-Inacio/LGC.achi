@@ -3114,3 +3114,141 @@ if (!document.getElementById('users-table-no-scroll')) {
     `;
     document.head.appendChild(style);
 }
+
+// Adicionar CSS para centralizar e ajustar o modal de visualização de arquivos
+if (!document.getElementById('file-viewer-modal-center-style')) {
+    const style = document.createElement('style');
+    style.id = 'file-viewer-modal-center-style';
+    style.innerHTML = `
+      #file-viewer-modal {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        position: fixed;
+        z-index: 9999;
+        background: rgba(0,0,0,0.7);
+      }
+      #file-viewer-modal .modal-content,
+      #file-viewer-modal .pdf-preview,
+      #file-viewer-modal iframe,
+      #file-viewer-modal img,
+      #flipbook, #flipbook-pages {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100vw;
+        max-height: 90vh;
+        object-fit: contain;
+      }
+    `;
+    document.head.appendChild(style);
+}
+
+// Função global para fechar o modal de visualização de arquivos
+window.closeFileViewerModal = function() {
+  const modal = document.getElementById('file-viewer-modal');
+  if (modal) modal.style.display = 'none';
+}
+// Garantir que o botão de fechar chama closeFileViewerModal
+setTimeout(() => {
+  const closeBtn = document.querySelector('#file-viewer-modal .close-modal');
+  if (closeBtn) closeBtn.setAttribute('onclick', 'closeFileViewerModal()');
+}, 500);
+// CSS para modal centralizado e responsivo
+if (!document.getElementById('file-viewer-modal-fix-style')) {
+    const style = document.createElement('style');
+    style.id = 'file-viewer-modal-fix-style';
+    style.innerHTML = `
+      #file-viewer-modal {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        position: fixed;
+        z-index: 9999;
+        background: rgba(0,0,0,0.7);
+      }
+      #file-viewer-modal .modal-content {
+        background: #fff;
+        border-radius: 12px;
+        max-width: 90vw;
+        max-height: 90vh;
+        width: 100%;
+        box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+      }
+      #file-viewer-modal iframe,
+      #file-viewer-modal img,
+      #flipbook, #flipbook-pages {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+        max-height: 70vh;
+        object-fit: contain;
+      }
+    `;
+    document.head.appendChild(style);
+}
+
+// Remover CSS e JS de centralização forçada do modal e função de fechar automática
+var oldModalStyle = document.getElementById('file-viewer-modal-center-style');
+if (oldModalStyle) oldModalStyle.remove();
+var fixModalStyle = document.getElementById('file-viewer-modal-fix-style');
+if (fixModalStyle) fixModalStyle.remove();
+// Remover função global de fechar modal se existir
+if (window.closeFileViewerModal) delete window.closeFileViewerModal;
+// Adicionar apenas CSS para centralizar o conteúdo do preview
+if (!document.getElementById('file-viewer-preview-center-style')) {
+    const style = document.createElement('style');
+    style.id = 'file-viewer-preview-center-style';
+    style.innerHTML = `
+      #file-viewer-modal iframe,
+      #file-viewer-modal img,
+      #flipbook, #flipbook-pages {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+      }
+    `;
+    document.head.appendChild(style);
+}
+
+// Modificar showFileInModal para esconder o hamburguer ao abrir o modal
+const originalShowFileInModal = window.showFileInModal;
+window.showFileInModal = function(fileUrl, fileName) {
+  var hamburger = document.getElementById('admin-hamburger');
+  if (hamburger) hamburger.style.display = 'none';
+  if (typeof originalShowFileInModal === 'function') {
+    originalShowFileInModal.apply(this, arguments);
+  }
+}
+// Modificar função de fechar o modal para mostrar o hamburguer novamente
+function showFileViewerHamburger() {
+  var hamburger = document.getElementById('admin-hamburger');
+  if (hamburger) hamburger.style.display = '';
+}
+// Detecta fechamento do modal por botão de fechar
+const closeBtn = document.querySelector('#file-viewer-modal .close-modal');
+if (closeBtn) {
+  closeBtn.addEventListener('click', showFileViewerHamburger);
+}
+// Detecta fechamento do modal por clique fora (opcional)
+const fileViewerModal = document.getElementById('file-viewer-modal');
+if (fileViewerModal) {
+  fileViewerModal.addEventListener('click', function(e) {
+    if (e.target === fileViewerModal) showFileViewerHamburger();
+  });
+}
