@@ -396,7 +396,7 @@ function updateProjectsTable(projects) {
     const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
 
     const isMobile = window.innerWidth <= 700;
-
+        
     projects.forEach(project => {
         const row = document.createElement('tr');
         row.setAttribute('data-project-id', project.id);
@@ -459,7 +459,7 @@ function updateProjectsTable(projects) {
                                 <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\"><i class=\"fas fa-trash-alt\"></i></button>
                                 <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\"><i class=\"fas fa-share-alt\"></i></button>
                                 <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i></button>
-                            </div>
+                </div>
                         </div>
                         <div class=\"project-details-mobile\" style=\"display:none; margin-top:10px;\">
                             <div><b>Category:</b> <span class=\"category-badge\">${categoryDisplay}</span></div>
@@ -474,12 +474,12 @@ function updateProjectsTable(projects) {
                 `;
             } else {
                 // DESKTOP: tabela tradicional
-                row.innerHTML = `
+            row.innerHTML = `
                     <td style=\"width: 20%;\">
                         <div style=\"display: flex; align-items: center; gap: 8px;\">
                             <span style=\"font-weight: 500;\">${project.name || 'Unnamed Project'}</span>
                         </div>
-                    </td>
+                </td>
                     <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
                     <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
                     <td style=\"width: 8%;\">${fileInfo.type}</td>
@@ -491,19 +491,19 @@ function updateProjectsTable(projects) {
                         <div class=\"action-buttons\">
                             <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\">
                                 <i class=\"fas fa-edit\"></i>
-                            </button>
+                        </button>
                             <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
                                 <i class=\"fas fa-trash-alt\"></i>
-                            </button>
+                        </button>
                             <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\">
                                 <i class=\"fas fa-share-alt\"></i>
                             </button>
                             <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
                                 <i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
+                        </button>
+                    </div>
+                </td>
+            `;
             }
         } catch (e) {
             console.error('Error creating row for project:', e, project);
@@ -514,7 +514,7 @@ function updateProjectsTable(projects) {
         
         projectsContainer.appendChild(row);
     });
-
+    
     // Dropdown menu logic (mobile)
     if (!window.__menuDropdownInjected) {
         window.__menuDropdownInjected = true;
@@ -523,9 +523,9 @@ function updateProjectsTable(projects) {
                 const dropdown = menu.querySelector('.menu-dropdown');
                 if (dropdown && !menu.contains(e.target)) {
                     dropdown.style.display = 'none';
-                }
-            });
+            }
         });
+    });
         window.toggleMenu = function(btn) {
             const menu = btn.parentElement;
             const dropdown = menu.querySelector('.menu-dropdown');
@@ -2404,7 +2404,7 @@ function updateUsersTable(users) {
             // Nome e 3 pontinhos juntos na primeira célula
             row.innerHTML = `
                 <td style="position: relative;">
-                    <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
+                        <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
                     <div class="card-menu mobile-actions" style="position: absolute; top: 50%; right: -150px; transform: translateY(-50%); display: none;">
                         <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
                             <i class="fas fa-ellipsis-h"></i>
@@ -3350,3 +3350,73 @@ if (fileViewerModal) {
     if (e.target === fileViewerModal) showFileViewerHamburger();
   });
 }
+
+// CSS SIMPLES PARA CENTRALIZAR BOTÕES NO POP-UP
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* CENTRALIZAR BOTÕES NO POP-UP */
+    .menu-dropdown {
+      text-align: center !important;
+    }
+    
+    .menu-dropdown button {
+      margin-left: auto !important;
+      margin-right: auto !important;
+      float: none !important;
+      display: block !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// CSS PARA CENTRALIZAR OS ÍCONES DENTRO DOS BOTÕES
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* CENTRALIZAR ÍCONES DENTRO DOS BOTÕES */
+    .menu-dropdown button {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .menu-dropdown button i,
+    .menu-dropdown button svg,
+    .menu-dropdown button img {
+      display: block !important;
+      margin: 0 auto !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// CSS PARA ALINHAR CATEGORIAS E STATUS
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* ALINHAR CATEGORIA E STATUS */
+    .project-details div,
+    .project-details-mobile div {
+      display: flex !important;
+      align-items: center !important;
+      margin-bottom: 5px !important;
+    }
+    
+    .project-details b,
+    .project-details-mobile b {
+      margin-right: 5px !important;
+      min-width: 80px !important;
+      display: inline-block !important;
+    }
+    
+    .category-badge,
+    .status-badge {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
