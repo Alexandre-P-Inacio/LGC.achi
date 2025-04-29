@@ -2410,9 +2410,9 @@ function updateUsersTable(users) {
                         <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
-                        <div class="menu-dropdown" style="display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;">
-                            <button class="action-button edit-button" onclick="showUserModal('${user.id}')" title="Edit" style="width: 44px; height: 44px; border-radius: 10px;"><i class="fas fa-edit" style="color: #fff; font-size: 1.25em;"></i></button>
-                            <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="Delete" style="width: 44px; height: 44px; border-radius: 10px;"><i class="fas fa-trash-alt" style="color: #fff; font-size: 1.25em;"></i></button>
+                        <div class="menu-dropdown" style="display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 100%; z-index: 1000; padding: 10px 12px; flex-direction: column; gap: 10px; align-items: center; justify-content: center;">
+                            <button class="action-button edit-button" onclick="showUserModal('${user.id}')" title="Edit" style="width: 44px; height: 44px; border-radius: 10px; margin: 0;"><i class="fas fa-edit" style="color: #fff; font-size: 1.25em;"></i></button>
+                            <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="Delete" style="width: 44px; height: 44px; border-radius: 10px; margin: 0;"><i class="fas fa-trash-alt" style="color: #fff; font-size: 1.25em;"></i></button>
                         </div>
                     </div>
                 </td>
