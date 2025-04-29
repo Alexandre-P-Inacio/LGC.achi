@@ -50,28 +50,36 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 80px;
-            height: 80px;
-            background-color: #333;
+            width: 60px;
+            height: 60px;
+            background-color: #0a66c2;
             color: white;
             border-radius: 50%;
             display: flex;
-            align-items: center;
             justify-content: center;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            z-index: 1000;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 99;
             transition: all 0.3s ease;
         }
         
         .fixed-chat-button:hover {
-            background-color: #000000c9;
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transform: scale(1.05);
+            background-color: #094d8f;
         }
         
         .fixed-chat-button i {
-            font-size: 32px;
+            font-size: 24px;
+        }
+        
+        .fixed-chat-button {
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            position: relative;
+        }
+        
+        .fixed-chat-button i {
+            transform: scale(1);
+            transition: transform 0.3s ease;
         }
         
         @media (max-width: 768px) {
@@ -396,10 +404,20 @@
                 right: 5px;
             }
         }
+        
+        /* Hide navigation arrows on smaller screens like iPhone */
+        @media (max-width: 480px) {
+            .scroll-btn {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <header>   <script src="navigation.js"></script>    </header>
+    <header>
+        <!-- Navigation will be inserted by navigation.js -->
+    </header>
+    <script src="navigation.js"></script>
     <main>
         <section id="hero">
             <div class="hero-slideshow" id="hero-slideshow">
@@ -564,12 +582,6 @@
         </div>
     </div>
 
-    <!-- Fixed Chat Button -->
-    <a href="chat.html" class="fixed-chat-button">
-        <i class="fas fa-comments"></i>
-        <span class="chat-notification-indicator" id="fixed-chat-notification"></span>
-    </a>
-
     <footer>
         <div class="footer-content">
             <div class="social-links">
@@ -651,8 +663,7 @@
             // Load featured projects
             loadFeaturedProjects();
             
-            // Check for chat notifications
-            checkChatNotifications();
+            
         });
         
         // Function to check for unread notifications and show the indicator
@@ -1370,6 +1381,13 @@
                         $(flipbook).turn("destroy");
                         flipbook.innerHTML = '';
                     }
+                    
+                    // Remove resize event handler if it exists
+                    const flipContainer = document.getElementById('flipbook-pages');
+                    if (flipContainer && flipContainer.resizeHandler) {
+                        window.removeEventListener('resize', flipContainer.resizeHandler);
+                        delete flipContainer.resizeHandler;
+                    }
                 }, 300); // Match this with the animation duration
             });
             
@@ -1388,6 +1406,13 @@
                         if (flipbook && $(flipbook).turn("is")) {
                             $(flipbook).turn("destroy");
                             flipbook.innerHTML = '';
+                        }
+                        
+                        // Remove resize event handler if it exists
+                        const flipContainer = document.getElementById('flipbook-pages');
+                        if (flipContainer && flipContainer.resizeHandler) {
+                            window.removeEventListener('resize', flipContainer.resizeHandler);
+                            delete flipContainer.resizeHandler;
                         }
                     }, 300); // Match this with the animation duration
                 }
@@ -1608,9 +1633,16 @@
                         // Initialize the flipbook with explicit numeric dimensions
                         setTimeout(() => {
                             try {
+                                // Get container dimensions
+                                const container = document.getElementById('file-viewer-container');
+                                const containerWidth = container.clientWidth * 0.95;
+                                const containerHeight = Math.min(700, container.clientHeight * 0.95);
+                                
+                                const isMobile = window.innerWidth <= 768;
+                                
                                 $(flipContainer).turn({
-                                    width: 680,
-                                    height: 530,
+                                    width: isMobile ? containerWidth : 820,
+                                    height: isMobile ? containerHeight : 650,
                                     autoCenter: true,
                                     display: 'single',
                                     duration: 600,
@@ -1618,8 +1650,8 @@
                                     gradients: true,
                                     elevation: 50,
                                     page: 1,
-                                    padding: 10,
-                                    margin: 10,
+                                    padding: isMobile ? 5 : 10,
+                                    margin: isMobile ? 5 : 10,
                                     when: {
                                         turning: function(event, page, view) {
                                             // Load current page with high quality
@@ -1659,6 +1691,29 @@
                                     return false;
                                 });
                                 
+                                // Add resize handler for better responsiveness
+                                const resizeHandler = function() {
+                                    try {
+                                        if ($(flipContainer).data().turn) {
+                                            const container = document.getElementById('file-viewer-container');
+                                            const containerWidth = container.clientWidth * 0.95;
+                                            const containerHeight = Math.min(700, container.clientHeight * 0.95);
+                                            const isMobile = window.innerWidth <= 768;
+                                            
+                                            $(flipContainer).turn('size', 
+                                                isMobile ? containerWidth : 820, 
+                                                isMobile ? containerHeight : 650);
+                                        }
+                                    } catch (e) {
+                                        console.error('Error resizing flipbook:', e);
+                                    }
+                                };
+                                
+                                window.addEventListener('resize', resizeHandler);
+                                
+                                // Store the resize handler reference to remove it when modal is closed
+                                flipContainer.resizeHandler = resizeHandler;
+                                
                                 // Hide loading indicator
                                 fileLoading.style.display = 'none';
                                 flipbook.style.display = 'block';
@@ -1681,13 +1736,16 @@
                                 
                                 // Get the viewport at scale 1.0
                                 const viewport = page.getViewport({scale: 1.0});
-                                const containerWidth = 650;
-                                const containerHeight = 500;
+                                const isMobile = window.innerWidth <= 768;
+                                
+                                // Adjust container dimensions for mobile
+                                const containerWidth = isMobile ? 400 : 800;
+                                const containerHeight = isMobile ? 550 : 700;
                                 
                                 // Calculate scale to fit entirely within container
                                 const scaleX = (containerWidth - 2) / viewport.width;
                                 const scaleY = (containerHeight - 2) / viewport.height;
-                                let scale = Math.min(scaleX, scaleY) * 1;
+                                let scale = Math.min(scaleX, scaleY) * 0.95;
                                 
                                 // Account for device pixel ratio for higher resolution
                                 const pixelRatio = window.devicePixelRatio || 1;
@@ -1901,7 +1959,7 @@
         }
         
         .modal-body {
-            min-height: 500px;
+            min-height: 600px;
             padding: 0;
             overflow: auto;
             flex: 1;
@@ -1910,23 +1968,22 @@
         }
         
         #file-viewer-container {
-            min-height: 500px;
+            width: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            overflow: visible;
-            padding: 20px;
-            box-sizing: border-box;
             position: relative;
+            overflow: visible;
+            padding: 10px;
+            box-sizing: border-box;
+            min-height: 650px;
         }
         
         #file-iframe {
             border: none;
             width: 100%;
             height: 100%;
-            min-height: 500px;
+            min-height: 650px;
         }
         
         #file-image {
@@ -1952,8 +2009,8 @@
             flex: 1;
             width: 100%;
             position: relative;
-            padding: 20px 0;
-            min-height: 500px;
+            padding: 10px 0;
+            min-height: 650px;
             max-width: 100%;
             margin: 0 auto;
             overflow: visible;
@@ -2122,26 +2179,102 @@
         /* Responsive styling for modal */
         @media (max-width: 992px) {
             .modal-content {
-                width: 75%;
+                width: 90%;
                 max-width: none;
+                height: 90vh;
             }
         }
         
         @media (max-width: 768px) {
             .modal-content {
                 width: 100%;
+                height: 100vh;
                 max-width: none;
+                max-height: 100vh;
+                border-radius: 0;
+                margin: 0;
             }
             
             #file-viewer-container {
                 min-height: auto;
+                padding: 10px;
             }
             
             .flipbook-nav button {
                 width: 36px;
                 height: 36px;
             }
+            
+            #flipbook-wrapper {
+                min-height: auto;
+                padding: 10px 0;
+            }
+            
+            #flipbook .page, #flipbook-pages .page {
+                padding: 5px;
+            }
+            
+            .file-info-bar {
+                padding: 8px 10px;
+            }
+            
+            .modal-header {
+                padding: 8px 10px;
+            }
+            
+            .file-actions {
+                padding: 8px 10px;
+            }
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            #file-viewer-modal {
+                padding: 0;
+            }
+            
+            .modal-content {
+                animation: slideUpMobile 0.3s forwards;
+                transform: translateY(100%);
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-width: 100%;
+                height: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            @keyframes slideUpMobile {
+                to { transform: translateY(0); }
+            }
+            
+            .modal.closing .modal-content {
+                animation: slideDownMobile 0.3s forwards;
+            }
+            
+            @keyframes slideDownMobile {
+                from { transform: translateY(0); }
+                to { transform: translateY(100%); }
+            }
+            
+            #flipbook .page, #flipbook-pages .page {
+                padding: 5px;
+            }
+            
+            .file-action-button {
+                padding: 5px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .flipbook-nav button {
+                transform: scale(0.9);
+            }
         }
     </style>
 </body>
 </html>
+
+

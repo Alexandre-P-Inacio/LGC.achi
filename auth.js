@@ -239,9 +239,9 @@ async function updateUserInterface(username) {
             let userMenu = '';
             
             if (data && data.is_admin) {
-                userMenu = `<span>Hello, ${username}</span> | <a href="admin.html">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+                userMenu = `<span>Hello, ${username}</span><a href="admin.html">Admin Dashboard</a><a href="#" id="logout-link">Logout</a>`;
             } else {
-                userMenu = `<span>Hello, ${username}</span> | <a href="#client-dashboard" id="nav-dashboard" onclick="showDashboard(); return false;">My Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+                userMenu = `<span>Hello, ${username}</span><a href="#client-dashboard" id="nav-dashboard" onclick="showDashboard(); return false;">My Dashboard</a><a href="#" id="logout-link">Logout</a>`;
             }
             
             // Set element content
