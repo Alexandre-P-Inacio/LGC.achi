@@ -38,15 +38,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.insertAdjacentHTML('afterbegin', navHTML);
     }
  
-    // Mark the active link in navigation based on current URL
+    // Set current page link as active
     const currentPage = window.location.pathname.split('/').pop();
-   
-    // Remove the 'active' class from all links
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.classList.remove('active');
-    });
-   
-    // Add the 'active' class to the link corresponding to the current page
+    
+    // Highlight active navigation link based on current page
     if (currentPage === '' || currentPage === 'index.html') {
         document.getElementById('nav-home')?.classList.add('active');
         
@@ -61,8 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('nav-contact')?.classList.add('active');
     } else if (currentPage.includes('about')) {
         document.getElementById('nav-about')?.classList.add('active');
-    } else if (currentPage === 'chat.html') {
-        document.getElementById('nav-chat')?.classList.add('active');
     }
  
     // Check if user is logged in (integration with existing authentication system)
@@ -87,47 +80,57 @@ document.addEventListener('DOMContentLoaded', function() {
             userElement.id = 'user-display';
             userElement.className = 'user-display';
             
-            // Different menu options based on user role
-            let userMenu = '';
+            // Add the user greeting directly
+            const userGreeting = document.createElement('span');
+            userGreeting.textContent = `Hello, ${currentUser}`;
+            userElement.appendChild(userGreeting);
             
-            // Force admin menu if username is 'admin'
+            // Admin Dashboard link
             if (isAdmin || currentUser === 'admin') {
-                console.log('Building admin menu');
                 localStorage.setItem('isAdmin', 'true'); // Ensure the flag is properly set
-                userMenu = `
-                    <div class="user-greeting"><span>Hello, ${currentUser}</span></div>
-                    <div class="user-nav-links">
-                        <a href="admin.html" class="admin-link">Admin Dashboard</a>
-                    </div>
-                    <a href="#" id="logout-link" class="logout-link">Logout</a>
-                `;
+                console.log('Building admin menu');
+                
+                const adminLink = document.createElement('a');
+                adminLink.href = 'admin.html';
+                adminLink.className = 'admin-link';
+                adminLink.textContent = 'Admin Dashboard';
+                userElement.appendChild(adminLink);
             } else {
                 console.log('Building regular user menu');
-                userMenu = `
-                    <div class="user-greeting"><span>Hello, ${currentUser}</span></div>
-                    <div class="user-nav-links">
-                        <a href="#client-dashboard" id="nav-dashboard" class="dashboard-link" onclick="showDashboard(); return false;">My Dashboard</a>
-                    </div>
-                    <a href="#" id="logout-link" class="logout-link">Logout</a>
-                `;
+                
+                const dashboardLink = document.createElement('a');
+                dashboardLink.href = '#client-dashboard';
+                dashboardLink.id = 'nav-dashboard';
+                dashboardLink.className = 'admin-link'; // Use the same styling as admin link
+                dashboardLink.textContent = 'My Dashboard';
+                dashboardLink.onclick = function(e) {
+                    e.preventDefault();
+                    if (typeof showDashboard === 'function') {
+                        showDashboard();
+                    }
+                    return false;
+                };
+                userElement.appendChild(dashboardLink);
             }
             
-            userElement.innerHTML = userMenu;
+            // Logout link (always present)
+            const logoutLink = document.createElement('a');
+            logoutLink.href = '#';
+            logoutLink.id = 'logout-link';
+            logoutLink.className = 'logout-link';
+            logoutLink.textContent = 'Logout';
+            userElement.appendChild(logoutLink);
+            
+            // Append the complete user menu
             navLinks.appendChild(userElement);
-           
+            
             // Add logout event
-            document.getElementById('logout-link').addEventListener('click', function(e) {
+            logoutLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 localStorage.removeItem('currentUser');
                 localStorage.removeItem('isAdmin');
                 window.location.reload();
             });
-            
-            // Check for unread messages
-            checkUnreadMessages();
-            
-            // Set up periodic check for unread messages
-            setInterval(checkUnreadMessages, 30000); // Check every 30 seconds
         }
     }
     
@@ -162,109 +165,46 @@ document.addEventListener('DOMContentLoaded', function() {
     const backdrop = document.querySelector('.menu-backdrop');
     
     if (hamburger) {
-        hamburger.addEventListener('click', function() {
-            hamburger.classList.toggle('active');
-            navLinks.classList.toggle('active');
-            backdrop.classList.toggle('active');
-            
-            // Disable body scroll when menu is open
-            if (navLinks.classList.contains('active')) {
+        // Ensure consistent hamburger menu styling across all pages
+        const setHamburgerState = (isActive) => {
+            if (isActive) {
+                hamburger.classList.add('active');
+                navLinks.classList.add('active');
+                backdrop.classList.add('active');
                 document.body.style.overflow = 'hidden';
             } else {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+                backdrop.classList.remove('active');
                 document.body.style.overflow = '';
             }
+        };
+        
+        hamburger.addEventListener('click', function() {
+            const isActive = !navLinks.classList.contains('active');
+            setHamburgerState(isActive);
         });
         
         // Close mobile menu when a link is clicked
         document.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', function() {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-                backdrop.classList.remove('active');
-                document.body.style.overflow = '';
+                setHamburgerState(false);
             });
         });
         
         // Close menu when clicking on backdrop
         backdrop.addEventListener('click', function() {
-            hamburger.classList.remove('active');
-            navLinks.classList.remove('active');
-            backdrop.classList.remove('active');
-            document.body.style.overflow = '';
+            setHamburgerState(false);
         });
         
         // Close menu on escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && navLinks.classList.contains('active')) {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-                backdrop.classList.remove('active');
-                document.body.style.overflow = '';
+                setHamburgerState(false);
             }
         });
     }
 });
-
-// Function to check for unread messages
-async function checkUnreadMessages() {
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) return;
-    
-    try {
-        // Check if Supabase is available as a global object
-        if (!window.supabase && typeof supabase !== 'undefined') {
-            window.supabase = supabase;
-        }
-        
-        // Initialize Supabase client if not already available
-        if (!window.supabaseClient) {
-            const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
-            
-            try {
-                // Check if the createClient function is available
-                if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
-                    window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-                } else {
-                    return;
-                }
-            } catch (e) {
-                return;
-            }
-        }
-        
-        // Use the properly initialized client
-        const client = window.supabaseClient;
-        if (!client || typeof client.from !== 'function') {
-            return;
-        }
-        
-        // Check for unread chat messages
-        const { data, error, count } = await client
-            .from('chat_messages')
-            .select('*', { count: 'exact' })
-            .eq('receiver', currentUser)
-            .eq('read', false);
-            
-        if (error) {
-            return;
-        }
-        
-        // Get the notification dot element for the fixed chat button
-        const notificationDot = document.getElementById('fixed-chat-notification');
-        if (!notificationDot) return;
-        
-        // Show or hide the notification dot based on unread messages
-        if (data && data.length > 0) {
-            notificationDot.style.display = 'block';
-            notificationDot.setAttribute('data-count', data.length);
-        } else {
-            notificationDot.style.display = 'none';
-        }
-        
-    } catch (e) {
-    }
-}
 
 // Debug helper function to set admin status
 window.setAdminStatus = function(isAdmin) {

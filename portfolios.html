@@ -28,24 +28,11 @@
         });
     </script>
     
-    <!-- Load Supabase first -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script>
-        // Make Supabase globally accessible
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Checking supabase:', typeof supabase);
-            if (typeof supabase !== 'undefined') {
-                window.supabase = supabase;
-                console.log('Supabase made globally available');
-            }
-        });
-    </script>
-    
-    <!-- Load other scripts -->
+    <!-- Load scripts -->
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
     <script src="navigation.js"></script>
-    <script src="client-dashboard.js" defer></script>
+    <script src="new-client-dashboard.js" defer></script>
 </head>
 <body>
     <header>
