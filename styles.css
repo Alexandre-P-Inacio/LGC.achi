@@ -582,9 +582,21 @@ nav {
 }
 
 .about-content {
-    max-width: 800px;
+    max-width: 950px;
     margin: 0 auto;
     text-align: center;
+}
+
+.about-text {
+    text-align: center;
+    line-height: 1.6;
+    margin-top: 30px;
+}
+
+.about-text p {
+    margin-bottom: 15px;
+    font-size: 1.05rem;
+    color: #333;
 }
 
 #about h2 {
