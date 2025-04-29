@@ -7,10 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentUser = localStorage.getItem('currentUser');
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
         
-        // If user is admin, show a notification
-        if (isAdmin) {
-            showNotification('You are viewing this page as an admin. Clients will only see their relevant projects.', 'info');
-        }
+        // Admin notification has been removed
         
         // Check if URL hash indicates dashboard should be shown (e.g., after login redirect)
         if (window.location.hash === '#client-dashboard' && currentUser) {
