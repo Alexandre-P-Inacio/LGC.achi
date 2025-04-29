@@ -14,8 +14,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
     <!-- PDF.js for PDF processing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <script src="auth.js"></script>
-    <script src="new-admin.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize the Supabase client correctly
+        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase client initialized in admin.html');
+    </script>
+    <script src="auth.js" defer></script>
+    <script src="admin.js" defer></script>
     <style>
         :root {
             --primary-color: #333;
@@ -1086,6 +1094,29 @@
         .projects-table thead th:nth-child(3) {
             text-align: right;
         }
+
+        .projects-table td:nth-child(3), .projects-table th:nth-child(3) {
+            text-align: center;
+        }
+
+        .projects-table th { text-align: center; }
+        .projects-table th:first-child, .projects-table td:first-child { text-align: left; }
+        .projects-table td:nth-child(2), .projects-table th:nth-child(2),
+        .projects-table td:nth-child(3), .projects-table th:nth-child(3),
+        .projects-table td:nth-child(4), .projects-table th:nth-child(4),
+        .projects-table td:nth-child(5), .projects-table th:nth-child(5),
+        .projects-table td:nth-child(6), .projects-table th:nth-child(6),
+        .projects-table td:nth-child(7), .projects-table th:nth-child(7) {
+            text-align: center;
+        }
+
+        .projects-table-container {
+            padding-right: 40px !important;
+            overflow-x: auto !important;
+        }
+        .projects-table td:last-child, .projects-table th:last-child {
+            padding-right: 32px !important;
+        }
     </style>
 </head>
 <body onload="checkAdminAccess(); updateStats(); loadProjects(); loadUsers();">
@@ -1179,13 +1210,13 @@
                 <table class="projects-table">
                     <thead>
                         <tr>
-                            <th>Project Name</th>
-                            <th>Category</th>
-                            <th>Created</th>
-                            <th>File</th>
-                            <th>Status</th>
-                            <th>Type</th>
-                            <th>Actions</th>
+                            <th style="text-align: left;">Project Name</th>
+                            <th style="text-align: center;">Category</th>
+                            <th style="text-align: center;">Status</th>
+                            <th style="text-align: center;">Type</th>
+                            <th style="text-align: center;">File</th>
+                            <th style="text-align: center;">Created</th>
+                            <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="projects-container">
