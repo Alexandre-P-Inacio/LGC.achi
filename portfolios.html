@@ -1037,8 +1037,8 @@
                             // Set card background color based on category
                             const bgColor = getCategoryColor(project.category);
                             
-                            // Add shared badge for projects
-                            const sharedBadge = '<span class="shared-badge"><i class="fas fa-users"></i> Shared with you</span>';
+                            // Add shared badge for projects - only for regular users, not admins
+                            const sharedBadge = !isAdmin ? '<span class="shared-badge"><i class="fas fa-users"></i> Shared with you</span>' : '';
                             
                             // Determine the image source
                             let imageElement = '';
