@@ -1094,6 +1094,29 @@
         .projects-table thead th:nth-child(3) {
             text-align: right;
         }
+
+        .projects-table td:nth-child(3), .projects-table th:nth-child(3) {
+            text-align: center;
+        }
+
+        .projects-table th { text-align: center; }
+        .projects-table th:first-child, .projects-table td:first-child { text-align: left; }
+        .projects-table td:nth-child(2), .projects-table th:nth-child(2),
+        .projects-table td:nth-child(3), .projects-table th:nth-child(3),
+        .projects-table td:nth-child(4), .projects-table th:nth-child(4),
+        .projects-table td:nth-child(5), .projects-table th:nth-child(5),
+        .projects-table td:nth-child(6), .projects-table th:nth-child(6),
+        .projects-table td:nth-child(7), .projects-table th:nth-child(7) {
+            text-align: center;
+        }
+
+        .projects-table-container {
+            padding-right: 40px !important;
+            overflow-x: auto !important;
+        }
+        .projects-table td:last-child, .projects-table th:last-child {
+            padding-right: 32px !important;
+        }
     </style>
 </head>
 <body onload="checkAdminAccess(); updateStats(); loadProjects(); loadUsers();">
@@ -1187,13 +1210,13 @@
                 <table class="projects-table">
                     <thead>
                         <tr>
-                            <th>Project Name</th>
-                            <th>Category</th>
-                            <th>Created</th>
-                            <th>File</th>
-                            <th>Status</th>
-                            <th>Type</th>
-                            <th>Actions</th>
+                            <th style="text-align: left;">Project Name</th>
+                            <th style="text-align: center;">Category</th>
+                            <th style="text-align: center;">Status</th>
+                            <th style="text-align: center;">Type</th>
+                            <th style="text-align: center;">File</th>
+                            <th style="text-align: center;">Created</th>
+                            <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="projects-container">

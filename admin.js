@@ -373,7 +373,6 @@ function updateProjectsTable(projects) {
     console.log('Updating projects table with:', projects);
     const projectsContainer = document.getElementById('projects-container');
     
-    // Make sure the container exists
     if (!projectsContainer) {
         console.error('Projects container element not found!');
         return;
@@ -384,35 +383,27 @@ function updateProjectsTable(projects) {
     if (!projects || projects.length === 0) {
         projectsContainer.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; padding: 2rem;">
-                    <p>No projects found. Add your first project by clicking the "Add New Project" button above.</p>
+                <td colspan="7" style="text-align: center; padding: 2rem;">
+                    <p>No projects found. Add your first project by clicking the \"Add New Project\" button above.</p>
                 </td>
             </tr>
         `;
         return;
     }
 
-    // Determine what column is used for status
     const firstProject = projects[0];
     const possibleStatusColumns = ['status', 'project_status', 'estado', 'state'];
     const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
-    console.log(`Table renderer using status column: "${statusColumn}"`);
 
     projects.forEach(project => {
-        console.log('Processing project:', project);
-        
-        // Create a simple version of the row first to ensure it works
         const row = document.createElement('tr');
-        // Add data attribute for project ID for easier reference
         row.setAttribute('data-project-id', project.id);
         
         try {
-            // Format the date
             const createdDate = project.created_at 
                 ? new Date(project.created_at).toLocaleDateString() 
                 : 'Unknown date';
             
-            // Get file info (safely)
             let fileInfo = { name: 'No file', type: 'Document' };
             if (project.file_url) {
                 try {
@@ -427,29 +418,23 @@ function updateProjectsTable(projects) {
                 }
             }
             
-            // Get the status from the correct column
             const statusValue = project[statusColumn];
-            console.log(`Project ${project.id || project.name} status (${statusColumn}):`, statusValue);
-            
             let statusText, statusClass;
             
-            // Map status values to appropriate text and class
             if (statusValue === 'completed' || statusValue === true || statusValue === 'Completed') {
-                statusText = 'Completed';
+                statusText = 'COMPLETED';
                 statusClass = 'status-completed';
             } else if (statusValue === 'incompleted' || statusValue === false || statusValue === 'Incompleted') {
-                statusText = 'Incompleted';
+                statusText = 'INCOMPLETED';
                 statusClass = 'status-incompleted';
             } else if (statusValue === 'in_progress' || statusValue === null || statusValue === 'In Progress') {
-                statusText = 'In Progress';
+                statusText = 'IN PROGRESS';
                 statusClass = 'status-in-progress';
             } else {
-                // Default fallback
-                statusText = statusValue || 'Unknown';
+                statusText = statusValue || 'UNKNOWN';
                 statusClass = `status-${(statusValue || 'unknown').toLowerCase().replace(/\s+/g, '-')}`;
             }
             
-            // Format category name for display
             let categoryDisplay = 'Uncategorized';
             if (project.category) {
                 categoryDisplay = project.category
@@ -458,82 +443,45 @@ function updateProjectsTable(projects) {
                     .join(' ');
             }
             
-            // Monta o HTML colapsável
             row.innerHTML = `
-              <td colspan="8">
-                <div class="project-title" style="cursor:pointer; font-weight:bold; margin-bottom:8px; display: flex; align-items: center; justify-content: space-between;" onclick="toggleProjectDetails(this)">
-                  <span>
-                    ${project.name || 'Unnamed Project'}
-                    ${project.is_featured ? '<span class=\"feature-tag\" style=\"margin-left:8px;\"><i class=\"fas fa-star\"></i> Featured</span>' : ''}
-                  </span>
-                  <div class=\"card-menu\" style=\"position: relative; display: inline-block;\">
-                    <button class=\"menu-btn\" onclick=\"event.stopPropagation();toggleMenu(this)\" style=\"background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; transition: background 0.15s;\">
-                      <i class=\"fas fa-ellipsis-h\"></i>
-                    </button>
-                    <div class=\"menu-dropdown\" style=\"display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;\">
-                      <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"fas fa-edit\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
-                      <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"fas fa-trash-alt\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
-                      <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"fas fa-share-alt\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
-                      <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\" style=\"width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; background: #232526; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: background 0.18s, transform 0.12s; margin: 0 auto; padding: 0;\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\" style=\"color: #fff; font-size: 1.25em;\"></i></button>
+                <td style=\"width: 20%;\">
+                    <div style=\"display: flex; align-items: center; gap: 8px;\">
+                        <span style=\"font-weight: 500;\">${project.name || 'Unnamed Project'}</span>
                     </div>
-                  </div>
-                </div>
-                <div class="project-details" style="display:none; margin-top:10px;">
-                  <span class="category-badge">${categoryDisplay}</span>
-                  <span class="status-badge ${statusClass}">${statusText}</span>
-                  <div>${fileInfo.type}</div>
-                  <div>${project.file_url 
+                </td>
+                <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
+                <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
+                <td style=\"width: 8%;\">${fileInfo.type}</td>
+                <td style=\"width: 22%;\">${project.file_url 
                     ? `<a href=\"javascript:void(0)\" class=\"file-link\" onclick=\"showFileInModal('${project.file_url}', '${fileInfo.name}')\">${fileInfo.name}</a>` 
-                    : 'No file'}</div>
-                  <div>${createdDate}</div>
-                </div>
-              </td>
+                    : 'No file'}</td>
+                <td style=\"width: 12%;\">${createdDate}</td>
+                <td style=\"width: 12%;\">
+                    <div class=\"action-buttons\">
+                        <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\">
+                            <i class=\"fas fa-edit\"></i>
+                        </button>
+                        <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
+                            <i class=\"fas fa-trash-alt\"></i>
+                        </button>
+                        <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\">
+                            <i class=\"fas fa-share-alt\"></i>
+                        </button>
+                        <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
+                            <i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i>
+                        </button>
+                    </div>
+                </td>
             `;
         } catch (e) {
             console.error('Error creating row for project:', e, project);
             row.innerHTML = `
-                <td colspan=\"8\">
-                    Error displaying project: ${e.message}
-                </td>
+                <td colspan=\"7\">Error displaying project: ${e.message}</td>
             `;
         }
         
         projectsContainer.appendChild(row);
     });
-    
-    // Add event listeners for delete buttons
-    document.querySelectorAll('.delete-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const projectId = this.getAttribute('data-id');
-            if (projectId) {
-                deleteProject(projectId);
-            } else {
-                console.error('Delete button clicked but no project ID found');
-            }
-        });
-    });
-
-    // --- DROPDOWN MENU JS ---
-    // Add dropdown toggle logic (only once)
-    if (!window.__menuDropdownInjected) {
-        window.__menuDropdownInjected = true;
-        document.addEventListener('click', function(e) {
-            document.querySelectorAll('.card-menu').forEach(menu => {
-                const dropdown = menu.querySelector('.menu-dropdown');
-                if (dropdown && !menu.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
-        });
-        window.toggleMenu = function(btn) {
-            const menu = btn.parentElement;
-            const dropdown = menu.querySelector('.menu-dropdown');
-            // Fecha todos os outros
-            document.querySelectorAll('.card-menu .menu-dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
-            // Toggle o atual
-            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
-        }
-    }
 }
 
 // Update pagination controls
@@ -3016,6 +2964,100 @@ document.addEventListener('DOMContentLoaded', function() {
             .filter-select:focus {
                 border-color: #3a7bd5;
                 outline: none;
+            }
+
+            /* Desktop View Fixes */
+            @media (min-width: 701px) {
+                .admin-dashboard {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+
+                .projects-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                }
+
+                .projects-table th,
+                .projects-table td {
+                    padding: 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #e0e0e0;
+                    vertical-align: middle;
+                }
+
+                .projects-table th {
+                    background-color: #f5f5f5;
+                    font-weight: 600;
+                }
+
+                .action-buttons {
+                    display: flex;
+                    gap: 8px;
+                    justify-content: flex-start;
+                }
+
+                .action-button {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 6px;
+                    border: none;
+                    background: #232526;
+                    color: white;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s;
+                }
+
+                .action-button:hover {
+                    background: #2d2d2d;
+                }
+
+                .feature-tag {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    margin-left: 8px;
+                    color: #ffc107;
+                }
+
+                .category-badge,
+                .status-badge {
+                    display: inline-block;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+
+                .status-completed {
+                    background-color: #28a745;
+                    color: white;
+                }
+
+                .status-incompleted {
+                    background-color: #dc3545;
+                    color: white;
+                }
+
+                .status-in-progress {
+                    background-color: #ffc107;
+                    color: #000;
+                }
+
+                .file-link {
+                    color: #3a7bd5;
+                    text-decoration: none;
+                    word-break: break-all;
+                }
+
+                .file-link:hover {
+                    text-decoration: underline;
+                }
             }
         `;
         document.head.appendChild(styleElement);
