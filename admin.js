@@ -395,6 +395,8 @@ function updateProjectsTable(projects) {
     const possibleStatusColumns = ['status', 'project_status', 'estado', 'state'];
     const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
 
+    const isMobile = window.innerWidth <= 700;
+
     projects.forEach(project => {
         const row = document.createElement('tr');
         row.setAttribute('data-project-id', project.id);
@@ -443,36 +445,66 @@ function updateProjectsTable(projects) {
                     .join(' ');
             }
             
-            row.innerHTML = `
-                <td style=\"width: 20%;\">
-                    <div style=\"display: flex; align-items: center; gap: 8px;\">
-                        <span style=\"font-weight: 500;\">${project.name || 'Unnamed Project'}</span>
-                    </div>
-                </td>
-                <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
-                <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
-                <td style=\"width: 8%;\">${fileInfo.type}</td>
-                <td style=\"width: 22%;\">${project.file_url 
-                    ? `<a href=\"javascript:void(0)\" class=\"file-link\" onclick=\"showFileInModal('${project.file_url}', '${fileInfo.name}')\">${fileInfo.name}</a>` 
-                    : 'No file'}</td>
-                <td style=\"width: 12%;\">${createdDate}</td>
-                <td style=\"width: 12%;\">
-                    <div class=\"action-buttons\">
-                        <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\">
-                            <i class=\"fas fa-edit\"></i>
-                        </button>
-                        <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
-                            <i class=\"fas fa-trash-alt\"></i>
-                        </button>
-                        <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\">
-                            <i class=\"fas fa-share-alt\"></i>
-                        </button>
-                        <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
-                            <i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
+            if (isMobile) {
+                // MOBILE: collapsible row with menu button
+                row.innerHTML = `
+                    <td colspan=\"7\" class=\"project-mobile-cell\">
+                        <div class=\"project-title-mobile\" style=\"display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-weight: 500;\" onclick=\"toggleProjectDetails(this)\">
+                            <span>${project.name || 'Unnamed Project'}</span>
+                            <button class=\"menu-btn\" onclick=\"event.stopPropagation();toggleMenu(this)\" style=\"background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%;\">
+                                <i class=\"fas fa-ellipsis-h\"></i>
+                            </button>
+                            <div class=\"menu-dropdown\" style=\"display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;\">
+                                <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\"><i class=\"fas fa-edit\"></i></button>
+                                <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\"><i class=\"fas fa-trash-alt\"></i></button>
+                                <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\"><i class=\"fas fa-share-alt\"></i></button>
+                                <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i></button>
+                            </div>
+                        </div>
+                        <div class=\"project-details-mobile\" style=\"display:none; margin-top:10px;\">
+                            <div><b>Category:</b> <span class=\"category-badge\">${categoryDisplay}</span></div>
+                            <div><b>Status:</b> <span class=\"status-badge ${statusClass}\">${statusText}</span></div>
+                            <div><b>Type:</b> ${fileInfo.type}</div>
+                            <div><b>File:</b> ${project.file_url 
+                                ? `<a href=\"javascript:void(0)\" class=\"file-link\" onclick=\"showFileInModal('${project.file_url}', '${fileInfo.name}')\">${fileInfo.name}</a>` 
+                                : 'No file'}</div>
+                            <div><b>Created:</b> ${createdDate}</div>
+                        </div>
+                    </td>
+                `;
+            } else {
+                // DESKTOP: tabela tradicional
+                row.innerHTML = `
+                    <td style=\"width: 20%;\">
+                        <div style=\"display: flex; align-items: center; gap: 8px;\">
+                            <span style=\"font-weight: 500;\">${project.name || 'Unnamed Project'}</span>
+                        </div>
+                    </td>
+                    <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
+                    <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
+                    <td style=\"width: 8%;\">${fileInfo.type}</td>
+                    <td style=\"width: 22%;\">${project.file_url 
+                        ? `<a href=\"javascript:void(0)\" class=\"file-link\" onclick=\"showFileInModal('${project.file_url}', '${fileInfo.name}')\">${fileInfo.name}</a>` 
+                        : 'No file'}</td>
+                    <td style=\"width: 12%;\">${createdDate}</td>
+                    <td style=\"width: 12%;\">
+                        <div class=\"action-buttons\">
+                            <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\">
+                                <i class=\"fas fa-edit\"></i>
+                            </button>
+                            <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
+                                <i class=\"fas fa-trash-alt\"></i>
+                            </button>
+                            <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\">
+                                <i class=\"fas fa-share-alt\"></i>
+                            </button>
+                            <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
+                                <i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+            }
         } catch (e) {
             console.error('Error creating row for project:', e, project);
             row.innerHTML = `
@@ -482,6 +514,25 @@ function updateProjectsTable(projects) {
         
         projectsContainer.appendChild(row);
     });
+
+    // Dropdown menu logic (mobile)
+    if (!window.__menuDropdownInjected) {
+        window.__menuDropdownInjected = true;
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.card-menu, .project-title-mobile').forEach(menu => {
+                const dropdown = menu.querySelector('.menu-dropdown');
+                if (dropdown && !menu.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        });
+        window.toggleMenu = function(btn) {
+            const menu = btn.parentElement;
+            const dropdown = menu.querySelector('.menu-dropdown');
+            document.querySelectorAll('.card-menu .menu-dropdown, .project-title-mobile .menu-dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
+            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+        }
+    }
 }
 
 // Update pagination controls
@@ -3104,12 +3155,17 @@ async function loadUserData(userId) {
     }
 }
 
-// Função global para expandir/colapsar detalhes do projeto
-function toggleProjectDetails(titleElem) {
-  const details = titleElem.parentElement.querySelector('.project-details');
-  if (details) {
-    details.style.display = (details.style.display === 'none' || details.style.display === '') ? 'block' : 'none';
-  }
+// Função global para expandir/colapsar detalhes do projeto no mobile
+window.toggleProjectDetails = function(titleElem) {
+    // Corrigir para pegar o próximo elemento irmão (detalhes)
+    let details = titleElem.parentElement.querySelector('.project-details-mobile');
+    if (!details) {
+        // fallback: procurar próximo irmão direto
+        details = titleElem.nextElementSibling;
+    }
+    if (details) {
+        details.style.display = (details.style.display === 'none' || details.style.display === '') ? 'block' : 'none';
+    }
 }
 
 // Adicionar CSS responsivo para garantir que mobile-actions aparece só no mobile
