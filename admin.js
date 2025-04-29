@@ -3420,3 +3420,36 @@ if (fileViewerModal) {
   `;
   document.head.appendChild(style);
 })();
+
+// SOLUÇÃO SIMPLES: COLOCAR DROPDOWNS NO BODY
+document.addEventListener('click', function(e) {
+  // Quando um botão de menu é clicado
+  if (e.target.closest('.menu-btn')) {
+    setTimeout(function() {
+      // Encontrar todos os dropdowns visíveis
+      document.querySelectorAll('.menu-dropdown').forEach(function(dropdown) {
+        // Verificar se o dropdown está visível
+        if (dropdown.style.display !== 'none' && getComputedStyle(dropdown).display !== 'none') {
+          // Obter a posição do botão que abriu o dropdown
+          const button = dropdown.previousElementSibling;
+          if (!button) return;
+          
+          const rect = button.getBoundingClientRect();
+          
+          // Mover o dropdown para o body para evitar cortes
+          if (!dropdown.dataset.moved) {
+            dropdown.dataset.moved = 'true';
+            document.body.appendChild(dropdown);
+            
+            // Posicionar corretamente
+            dropdown.style.position = 'fixed';
+            dropdown.style.zIndex = '9999';
+            dropdown.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+            dropdown.style.left = (rect.left + window.scrollX + rect.width/2) + 'px';
+            dropdown.style.transform = 'translateX(-50%)';
+          }
+        }
+      });
+    }, 10); // Pequeno delay para garantir que o dropdown esteja visível
+  }
+});
