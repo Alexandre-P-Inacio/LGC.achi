@@ -569,51 +569,124 @@ nav {
 }
 
 /* About Section */
-#about {
-    padding: 5rem 2rem;
-    background: white;
-    opacity: 0;
-    animation: fadeIn 1s ease-in-out forwards;
-    animation-play-state: paused;
-}
-
-#about.visible {
-    animation-play-state: running;
+.about {
+    padding: 50px 20px;
+    text-align: center;
 }
 
 .about-content {
-    max-width: 950px;
+    max-width: 900px;
     margin: 0 auto;
-    text-align: center;
 }
 
-.about-text {
-    text-align: center;
-    line-height: 1.6;
-    margin-top: 30px;
-}
-
-.about-text p {
-    margin-bottom: 15px;
-    font-size: 1.05rem;
+.about h2 {
+    margin-bottom: 30px;
     color: #333;
 }
 
-#about h2 {
-    margin-bottom: 2rem;
-    font-size: 2.5rem;
+.about-text {
     position: relative;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-#about h2::after {
-    content: '';
-    position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50px;
-    height: 3px;
-    background: #000000c9;
+/* Desktop paragraph styling */
+.desktop-paragraph {
+    display: block;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* Mobile paragraph styling - hidden by default on desktop */
+.mobile-paragraph {
+    display: none;
+}
+
+/* Show More/Less Button Styling */
+.about-toggle-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 5px 10px;
+    margin: 10px auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.about-toggle-btn i {
+    margin-left: 5px;
+    transition: transform 0.3s ease;
+}
+
+.about-toggle-btn:focus {
+    outline: none;
+}
+
+.about-text.expanded .about-toggle-btn i {
+    transform: rotate(180deg);
+}
+
+.show-more-text {
+    display: inline;
+}
+
+.show-less-text {
+    display: none;
+}
+
+.about-text.expanded .show-more-text {
+    display: none;
+}
+
+.about-text.expanded .show-less-text {
+    display: inline;
+}
+
+/* Media query for tablets and below */
+@media (max-width: 768px) {
+    .about-text {
+        text-align: justify;
+    }
+    
+    /* Hide desktop paragraph on mobile */
+    .desktop-paragraph {
+        display: none;
+    }
+    
+    /* Show mobile paragraphs */
+    .mobile-paragraph {
+        display: block;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin-bottom: 15px;
+    }
+    
+    /* Show the toggle button */
+    .about-toggle-btn {
+        display: flex;
+    }
+    
+    /* Hide collapsible content by default */
+    .collapsible-content {
+        display: none;
+    }
+    
+    /* Show collapsible content when expanded */
+    .about-text.expanded .collapsible-content {
+        display: block;
+    }
+}
+
+/* Media query for phones */
+@media (max-width: 480px) {
+    .mobile-paragraph {
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+    }
 }
 
 /* Contact Section */
@@ -1490,6 +1563,17 @@ footer {
     .directions-button {
         width: 100%;
         justify-content: center;
+    }
+}
+
+/* Add iPad/tablet specific styles */
+@media (min-width: 768px) and (max-width: 1024px) {
+    #hero {
+        height: 45vh;
+    }
+    
+    .hero-content h1 {
+        font-size: 3rem;
     }
 }
 
