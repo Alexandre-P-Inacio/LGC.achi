@@ -2404,8 +2404,13 @@ function updateUsersTable(users) {
             // Nome e 3 pontinhos juntos na primeira célula
             row.innerHTML = `
                 <td style="position: relative;">
+<<<<<<< HEAD
                         <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
                     <div class="card-menu mobile-actions" style="position: absolute; top: 50%; right: -150px; transform: translateY(-50%); display: none;">
+=======
+                    <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
+                    <div class="card-menu mobile-actions" style="position: absolute; top: 50%; left: 150px; transform: translateY(-50%); display: block;">
+>>>>>>> 7ddf22c000f88f4cc4e3bf2659f1b4868d913254
                         <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
