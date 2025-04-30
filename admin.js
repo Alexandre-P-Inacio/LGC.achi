@@ -412,7 +412,14 @@ function updateProjectsTable(projects) {
                     const url = new URL(project.file_url);
                     const pathParts = url.pathname.split('/');
                     fileInfo.name = decodeURIComponent(pathParts[pathParts.length - 1]);
-                    if (fileInfo.name.includes('.')) {
+                    
+                    // Determine file type based on file extension or name pattern
+                    const isVideo = fileInfo.name.includes('video-') || 
+                                    /\.(mp4|webm|mov|avi|wmv|mpeg|mpg)$/i.test(fileInfo.name);
+                    
+                    if (isVideo) {
+                        fileInfo.type = 'Video';
+                    } else if (fileInfo.name.includes('.')) {
                         fileInfo.type = fileInfo.name.split('.').pop().toUpperCase();
                     }
                 } catch (e) {
@@ -445,6 +452,14 @@ function updateProjectsTable(projects) {
                     .join(' ');
             }
             
+            // Create a nice file link with an appropriate icon
+            const fileLink = project.file_url 
+                ? `<a href="javascript:void(0)" class="file-link" onclick="showFileInModal('${project.file_url}', '${fileInfo.name}')">
+                      ${fileInfo.type === 'Video' ? '<i class="fas fa-video" style="margin-right: 5px; color: #e83e8c;"></i>' : ''}
+                      ${fileInfo.name}
+                   </a>` 
+                : 'No file';
+            
             if (isMobile) {
                 // MOBILE: collapsible row with menu button
                 row.innerHTML = `
@@ -465,9 +480,7 @@ function updateProjectsTable(projects) {
                             <div><b>Category:</b> <span class=\"category-badge\">${categoryDisplay}</span></div>
                             <div><b>Status:</b> <span class=\"status-badge ${statusClass}\">${statusText}</span></div>
                             <div><b>Type:</b> ${fileInfo.type}</div>
-                            <div><b>File:</b> ${project.file_url 
-                                ? `<a href=\"javascript:void(0)\" class=\"file-link\" onclick=\"showFileInModal('${project.file_url}', '${fileInfo.name}')\">${fileInfo.name}</a>` 
-                                : 'No file'}</div>
+                            <div><b>File:</b> ${fileLink}</div>
                             <div><b>Created:</b> ${createdDate}</div>
                         </div>
                     </td>
@@ -482,10 +495,11 @@ function updateProjectsTable(projects) {
                     </td>
                     <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
                     <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
-                    <td style=\"width: 8%;\">${fileInfo.type}</td>
-                    <td style=\"width: 22%;\">${project.file_url 
-                        ? `<a href=\"javascript:void(0)\" class=\"file-link\" onclick=\"showFileInModal('${project.file_url}', '${fileInfo.name}')\">${fileInfo.name}</a>` 
-                        : 'No file'}</td>
+                    <td style=\"width: 8%;\">
+                        ${fileInfo.type === 'Video' ? '<i class="fas fa-video" style="margin-right: 5px; color: #e83e8c;"></i>' : ''}
+                        ${fileInfo.type}
+                    </td>
+                    <td style=\"width: 22%;\">${fileLink}</td>
                     <td style=\"width: 12%;\">${createdDate}</td>
                     <td style=\"width: 12%;\">
                         <div class=\"action-buttons\">
@@ -1094,6 +1108,8 @@ function showFileInModal(fileUrl, fileName) {
     const zoomOutButton = document.getElementById('zoom-out-button');
     const flipbook = document.getElementById('flipbook');
     const flipbookWrapper = document.getElementById('flipbook-wrapper');
+    const videoWrapper = document.getElementById('video-wrapper');
+    const videoPlayer = document.getElementById('video-player');
     const prevBtn = document.getElementById('prev-page-btn');
     const nextBtn = document.getElementById('next-page-btn');
     
@@ -1109,6 +1125,7 @@ function showFileInModal(fileUrl, fileName) {
     unsupportedView.style.display = 'none';
     flipbookWrapper.style.display = 'none';
     flipbook.style.display = 'none';
+    videoWrapper.style.display = 'none';
     
     // Destroy any existing Turn.js instance - fix for "is is an invalid value" error
     try {
@@ -1150,7 +1167,15 @@ function showFileInModal(fileUrl, fileName) {
         'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
         'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
         'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
-        'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
+        'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' },
+        // Add video file types
+        'mp4': { type: 'Video', icon: 'MP4', color: '#e83e8c' },
+        'webm': { type: 'Video', icon: 'WEBM', color: '#20c997' },
+        'mov': { type: 'Video', icon: 'MOV', color: '#fd7e14' },
+        'avi': { type: 'Video', icon: 'AVI', color: '#6610f2' },
+        'wmv': { type: 'Video', icon: 'WMV', color: '#007bff' },
+        'mpeg': { type: 'Video', icon: 'MPG', color: '#dc3545' },
+        'mpg': { type: 'Video', icon: 'MPG', color: '#dc3545' },
     };
     
     const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
@@ -1163,8 +1188,63 @@ function showFileInModal(fileUrl, fileName) {
     zoomInButton.style.display = canZoom ? 'flex' : 'none';
     zoomOutButton.style.display = canZoom ? 'flex' : 'none';
     
+    // Check if the filename contains video prefix
+    const isVideoFile = fileExtension.match(/(mp4|webm|mov|avi|wmv|mpeg|mpg)$/i) || fileName.includes('video-');
+    
     // Choose appropriate preview based on file extension
-    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
+    if (isVideoFile) {
+        // Video preview
+        const videoWrapper = document.getElementById('video-wrapper');
+        const videoPlayer = document.getElementById('video-player');
+        const videoDownloadButton = document.getElementById('video-download-button');
+        const videoFullscreenButton = document.getElementById('video-fullscreen-button');
+        
+        videoWrapper.style.display = 'block';
+        videoPlayer.src = fileUrl;
+        
+        // Set download link
+        videoDownloadButton.href = fileUrl;
+        videoDownloadButton.setAttribute('download', fileName);
+        
+        // Add fullscreen functionality
+        videoFullscreenButton.onclick = function() {
+            if (videoPlayer.requestFullscreen) {
+                videoPlayer.requestFullscreen();
+            } else if (videoPlayer.webkitRequestFullscreen) { /* Safari */
+                videoPlayer.webkitRequestFullscreen();
+            } else if (videoPlayer.msRequestFullscreen) { /* IE11 */
+                videoPlayer.msRequestFullscreen();
+            }
+        };
+        
+        // Update the file type icon for video
+        fileTypeIcon.textContent = 'VID';
+        fileTypeIcon.style.background = '#e83e8c';
+        
+        // Video events
+        videoPlayer.onloadeddata = function() {
+            fileLoading.style.display = 'none';
+            
+            // Update file info with actual duration
+            const duration = Math.round(videoPlayer.duration);
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+            const durationText = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+            
+            const fileSizeText = formatFileSize(1024 * 1024); // Placeholder size
+            fileInfo.textContent = `Video • ${fileSizeText} • ${durationText}`;
+        };
+        
+        videoPlayer.onerror = function() {
+            fileLoading.style.display = 'none';
+            unsupportedView.style.display = 'block';
+            console.error('Video loading error:', videoPlayer.error);
+        };
+        
+        // Try to load the video
+        videoPlayer.load();
+    } 
+    else if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
         // Image preview
         imgPreview.onload = function() {
             fileLoading.style.display = 'none';
@@ -1175,7 +1255,7 @@ function showFileInModal(fileUrl, fileName) {
             unsupportedView.style.display = 'block';
         };
         imgPreview.src = fileUrl;
-    } 
+    }
     else if (['pdf'].includes(fileExtension)) {
         // PDF Flipbook using PDF.js and Turn.js
         flipbookWrapper.style.display = 'block';

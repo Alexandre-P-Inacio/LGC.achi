@@ -87,22 +87,53 @@ async function loadProjectData(projectId) {
         }
     }
     
-    // Set featured checkbox state
-    document.getElementById('project-featured').checked = data.is_featured || false;
+    // Set content type radio buttons
+    // Since content_type column might not exist, we need to detect from file_url
+    const contentType = data.content_type || detectContentType(data.file_url);
+    if (contentType === 'video') {
+        document.getElementById('content-type-video').checked = true;
+        document.getElementById('file-upload-group').style.display = 'none';
+        document.getElementById('video-upload-group').style.display = 'block';
+        document.getElementById('project-file').required = false;
+        document.getElementById('project-video').required = true;
+    } else {
+        document.getElementById('content-type-file').checked = true;
+        document.getElementById('file-upload-group').style.display = 'block';
+        document.getElementById('video-upload-group').style.display = 'none';
+        document.getElementById('project-file').required = true;
+        document.getElementById('project-video').required = false;
+    }
     
     // Display current file name if exists
     if (data.file_url) {
         // Extract filename from URL
         const fileName = data.file_url.split('/').pop().split('-').pop();
-        const fileInput = document.getElementById('project-file');
+        // Determine if it's a video from the file extension or name pattern
+        const isVideo = contentType === 'video' || 
+                       data.file_url.includes('-video-') || 
+                       /\.(mp4|webm|mov|avi|wmv|mpeg|mpg)$/i.test(data.file_url);
+        
+        const fileInput = isVideo ? document.getElementById('project-video') : document.getElementById('project-file');
         
         // Create a display element for current file
         const currentFileDisplay = document.createElement('div');
         currentFileDisplay.className = 'current-file-display';
+        
+        if (isVideo) {
+            currentFileDisplay.innerHTML = `
+                <p>Current video: <a href="${data.file_url}" target="_blank">${fileName}</a></p>
+                <video width="320" height="240" controls>
+                    <source src="${data.file_url}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <p><small>Upload a new video only if you want to replace the current one</small></p>
+            `;
+        } else {
         currentFileDisplay.innerHTML = `
             <p>Current file: <a href="${data.file_url}" target="_blank">${fileName}</a></p>
             <p><small>Upload a new file only if you want to replace the current one</small></p>
         `;
+        }
         
         // Insert the display before the file input
         fileInput.parentNode.insertBefore(currentFileDisplay, fileInput.nextSibling);
@@ -113,6 +144,21 @@ async function loadProjectData(projectId) {
     
     // Update save button text
     document.getElementById('save-button').innerHTML = '<i class="fas fa-save"></i> Update Project';
+}
+
+// Helper function to detect content type from file URL or extension
+function detectContentType(fileUrl) {
+    if (!fileUrl) return 'file'; // Default to file
+    
+    // Check file extension
+    const ext = fileUrl.split('.').pop().toLowerCase();
+    const videoExtensions = ['mp4', 'webm', 'mov', 'avi', 'wmv', 'mpeg', 'mpg', 'm4v'];
+    
+    if (videoExtensions.includes(ext)) {
+        return 'video';
+    }
+    
+    return 'file';
 }
 
 // Save project with file upload
@@ -128,7 +174,9 @@ async function saveProject(event) {
         // Get form values
         const projectName = document.getElementById('project-title').value;
         const projectCategory = document.getElementById('project-category').value;
-        const projectFile = document.getElementById('project-file').files[0];
+        const contentType = document.querySelector('input[name="content-type"]:checked').value;
+        const projectFile = contentType === 'file' ? document.getElementById('project-file').files[0] : null;
+        const projectVideo = contentType === 'video' ? document.getElementById('project-video').files[0] : null;
         const projectStatus = document.getElementById('project-status').value;
         
         if (!projectName) {
@@ -141,37 +189,71 @@ async function saveProject(event) {
             return;
         }
         
-        if (!isEdit && !projectFile) {
-            alert('Project file is required for new projects!');
+        if (!isEdit && !projectFile && !projectVideo) {
+            alert('Project file or video is required for new projects!');
             return;
         }
         
         let fileUrl = null;
         
-        // Upload file if exists
-        if (projectFile) {
+        // Upload file if exists (document or video)
+        const fileToUpload = projectFile || projectVideo;
+        
+        if (fileToUpload) {
+            // Log file details for debugging
+            console.log('File to upload:', {
+                name: fileToUpload.name,
+                size: fileToUpload.size,
+                type: fileToUpload.type,
+                sizeInMB: (fileToUpload.size / (1024 * 1024)).toFixed(2) + ' MB',
+                contentType: contentType
+            });
+            
             // Create a random file name to avoid collisions
-            const fileExt = projectFile.name.split('.').pop();
-            const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+            const fileExt = fileToUpload.name.split('.').pop();
+            // Include content type in the filename for easier detection later
+            const filePrefix = contentType === 'video' ? 'video' : 'doc';
+            const fileName = `${filePrefix}-${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
             const filePath = `project-files/${fileName}`;
             
-            // Upload file to Supabase Storage
+            try {
+                // Upload file to Supabase Storage with explicit file size option
+                console.log('Starting file upload to path:', filePath);
+                
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('projects')
-                .upload(filePath, projectFile);
+                    .upload(filePath, fileToUpload, {
+                        cacheControl: '3600',
+                        upsert: true,
+                        contentType: fileToUpload.type // Explicitly set content type
+                    });
                 
             if (uploadError) {
                 console.error('Error uploading file:', uploadError);
+                    console.error('Error details:', JSON.stringify(uploadError, null, 2));
+                    
+                    if (uploadError.message && uploadError.message.includes('maximum allowed size')) {
+                        alert(`Error: The file is too large. Maximum size is 500MB. Your file is ${(fileToUpload.size / (1024 * 1024)).toFixed(2)} MB.`);
+                    } else {
                 alert(`Error uploading file: ${uploadError.message}`);
+                    }
                 return;
             }
+                
+                console.log('Upload successful:', uploadData);
             
             // Get the public URL for the file
             const { data: { publicUrl } } = supabase.storage
                 .from('projects')
                 .getPublicUrl(filePath);
                 
+                console.log('Public URL generated:', publicUrl);
             fileUrl = publicUrl;
+            } catch (uploadException) {
+                console.error('Exception during file upload:', uploadException);
+                alert(`Upload failed: ${uploadException.message}`);
+                return;
+            }
         }
         
         // Create project data object
@@ -179,7 +261,9 @@ async function saveProject(event) {
             name: projectName,
             category: projectCategory,
             status: projectStatus,
-            is_featured: document.getElementById('project-featured').checked
+            // Store content type as a field in the database
+            // Since the content_type column doesn't exist yet, commenting this out
+            // content_type: contentType 
         };
         
         if (isEdit) {
@@ -190,8 +274,9 @@ async function saveProject(event) {
             projectData.created_at = new Date().toISOString();
         }
         
-        // Add file URL if a new file was uploaded
+        // Instead, store content type in the file_url field name by adding a prefix
         if (fileUrl) {
+            // Add a prefix to the URL to indicate content type
             projectData.file_url = fileUrl;
         }
         
@@ -248,15 +333,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         // Create storage bucket if it doesn't exist
-        const { error: bucketError } = await supabase.storage.createBucket('projects', {
+        try {
+            console.log('Creating or checking storage bucket with 500MB limit');
+            const { data: bucketData, error: bucketError } = await supabase.storage.createBucket('projects', {
             public: true,
-            fileSizeLimit: 52428800, // 50MB limit
-            allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-                              'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                              'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']
+                fileSizeLimit: 524288000, // 500MB limit (increased for large video files)
+                allowedMimeTypes: [
+                    // Document types
+                    'application/pdf', 
+                    'application/msword', 
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+                    'application/vnd.ms-excel', 
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-powerpoint', 
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    // Video types
+                    'video/mp4',
+                    'video/webm',
+                    'video/quicktime',
+                    'video/x-msvideo',
+                    'video/x-ms-wmv',
+                    'video/mpeg'
+                ]
         });
+            
+            // Only log if there's an actual error (not just a "bucket already exists" error)
         if (bucketError && bucketError.code !== '23505') { // Ignore duplicate bucket error
             console.error('Error ensuring storage bucket exists:', bucketError);
+                console.error('Bucket error details:', JSON.stringify(bucketError, null, 2));
+            } else {
+                console.log('Storage bucket ready:', bucketData || 'Bucket already exists');
+                
+                // Update bucket settings even if it already exists
+                console.log('Updating bucket settings with new file size limit');
+                const { error: updateError } = await supabase.storage.updateBucket('projects', {
+                    public: true,
+                    fileSizeLimit: 524288000, // 500MB limit
+                });
+                
+                if (updateError) {
+                    console.error('Error updating bucket settings:', updateError);
+                } else {
+                    console.log('Bucket settings updated successfully');
+                }
+            }
+        } catch (bucketException) {
+            console.error('Exception during bucket creation:', bucketException);
         }
         
         const projectId = getProjectIdFromUrl();
@@ -283,6 +405,39 @@ document.addEventListener('DOMContentLoaded', async () => {
             logoutButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 logout();
+            });
+        }
+
+        // Add direct save button click handler as a backup mechanism
+        const saveButton = document.getElementById('save-button');
+        if (saveButton) {
+            console.log('Adding direct click handler to save button');
+            saveButton.addEventListener('click', async function(e) {
+                // Prevent default button action
+                e.preventDefault();
+                
+                // Don't proceed if there's already a save in progress
+                if (this.disabled) {
+                    console.log('Save already in progress');
+                    return;
+                }
+                
+                // Disable button to prevent multiple clicks
+                this.disabled = true;
+                try {
+                    // Show loading state
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    
+                    // Trigger form submission
+                    await saveProject(e);
+                } catch (err) {
+                    console.error('Error in save button handler:', err);
+                    alert('Failed to save project: ' + err.message);
+                } finally {
+                    // Reset button state
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-save"></i> Save Project';
+                }
             });
         }
     } catch (err) {
