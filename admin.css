@@ -898,7 +898,8 @@ label[for*="project-"]:after {
 label[for="project-client"]:after,
 label[for="project-budget"]:after,
 label[for="project-duration"]:after,
-label[for="project-gallery"]:after {
+label[for="project-gallery"]:after,
+label[for="project-image"]:after {
     content: none;
 }
 
@@ -1043,11 +1044,6 @@ label[for="project-gallery"]:after {
         display: block;
         margin-bottom: 2px;
         font-size: 0.85em;
-    }
-    .projects-table .action-buttons {
-        justify-content: flex-start;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
     }
     .pagination-container {
         flex-direction: column;
