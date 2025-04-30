@@ -396,7 +396,7 @@ function updateProjectsTable(projects) {
     const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
 
     const isMobile = window.innerWidth <= 700;
-
+        
     projects.forEach(project => {
         const row = document.createElement('tr');
         row.setAttribute('data-project-id', project.id);
@@ -474,7 +474,7 @@ function updateProjectsTable(projects) {
                                 <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\"><i class=\"fas fa-trash-alt\"></i></button>
                                 <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\"><i class=\"fas fa-share-alt\"></i></button>
                                 <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i></button>
-                            </div>
+                </div>
                         </div>
                         <div class=\"project-details-mobile\" style=\"display:none; margin-top:10px;\">
                             <div><b>Category:</b> <span class=\"category-badge\">${categoryDisplay}</span></div>
@@ -487,12 +487,12 @@ function updateProjectsTable(projects) {
                 `;
             } else {
                 // DESKTOP: tabela tradicional
-                row.innerHTML = `
+            row.innerHTML = `
                     <td style=\"width: 20%;\">
                         <div style=\"display: flex; align-items: center; gap: 8px;\">
                             <span style=\"font-weight: 500;\">${project.name || 'Unnamed Project'}</span>
                         </div>
-                    </td>
+                </td>
                     <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
                     <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
                     <td style=\"width: 8%;\">
@@ -505,19 +505,19 @@ function updateProjectsTable(projects) {
                         <div class=\"action-buttons\">
                             <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\">
                                 <i class=\"fas fa-edit\"></i>
-                            </button>
+                        </button>
                             <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
                                 <i class=\"fas fa-trash-alt\"></i>
-                            </button>
+                        </button>
                             <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\">
                                 <i class=\"fas fa-share-alt\"></i>
                             </button>
                             <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
                                 <i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
+                        </button>
+                    </div>
+                </td>
+            `;
             }
         } catch (e) {
             console.error('Error creating row for project:', e, project);
@@ -528,7 +528,7 @@ function updateProjectsTable(projects) {
         
         projectsContainer.appendChild(row);
     });
-
+    
     // Dropdown menu logic (mobile)
     if (!window.__menuDropdownInjected) {
         window.__menuDropdownInjected = true;
@@ -537,9 +537,9 @@ function updateProjectsTable(projects) {
                 const dropdown = menu.querySelector('.menu-dropdown');
                 if (dropdown && !menu.contains(e.target)) {
                     dropdown.style.display = 'none';
-                }
-            });
+            }
         });
+    });
         window.toggleMenu = function(btn) {
             const menu = btn.parentElement;
             const dropdown = menu.querySelector('.menu-dropdown');
@@ -2484,8 +2484,13 @@ function updateUsersTable(users) {
             // Nome e 3 pontinhos juntos na primeira célula
             row.innerHTML = `
                 <td style="position: relative;">
+<<<<<<< HEAD
+                        <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
+                    <div class="card-menu mobile-actions" style="position: absolute; top: 50%; right: -150px; transform: translateY(-50%); display: none;">
+=======
                     <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
                     <div class="card-menu mobile-actions" style="position: absolute; top: 50%; left: 150px; transform: translateY(-50%); display: block;">
+>>>>>>> 7ddf22c000f88f4cc4e3bf2659f1b4868d913254
                         <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
@@ -3430,3 +3435,152 @@ if (fileViewerModal) {
     if (e.target === fileViewerModal) showFileViewerHamburger();
   });
 }
+
+// SOLUÇÃO PARA MENU DE ÍCONES QUADRADOS
+document.addEventListener('DOMContentLoaded', function() {
+    // Remover todos os estilos e scripts anteriores que podem estar causando conflitos
+    const oldStyles = document.querySelectorAll('style');
+    oldStyles.forEach(style => {
+        if (style.textContent.includes('.menu-dropdown')) {
+            style.remove();
+        }
+    });
+
+    // Inserir estilos para o menu
+    var styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .menu-dropdown {
+            display: none;
+            position: absolute !important;
+            top: 0 !important;
+            right: calc(100% + 5px) !important;
+            left: auto !important;
+            transform: none !important;
+            background-color: #222 !important;
+            padding: 10px !important;
+            border-radius: 12px !important;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5) !important;
+            z-index: 9999 !important;
+            width: auto !important;
+            max-width: 90% !important;
+            max-height: 80vh !important;
+            overflow-y: auto !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        
+    .menu-dropdown button {
+      display: flex !important;
+      justify-content: center !important;
+            align-items: center !important;
+            width: 45px !important;
+            height: 45px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            background: #333 !important;
+            border-radius: 8px !important;
+            color: white !important;
+            font-size: 16px !important;
+            cursor: pointer !important;
+    }
+    
+        .menu-dropdown button:hover {
+            background-color: #444 !important;
+        }
+        
+        .menu-dropdown button i {
+            display: block !important;
+            font-size: 18px !important;
+            color: white !important;
+            margin: 0 !important;
+        }
+        
+        .menu-dropdown button span {
+            display: none !important;
+    }
+  `;
+    document.head.appendChild(styleElement);
+
+    // Fechar todos os menus quando a página carrega
+    document.querySelectorAll('.menu-dropdown').forEach(function(dropdown) {
+        dropdown.style.display = 'none';
+    });
+    
+    // Função para processar botões no menu - convertendo-os em ícones
+    function processMenuButtons(menu) {
+        if (!menu) return;
+        
+        var buttons = menu.querySelectorAll('button');
+        buttons.forEach(function(btn) {
+            // Limpar conteúdo do botão e manter apenas o ícone
+            var icon = btn.querySelector('i');
+            var text = btn.textContent.trim();
+            
+            // Se não tiver ícone, vamos adicionar um
+            if (!icon) {
+                var newIcon = document.createElement('i');
+    
+                // Adicionar a classe apropriada ao ícone
+                if (text.includes('Edit')) {
+                    newIcon.className = 'fas fa-edit';
+                } else if (text.includes('Delete')) {
+                    newIcon.className = 'fas fa-trash-alt';
+                } else if (text.includes('Share')) {
+                    newIcon.className = 'fas fa-share-alt';
+                } else if (text.includes('Feature') || text.includes('Unfeature')) {
+                    newIcon.className = 'fas fa-star';
+                } else {
+                    newIcon.className = 'fas fa-cog';
+      }
+                
+                // Limpar o botão e inserir apenas o ícone
+                btn.innerHTML = '';
+                btn.appendChild(newIcon);
+            } else {
+                // Manter apenas o ícone
+                var iconHTML = icon.outerHTML;
+                btn.innerHTML = iconHTML;
+    }
+  });
+}
+
+    // Processa todos os menus existentes - mas mantém eles fechados
+    document.querySelectorAll('.menu-dropdown').forEach(function(menu) {
+        processMenuButtons(menu);
+        menu.style.display = 'none';
+    });
+    
+    // Ouvinte para alternar a visibilidade do menu quando clicar nos três pontos
+document.addEventListener('click', function(e) {
+        var menuBtn = e.target.closest('.menu-btn');
+        if (menuBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            var menu = menuBtn.nextElementSibling;
+            if (menu && menu.classList.contains('menu-dropdown')) {
+                // Fechar todos os outros menus primeiro
+                document.querySelectorAll('.menu-dropdown').forEach(function(dropdown) {
+                    if (dropdown !== menu) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+                
+                // Alternar visibilidade do menu atual
+                if (menu.style.display === 'flex') {
+                    menu.style.display = 'none';
+                } else {
+                    menu.style.display = 'flex';
+                    // Processa os botões sempre que abrir o menu
+                    processMenuButtons(menu);
+                }
+            }
+        } else if (!e.target.closest('.menu-dropdown')) {
+            // Fechar todos os menus quando clicar fora
+            document.querySelectorAll('.menu-dropdown').forEach(function(dropdown) {
+                dropdown.style.display = 'none';
+            });
+  }
+    });
+});
