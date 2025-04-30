@@ -570,51 +570,49 @@ nav {
 
 /* About Section */
 .about {
-    padding: 50px 20px;
-    text-align: center;
-}
-
-.about-content {
-    max-width: 900px;
-    margin: 0 auto;
+    background-color: #f8f9fa;
+    padding: 60px 0;
 }
 
 .about h2 {
-    margin-bottom: 30px;
-    color: #333;
+    text-align: center;
+    margin-bottom: 40px;
 }
 
 .about-text {
     position: relative;
-    text-align: center;
-    margin-bottom: 20px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 /* Desktop paragraph styling */
 .desktop-paragraph {
-    display: block;
-    text-align: center;
+    display: none;
     line-height: 1.6;
-    margin-bottom: 20px;
+    text-align: center;
 }
 
-/* Mobile paragraph styling - hidden by default on desktop */
+/* Mobile paragraphs styling */
 .mobile-paragraph {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+/* Collapsible content for mobile */
+.collapsible-content {
     display: none;
 }
 
-/* Show More/Less Button Styling */
+/* Toggle button styling */
 .about-toggle-btn {
-    display: none;
+    display: block;
     background: none;
     border: none;
-    color: #007bff;
+    color: #1a73e8;
+    margin: 20px auto 0;
     cursor: pointer;
     font-weight: 500;
-    padding: 5px 10px;
-    margin: 10px auto;
-    align-items: center;
-    justify-content: center;
+    font-size: 14px;
 }
 
 .about-toggle-btn i {
@@ -622,20 +620,13 @@ nav {
     transition: transform 0.3s ease;
 }
 
-.about-toggle-btn:focus {
-    outline: none;
-}
-
-.about-text.expanded .about-toggle-btn i {
-    transform: rotate(180deg);
-}
-
-.show-more-text {
-    display: inline;
-}
-
 .show-less-text {
     display: none;
+}
+
+/* When expanded state */
+.about-text.expanded .collapsible-content {
+    display: block;
 }
 
 .about-text.expanded .show-more-text {
@@ -646,46 +637,19 @@ nav {
     display: inline;
 }
 
-/* Media query for tablets and below */
-@media (max-width: 768px) {
-    .about-text {
-        text-align: justify;
-    }
-    
-    /* Hide desktop paragraph on mobile */
-    .desktop-paragraph {
-        display: none;
-    }
-    
-    /* Show mobile paragraphs */
-    .mobile-paragraph {
-        display: block;
-        font-size: 1rem;
-        line-height: 1.5;
-        margin-bottom: 15px;
-    }
-    
-    /* Show the toggle button */
-    .about-toggle-btn {
-        display: flex;
-    }
-    
-    /* Hide collapsible content by default */
-    .collapsible-content {
-        display: none;
-    }
-    
-    /* Show collapsible content when expanded */
-    .about-text.expanded .collapsible-content {
-        display: block;
-    }
+.about-text.expanded .about-toggle-btn i {
+    transform: rotate(180deg);
 }
 
-/* Media query for phones */
-@media (max-width: 480px) {
-    .mobile-paragraph {
-        font-size: 0.95rem;
-        margin-bottom: 12px;
+/* Media query for desktop (min-width 768px) */
+@media (min-width: 768px) {
+    .desktop-paragraph {
+        display: block;
+    }
+    
+    .mobile-paragraph,
+    .about-toggle-btn {
+        display: none;
     }
 }
 
