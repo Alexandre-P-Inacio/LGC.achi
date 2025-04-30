@@ -7,6 +7,7 @@ body {
     display: flex;
     flex-direction: column;
     padding-top: 100px;
+    overflow-x: hidden; /* Prevent horizontal scrolling globally */
 }
 
 header {
@@ -122,6 +123,8 @@ nav {
     margin-left: auto;
     margin-right: auto;
     flex: 1;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .admin-header {
@@ -462,6 +465,7 @@ nav {
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     margin-top: 1.5rem;
     position: relative;
+    max-width: 100%; /* Ensure it doesn't exceed the viewport width */
 }
 
 .projects-table {
@@ -912,6 +916,9 @@ label[for="project-gallery"]:after {
 @media (max-width: 768px) {
     .admin-main {
         padding: 1rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .stats-container {
@@ -967,6 +974,9 @@ label[for="project-gallery"]:after {
     .admin-main {
         padding: 0.5rem;
         margin-top: 70px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
     .admin-section {
         padding: 1rem;
@@ -1013,7 +1023,8 @@ label[for="project-gallery"]:after {
     }
     .projects-table-container {
         width: 100%;
-        overflow-x: auto;
+        overflow-x: hidden; /* Prevent horizontal scrolling */
+        box-sizing: border-box;
     }
     .projects-table, .projects-table thead, .projects-table tbody, .projects-table tr, .projects-table th, .projects-table td {
         display: block;
@@ -1774,4 +1785,9 @@ label[for="project-gallery"]:after {
 .projects-table .share-button i {
     /* Distinctive icon styling for share button */
     color: #ffffff;
+}
+
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
 }
