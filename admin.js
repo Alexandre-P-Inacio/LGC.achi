@@ -396,7 +396,7 @@ function updateProjectsTable(projects) {
     const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
 
     const isMobile = window.innerWidth <= 700;
-
+        
     projects.forEach(project => {
         const row = document.createElement('tr');
         row.setAttribute('data-project-id', project.id);
@@ -459,7 +459,7 @@ function updateProjectsTable(projects) {
                                 <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\"><i class=\"fas fa-trash-alt\"></i></button>
                                 <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\"><i class=\"fas fa-share-alt\"></i></button>
                                 <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i></button>
-                            </div>
+                </div>
                         </div>
                         <div class=\"project-details-mobile\" style=\"display:none; margin-top:10px;\">
                             <div><b>Category:</b> <span class=\"category-badge\">${categoryDisplay}</span></div>
@@ -474,12 +474,12 @@ function updateProjectsTable(projects) {
                 `;
             } else {
                 // DESKTOP: tabela tradicional
-                row.innerHTML = `
+            row.innerHTML = `
                     <td style=\"width: 20%;\">
                         <div style=\"display: flex; align-items: center; gap: 8px;\">
                             <span style=\"font-weight: 500;\">${project.name || 'Unnamed Project'}</span>
                         </div>
-                    </td>
+                </td>
                     <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
                     <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
                     <td style=\"width: 8%;\">${fileInfo.type}</td>
@@ -491,19 +491,19 @@ function updateProjectsTable(projects) {
                         <div class=\"action-buttons\">
                             <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\">
                                 <i class=\"fas fa-edit\"></i>
-                            </button>
+                        </button>
                             <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
                                 <i class=\"fas fa-trash-alt\"></i>
-                            </button>
+                        </button>
                             <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\">
                                 <i class=\"fas fa-share-alt\"></i>
                             </button>
                             <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
                                 <i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
+                        </button>
+                    </div>
+                </td>
+            `;
             }
         } catch (e) {
             console.error('Error creating row for project:', e, project);
@@ -514,7 +514,7 @@ function updateProjectsTable(projects) {
         
         projectsContainer.appendChild(row);
     });
-
+    
     // Dropdown menu logic (mobile)
     if (!window.__menuDropdownInjected) {
         window.__menuDropdownInjected = true;
@@ -523,9 +523,9 @@ function updateProjectsTable(projects) {
                 const dropdown = menu.querySelector('.menu-dropdown');
                 if (dropdown && !menu.contains(e.target)) {
                     dropdown.style.display = 'none';
-                }
-            });
+            }
         });
+    });
         window.toggleMenu = function(btn) {
             const menu = btn.parentElement;
             const dropdown = menu.querySelector('.menu-dropdown');
@@ -2404,7 +2404,7 @@ function updateUsersTable(users) {
             // Nome e 3 pontinhos juntos na primeira célula
             row.innerHTML = `
                 <td style="position: relative;">
-                    <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
+                        <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
                     <div class="card-menu mobile-actions" style="position: absolute; top: 50%; right: -150px; transform: translateY(-50%); display: none;">
                         <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
                             <i class="fas fa-ellipsis-h"></i>
@@ -3350,3 +3350,280 @@ if (fileViewerModal) {
     if (e.target === fileViewerModal) showFileViewerHamburger();
   });
 }
+
+// CSS SIMPLES PARA CENTRALIZAR BOTÕES NO POP-UP
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* CENTRALIZAR BOTÕES NO POP-UP */
+    .menu-dropdown {
+      text-align: center !important;
+    }
+    
+    .menu-dropdown button {
+      margin-left: auto !important;
+      margin-right: auto !important;
+      float: none !important;
+      display: block !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// CSS PARA CENTRALIZAR OS ÍCONES DENTRO DOS BOTÕES
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* CENTRALIZAR ÍCONES DENTRO DOS BOTÕES */
+    .menu-dropdown button {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .menu-dropdown button i,
+    .menu-dropdown button svg,
+    .menu-dropdown button img {
+      display: block !important;
+      margin: 0 auto !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// CSS PARA ALINHAR CATEGORIAS E STATUS
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* ALINHAR CATEGORIA E STATUS */
+    .project-details div,
+    .project-details-mobile div {
+      display: flex !important;
+      align-items: center !important;
+      margin-bottom: 5px !important;
+    }
+    
+    .project-details b,
+    .project-details-mobile b {
+      margin-right: 5px !important;
+      min-width: 80px !important;
+      display: inline-block !important;
+    }
+    
+    .category-badge,
+    .status-badge {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// Modificar a definição do dropdown para não ser cortado
+function updateMenuDropdownStyles() {
+    // Selecionar todos os .menu-dropdown (tanto na tabela quanto no mobile)
+    document.querySelectorAll('.menu-dropdown').forEach(dropdown => {
+        // Configurar estilo base
+        dropdown.style.position = 'absolute';
+        dropdown.style.zIndex = '9999';
+        
+        // Em dispositivos móveis, posicionar acima do botão em vez de abaixo
+        if (window.innerWidth <= 600) {
+            dropdown.style.top = 'auto';
+            dropdown.style.bottom = '100%';
+            dropdown.style.right = '0';
+            dropdown.style.marginBottom = '5px';
+        } else {
+            dropdown.style.top = '100%'; // Posiciona abaixo do botão em desktop
+            dropdown.style.right = '0';
+        }
+        
+        dropdown.style.minWidth = '120px';
+        dropdown.style.maxHeight = '250px';
+        dropdown.style.overflowY = 'auto';
+        
+        // Encontrar o elemento pai para verificar a posição relativa
+        let parent = dropdown.parentElement;
+        if (parent) {
+            // Se o pai não tiver posição definida, definir como relative
+            let parentPosition = window.getComputedStyle(parent).getPropertyValue('position');
+            if (parentPosition === 'static') {
+                parent.style.position = 'relative';
+            }
+        }
+    });
+}
+
+// Chamar a função quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', updateMenuDropdownStyles);
+
+// E também após um pequeno delay para garantir que todos os elementos foram renderizados
+window.addEventListener('load', function() {
+    setTimeout(updateMenuDropdownStyles, 100);
+    
+    // Re-posicionar os dropdowns quando a janela for redimensionada
+    window.addEventListener('resize', updateMenuDropdownStyles);
+});
+
+// Function to position dropdown menus properly on mobile
+function positionDropdowns() {
+    document.addEventListener('click', function(e) {
+        // Check if the clicked element has or is inside an element with the 'dropdown-toggle' class
+        const toggleButton = e.target.closest('.dropdown-toggle');
+        
+        if (toggleButton) {
+            e.preventDefault();
+            
+            // Find the dropdown content associated with this toggle
+            const dropdown = toggleButton.nextElementSibling;
+            
+            if (dropdown && dropdown.classList.contains('dropdown-content')) {
+                // Close any other open dropdowns first
+                document.querySelectorAll('.dropdown-content.show').forEach(function(openDropdown) {
+                    if (openDropdown !== dropdown) {
+                        openDropdown.classList.remove('show');
+                    }
+                });
+                
+                // Toggle current dropdown
+                dropdown.classList.toggle('show');
+                
+                // For mobile devices, position above instead of below
+                if (window.innerWidth <= 600) {
+                    // Position above in mobile view
+                    dropdown.style.bottom = '100%';
+                    dropdown.style.top = 'auto';
+                    dropdown.style.marginBottom = '5px';
+                    
+                    // Ensure dropdown is fully visible
+                    const dropdownRect = dropdown.getBoundingClientRect();
+                    const toggleRect = toggleButton.getBoundingClientRect();
+                    
+                    // If dropdown would extend beyond the top of the screen
+                    if (dropdownRect.top < 10) {
+                        dropdown.style.bottom = 'auto';
+                        dropdown.style.top = '100%';
+                        dropdown.style.marginBottom = '0';
+                        dropdown.style.marginTop = '5px';
+                    }
+                }
+            }
+        } else if (!e.target.closest('.dropdown-content')) {
+            // Close all dropdowns if clicked outside
+            document.querySelectorAll('.dropdown-content.show').forEach(function(dropdown) {
+                dropdown.classList.remove('show');
+            });
+        }
+    });
+}
+
+// Call the function when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    positionDropdowns();
+    // ... existing code ...
+});
+
+// Mobile project display row - Update the dropdown position in the HTML string itself
+// Find where HTML strings with menu-dropdown are defined and update their position
+function generateMobileProjectRow(project) {
+    // ... existing code ...
+    
+    // Updated dropdown position for mobile
+    let menuHtml = `
+        <button class="menu-btn" aria-label="Options">
+            <i class="fas fa-ellipsis-v"></i>
+        </button>
+        <div class="menu-dropdown" style="display: none; position: absolute; bottom: calc(100% + 5px); right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px; flex-direction: column; align-items: stretch;">
+            <button class="menu-item edit-btn" data-id="${project.id}">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="menu-item delete-btn" data-id="${project.id}">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+            <button class="menu-item share-btn" data-id="${project.id}" data-name="${project.name}">
+                <i class="fas fa-share-alt"></i> Share
+            </button>
+            <button class="menu-item feature-btn ${project.featured ? 'featured' : ''}" data-id="${project.id}" data-featured="${project.featured}">
+                <i class="fas fa-star"></i> ${project.featured ? 'Unfeature' : 'Feature'}
+            </button>
+        </div>
+    `;
+    
+    // ... rest of the function ...
+}
+
+// Update any other occurrences of menu-dropdown in HTML strings
+// ... existing code ...
+
+// Add a new function at the end to update all menus on the page
+function updateAllMenuPositions() {
+    // Only apply changes for mobile devices
+    if (window.innerWidth <= 600) {
+        const menuButtons = document.querySelectorAll(".menu-btn");
+        
+        // Add click listeners to all menu buttons if they don't have them already
+        menuButtons.forEach(button => {
+            if (!button.hasAttribute('data-menu-initialized')) {
+                button.setAttribute('data-menu-initialized', 'true');
+                
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    // Find the associated dropdown
+                    const dropdown = this.nextElementSibling;
+                    
+                    if (dropdown && dropdown.classList.contains('menu-dropdown')) {
+                        // Create or show overlay
+                        let overlay = document.querySelector('.menu-dropdown-overlay');
+                        if (!overlay) {
+                            overlay = document.createElement('div');
+                            overlay.className = 'menu-dropdown-overlay';
+                            document.body.appendChild(overlay);
+                            
+                            // Close menu when clicking overlay
+                            overlay.addEventListener('click', function() {
+                                dropdown.style.display = 'none';
+                                overlay.style.display = 'none';
+                            });
+                        }
+                        
+                        // Toggle dropdown
+                        if (dropdown.style.display === 'flex' || dropdown.style.display === 'block') {
+                            dropdown.style.display = 'none';
+                            overlay.style.display = 'none';
+                        } else {
+                            // Close any other open dropdowns
+                            document.querySelectorAll('.menu-dropdown').forEach(d => {
+                                d.style.display = 'none';
+                            });
+                            
+                            dropdown.style.display = 'flex';
+                            overlay.style.display = 'block';
+                        }
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Remove our previous updateAllMenuPositions function and replace with this one
+document.addEventListener('DOMContentLoaded', function() {
+    updateAllMenuPositions();
+    
+    // Re-initialize when window is resized
+    window.addEventListener('resize', function() {
+        updateAllMenuPositions();
+    });
+});
+
+// Add a click handler for menu buttons to reposition dropdowns when clicked
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.menu-btn')) {
+        // Small delay to ensure the menu is rendered before we manipulate it
+        setTimeout(updateAllMenuPositions, 10);
+    }
+});

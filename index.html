@@ -3,7 +3,7 @@
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; frame-src 'self' data: blob: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co https://docs.google.com; object-src 'self' blob: data: https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self'; frame-src 'self' data: blob: https://docs.google.com; object-src 'self' blob: data:;">
     <title>Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
@@ -28,16 +28,6 @@
         });
     </script>
     
-    <!-- Load Supabase first -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Initialize Supabase client
-        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
-        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Supabase initialized in index.html');
-    </script>
-    
     <!-- Then load other scripts -->
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
@@ -59,41 +49,70 @@
     </script>
     
     <style>
+        /* Database Status Indicator */
+        #db-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        #db-status.connected {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        
+        #db-status.disconnected {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        
+        #db-status.checking {
+            background-color: #fcf8e3;
+            color: #8a6d3b;
+            border: 1px solid #faebcc;
+        }
+        
+        #db-status i {
+            margin-right: 5px;
+        }
+        
         /* Fixed Chat Button Styles */
         .fixed-chat-button {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 60px;
-            height: 60px;
-            background-color: #0a66c2;
+            width: 80px;
+            height: 80px;
+            background-color: #333;
             color: white;
             border-radius: 50%;
             display: flex;
-            justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 99;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 1000;
             transition: all 0.3s ease;
         }
         
         .fixed-chat-button:hover {
-            transform: scale(1.05);
-            background-color: #094d8f;
+            background-color: #000000c9;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
         
         .fixed-chat-button i {
-            font-size: 24px;
-        }
-        
-        .fixed-chat-button {
-            transition: transform 0.3s ease, background-color 0.3s ease;
-            position: relative;
-        }
-        
-        .fixed-chat-button i {
-            transform: scale(1);
-            transition: transform 0.3s ease;
+            font-size: 32px;
         }
         
         @media (max-width: 768px) {
@@ -418,14 +437,8 @@
                 right: 5px;
             }
         }
-        
-        /* Hide navigation arrows on smaller screens like iPhone */
-        @media (max-width: 480px) {
-            .scroll-btn {
-                display: none;
-            }
-        }
     </style>
+<<<<<<< HEAD
 </head>
 <body>
     <header>
@@ -684,753 +697,1014 @@
             </div>
         </div>
     </div>
+=======
+>>>>>>> 7aa3d5823179b22324bb71cbb2a2ff2bc706bd8e
     
+    <!-- Database status check script -->
     <script>
-        // Check login status when loading the page
         document.addEventListener('DOMContentLoaded', function() {
-            const currentUser = localStorage.getItem('currentUser');
-            const isAdmin = localStorage.getItem('isAdmin') === 'true';
-            console.log('current login status:', currentUser ? 'Logged in as ' + currentUser : 'Not logged in');
+            const dbStatus = document.createElement('div');
+            dbStatus.id = 'db-status';
+            dbStatus.className = 'checking';
+            dbStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando conexão...';
+            document.body.appendChild(dbStatus);
             
-            // If the user is logged in, make sure the UI is updated
-            if (currentUser && typeof updateUserInterface === 'function') {
-                updateUserInterface(currentUser);
+            // Check database connection
+            checkDatabaseConnection();
+            
+            function checkDatabaseConnection() {
+                const baseUrl = getApiBaseUrl();
+                
+                fetch(`${baseUrl}db_conct.php`, {
+                    method: 'HEAD',
+                    cache: 'no-store'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        dbStatus.className = 'connected';
+                        dbStatus.innerHTML = '<i class="fas fa-check-circle"></i> Banco de dados conectado';
+                        
+                        // Hide the status after 5 seconds
+                        setTimeout(() => {
+                            dbStatus.style.opacity = '0';
+                            // Remove from DOM after fade out
+                            setTimeout(() => {
+                                dbStatus.remove();
+                            }, 500);
+                        }, 5000);
+                    } else {
+                        dbStatus.className = 'disconnected';
+                        dbStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Banco de dados desconectado';
+                    }
+                })
+                .catch(error => {
+                    console.error('Database connection check failed:', error);
+                    dbStatus.className = 'disconnected';
+                    dbStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Banco de dados desconectado';
+                });
             }
-            
-            // Load featured projects
-            loadFeaturedProjects();
-            
-            
         });
-        
-        // Function to check for unread notifications and show the indicator
-        async function checkChatNotifications() {
-            try {
-                const currentUser = localStorage.getItem('currentUser');
-                if (!currentUser || !window.supabase) return;
-                
-                // Check for unread notifications
-                const { data: notifications, error } = await window.supabase
-                    .from('notifications')
-                    .select('id')
-                    .eq('recipient_username', currentUser)
-                    .eq('read', false)
-                    .limit(1);
-                
-                if (error) throw error;
-                
-                // Show notification indicator if there are unread notifications
-                const indicator = document.getElementById('fixed-chat-notification');
-                if (indicator && notifications && notifications.length > 0) {
-                    indicator.classList.add('active');
-                }
-                
-            } catch (error) {
-                console.error('Error checking notifications:', error);
-            }
-        }
-        
-        // Function to load featured projects from the database
-        async function loadFeaturedProjects() {
-            try {
-                console.log('Starting to load featured projects...');
-                
-                // Check if Supabase is initialized
-                if (!window.supabase) {
-                    console.error('Supabase client not initialized');
-                    throw new Error('Database connection not initialized');
-                }
-                
-                console.log('Fetching featured projects from database...');
-                
-                // Fetch featured projects from the database
-                const { data: featuredProjects, error } = await window.supabase
-                    .from('projects')
-                    .select('*')
-                    .eq('is_featured', true)
-                    .order('created_at', { ascending: false });
-                
-                if (error) {
-                    console.error('Error fetching featured projects:', error);
-                    throw error;
-                }
-                
-                console.log('Featured projects fetched:', featuredProjects);
-                
-                // Get the container element
-                const projectsContainer = document.getElementById('featured-projects-container');
-                const carouselWrapper = document.querySelector('.project-carousel-wrapper');
-                
-                // Clear loading indicator
-                projectsContainer.innerHTML = '';
-                
-                if (!featuredProjects || featuredProjects.length === 0) {
-                    console.log('No featured projects found');
-                    projectsContainer.innerHTML = '<p class="no-projects">No featured projects available at the moment.</p>';
-                    
-                    // Hide scroll buttons if no projects
-                    document.getElementById('scroll-left').classList.add('hidden');
-                    document.getElementById('scroll-right').classList.add('hidden');
-                    return;
-                }
-                
-                console.log('Starting to render featured projects...');
-                
-                // Map category to image file
-                const categoryImageMap = {
-                    'rf-telecommunications': 'assets/Telecomunication.jpg',
-                    'energy': 'assets/Energy.jpg',
-                    'construction': 'assets/Construction.jpg',
-                    'banking': 'assets/Bank-insurance-office.jpg',
-                    'sand': 'assets/Stands.jpg',
-                    'oil-gas': 'assets/Oil-gas.jpg',
-                    'real-estate': 'assets/Real-Estate.jpg',
-                    'nuclear': 'assets/Nuclear.png',
-                    'industrial': 'assets/Industrial.jpg',
-                    'naval': 'assets/Naval.jpg',
-                    'bpo': 'assets/GDO.jpg',
-                    'automotive': 'assets/Automotive.jpg',
-                    'aerospace': 'assets/Aerospace.jpg',
-                    'chemistry-pharmaceutical': 'assets/Chemistry-Pharmacy.jpg'
-                };
-                
-                // Default featured project images for fallback
-                const featuredImages = [
-                    'assets/Featured Project 1.png',
-                    'assets/Featured Project 2.png',
-                    'assets/Featured Project 3.png'
-                ];
-                
-                // Display each featured project
-                featuredProjects.forEach((project, index) => {
-                    // Format category name for display
-                    let categoryDisplay = 'Uncategorized';
-                    if (project.category) {
-                        categoryDisplay = project.category
-                            .split('-')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ');
-                    }
-                    
-                    // Create project card element
-                    const projectCard = document.createElement('div');
-                    projectCard.className = 'project-card';
-                    
-                    // Determine which image to use
-                    let imageUrl;
-                    
-                    if (project.file_url) {
-                        // Use project's own file if available and is an image
-                        const fileExt = project.file_url.split('.').pop().toLowerCase();
-                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
-                        
-                        if (isImage) {
-                            imageUrl = project.file_url;
-                        } else {
-                            // Use category image if file is not an image
-                            imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
-                        }
-                    } else {
-                        // No file, use category image
-                        imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
-                    }
-                    
-                    // Fill the project card with content
-                    projectCard.innerHTML = `
-                        <div class="project-image" style="background-image: url('${imageUrl}')"></div>
-                        <h3>${project.name || 'Unnamed Project'}</h3>
-                        <p>${categoryDisplay}</p>
-                        <a href="javascript:void(0)" class="view-project-btn" data-file-url="${project.file_url || ''}" data-project-id="${project.id}" data-file-name="${project.file_url ? project.file_url.split('/').pop().split('?')[0] : ''}">View Project</a>
-                    `;
-                    
-                    // Add the project card to the container
-                    projectsContainer.appendChild(projectCard);
-                });
-                
-                console.log('Featured projects rendered successfully');
-                
-                // Add event listeners to the "View Project" buttons
-                document.querySelectorAll('.view-project-btn').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const fileUrl = this.getAttribute('data-file-url');
-                        const fileName = this.getAttribute('data-file-name');
-                        const projectId = this.getAttribute('data-project-id');
-                        
-                        if (fileUrl) {
-                            // Show file directly in modal
-                            showFileInModal(fileUrl, fileName);
-                        } else {
-                            // Fallback to the portfolios page if no file is available
-                            window.location.href = `portfolios.html?project=${projectId}`;
-                        }
-                    });
-                });
-                
-                // Hide right button if 3 or fewer projects
-                if (featuredProjects.length <= 3) {
-                    document.getElementById('scroll-right').classList.add('hidden');
-                }
-                
-                // Initialize carousel functionality
-                initCarousel();
-                
-                // Force reset scroll position to start
-                if (carouselWrapper) {
-                    carouselWrapper.scrollLeft = 0;
-                }
-                
-            } catch (error) {
-                console.error('Error in loadFeaturedProjects:', error);
-                const projectsContainer = document.getElementById('featured-projects-container');
-                projectsContainer.innerHTML = `
-                    <p class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Failed to load featured projects. Please try again later.<br>
-                        <small>Error: ${error.message}</small>
-                    </p>
-                `;
-                
-                // Hide scroll buttons if error
-                document.getElementById('scroll-left').classList.add('hidden');
-                document.getElementById('scroll-right').classList.add('hidden');
-            }
-        }
-        
-        // Initialize carousel functionality
-        function initCarousel() {
-            const carouselWrapper = document.querySelector('.project-carousel-wrapper');
-            const carousel = document.getElementById('featured-projects-container');
-            const leftBtn = document.getElementById('scroll-left');
-            const rightBtn = document.getElementById('scroll-right');
-            
-            if (!carousel || !carouselWrapper || !leftBtn || !rightBtn) return;
-            
-            const cards = carousel.querySelectorAll('.project-card');
-            
-            // If we have 3 or fewer cards, hide navigation buttons
-            if (cards.length <= 3) {
-                leftBtn.classList.add('hidden');
-                rightBtn.classList.add('hidden');
-                return;
-            }
-            
-            // Show navigation buttons
-            leftBtn.classList.remove('hidden');
-            rightBtn.classList.remove('hidden');
-            
-            // Center the carousel to show exactly 3 cards
-            const containerWidth = carouselWrapper.clientWidth;
-            const cardWidth = cards[0].offsetWidth;
-            const gap = 32; // 2rem gap
-            const scrollAmount = cardWidth + gap;
-            
-            // Ensure scroll snapping to cards
-            carouselWrapper.style.scrollSnapType = 'x mandatory';
-            cards.forEach(card => {
-                card.style.scrollSnapAlign = 'center';
-            });
-            
-            // Disable left button initially (we're showing the first 3 cards)
-            leftBtn.disabled = true;
-            leftBtn.style.opacity = '0.5';
-            
-            // Scroll left/right with buttons - scroll exactly one card
-            leftBtn.addEventListener('click', () => {
-                carouselWrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            });
-            
-            rightBtn.addEventListener('click', () => {
-                carouselWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-            });
-            
-            // Implement drag-to-scroll functionality
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-            
-            // Mouse events for desktop
-            carouselWrapper.addEventListener('mousedown', (e) => {
-                isDown = true;
-                carouselWrapper.style.cursor = 'grabbing';
-                startX = e.pageX - carouselWrapper.offsetLeft;
-                scrollLeft = carouselWrapper.scrollLeft;
-                e.preventDefault();
-            });
-            
-            carouselWrapper.addEventListener('mouseleave', () => {
-                isDown = false;
-                carouselWrapper.style.cursor = 'grab';
-            });
-            
-            carouselWrapper.addEventListener('mouseup', () => {
-                isDown = false;
-                carouselWrapper.style.cursor = 'grab';
-            });
-            
-            carouselWrapper.addEventListener('mousemove', (e) => {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - carouselWrapper.offsetLeft;
-                const walk = (x - startX) * 2; // Scroll speed multiplier
-                carouselWrapper.scrollLeft = scrollLeft - walk;
-            });
-            
-            // Touch events for mobile
-            carouselWrapper.addEventListener('touchstart', (e) => {
-                isDown = true;
-                startX = e.touches[0].pageX - carouselWrapper.offsetLeft;
-                scrollLeft = carouselWrapper.scrollLeft;
-            });
-            
-            carouselWrapper.addEventListener('touchend', () => {
-                isDown = false;
-            });
-            
-            carouselWrapper.addEventListener('touchcancel', () => {
-                isDown = false;
-            });
-            
-            carouselWrapper.addEventListener('touchmove', (e) => {
-                if (!isDown) return;
-                const x = e.touches[0].pageX - carouselWrapper.offsetLeft;
-                const walk = (x - startX) * 2;
-                carouselWrapper.scrollLeft = scrollLeft - walk;
-                e.preventDefault(); // Prevent page scroll
-            });
-            
-            // Update button states on scroll
-            carouselWrapper.addEventListener('scroll', () => {
-                const scrollPosition = carouselWrapper.scrollLeft;
-                const maxScroll = carouselWrapper.scrollWidth - carouselWrapper.clientWidth;
-                
-                // Enable/disable buttons based on scroll position
-                leftBtn.disabled = scrollPosition <= 0;
-                leftBtn.style.opacity = scrollPosition <= 0 ? '0.5' : '0.9';
-                
-                rightBtn.disabled = scrollPosition >= maxScroll;
-                rightBtn.style.opacity = scrollPosition >= maxScroll ? '0.5' : '0.9';
-            });
-        }
     </script>
-    
-    <!-- Novo script para substituir o slideshow -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Função para substituir completamente as bolinhas
-            function corrigirBolinhas() {
-                console.log("Substituindo bolinhas para forçar cor branca...");
+    </head>
+    <body>
+        <header>   <script src="navigation.js"></script>    </header>
+        <main>
+            <section id="hero">
+                <div class="hero-slideshow" id="hero-slideshow">
+                    <div class="hero-slide active"></div>
+                    <div class="hero-slide"></div>
+                    <div class="hero-slide"></div>
+                    <div class="hero-slide"></div>
+                    <div class="hero-slide"></div>
+                    <div class="hero-slide"></div>
+                </div>
+                <div class="slideshow-dots">
+                    <div class="slideshow-dot active" data-slide="0"></div>
+                    <div class="slideshow-dot" data-slide="1"></div>
+                    <div class="slideshow-dot" data-slide="2"></div>
+                    <div class="slideshow-dot" data-slide="3"></div>
+                    <div class="slideshow-dot" data-slide="4"></div>
+                    <div class="slideshow-dot" data-slide="5"></div>
+                </div>
+                <div class="hero-content">
+                    <h1>Architecture Portfolio</h1>
+                </div>
+            </section>
+
+            <section id="projects">
+                <h2>Featured Projects</h2>
+                <div class="projects-container">
+                    <button class="scroll-btn scroll-left" id="scroll-left">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="project-carousel-wrapper">
+                        <div class="project-carousel" id="featured-projects-container">
+                            <!-- Featured projects will be loaded dynamically here -->
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                                <p>Loading featured projects...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="scroll-btn scroll-right" id="scroll-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <section id="about">
+                <div class="about-content">
+                    <h2>About Us</h2>
+                    <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Optio porro ipsam velit alias modi quasi a dolor beatae culpa est, cupiditate ratione dicta similique, minima ab nisi officia aliquam. Laborum.</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Client Dashboard Popup -->
+        <div id="client-dashboard-overlay" class="dashboard-overlay">
+            <div class="dashboard-popup">
+                <div class="dashboard-popup-header">
+                    <h2>Practices</h2>
+                    <button class="close-dashboard" onclick="closeDashboard()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="dashboard-popup-content">
+                    <p>Select a practice area below</p>
+                    <div class="category-grid">
+                        <!-- RF Telecommunications -->
+                        <div class="category-card" data-category="rf-telecommunications">
+                            <div class="category-overlay">
+                                <h3>RF & Telecommunications</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Energy -->
+                        <div class="category-card" data-category="energy">
+                            <div class="category-overlay">
+                                <h3>Energy</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Construction -->
+                        <div class="category-card" data-category="construction">
+                            <div class="category-overlay">
+                                <h3>Construction</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Bank Insurance Office -->
+                        <div class="category-card" data-category="banking">
+                            <div class="category-overlay">
+                                <h3>Banking & Finance</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Sand -->
+                        <div class="category-card" data-category="sand">
+                            <div class="category-overlay">
+                                <h3>Stand</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Oil & Gas -->
+                        <div class="category-card" data-category="oil-gas">
+                            <div class="category-overlay">
+                                <h3>Oil & Gas</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Real Estate -->
+                        <div class="category-card" data-category="real-estate">
+                            <div class="category-overlay">
+                                <h3>Real Estate</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Nuclear -->
+                        <div class="category-card" data-category="nuclear">
+                            <div class="category-overlay">
+                                <h3>Nuclear</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Industrial -->
+                        <div class="category-card" data-category="industrial">
+                            <div class="category-overlay">
+                                <h3>Industrial</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Naval -->
+                        <div class="category-card" data-category="naval">
+                            <div class="category-overlay">
+                                <h3>Naval</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- BPO -->
+                        <div class="category-card" data-category="bpo">
+                            <div class="category-overlay">
+                                <h3>GDO</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Automotive -->
+                        <div class="category-card" data-category="automotive">
+                            <div class="category-overlay">
+                                <h3>Automotive</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Aerospace -->
+                        <div class="category-card" data-category="aerospace">
+                            <div class="category-overlay">
+                                <h3>Aerospace</h3>
+                            </div>
+                        </div>
+                        
+                        <!-- Chemistry-Pharmaceutical -->
+                        <div class="category-card" data-category="chemistry-pharmaceutical">
+                            <div class="category-overlay">
+                                <h3>Chemistry & Pharmaceutical</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fixed Chat Button -->
+        <a href="chat.html" class="fixed-chat-button">
+            <i class="fas fa-comments"></i>
+            <span class="chat-notification-indicator" id="fixed-chat-notification"></span>
+        </a>
+
+        <footer>
+            <div class="footer-content">
+                <div class="social-links">
+                    <a href="https://www.instagram.com/lgcarchi/"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.facebook.com/profile.php?id=100094347141527"><i class="fab fa-facebook"></i></a>
+                    <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
+                </div>
+                <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
+            </div>
+        </footer>
+        
+        <!-- File Viewer Modal -->
+        <div id="file-viewer-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-file-title">File Preview</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="file-info-bar">
+                    <div class="file-type-icon" id="file-type-icon">DOC</div>
+                    <span id="file-info">Loading file information...</span>
+                </div>
+                <div class="modal-body">
+                    <div id="file-viewer-container">
+                        <!-- Turn.js Flipbook container -->
+                        <div id="flipbook-wrapper">
+                            <div id="flipbook"></div>
+                            <div class="flipbook-nav">
+                                <button id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
+                                <button id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        
+                        <!-- Original preview elements -->
+                        <iframe id="file-iframe" width="100%" height="600" style="display: none;"></iframe>
+                        <img id="file-image" style="display: none;" />
+                        <div id="file-unsupported" style="display: none;">
+                            <i class="fas fa-file-alt"></i>
+                            <h3>This file type cannot be previewed</h3>
+                            <p>The file may need to be downloaded to be viewed.</p>
+                            <a id="file-download-link" href="#" class="action-button">
+                                <i class="fas fa-download"></i> Download File
+                            </a>
+                        </div>
+                        
+                        <!-- Loading indicator -->
+                        <div class="modal-loading" id="file-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Loading file...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="file-actions">
+                    <button class="file-action-button" id="zoom-in-button">
+                        <i class="fas fa-search-plus"></i> Zoom In
+                    </button>
+                    <button class="file-action-button" id="zoom-out-button">
+                        <i class="fas fa-search-minus"></i> Zoom Out
+                    </button>
+                    <a id="download-button" href="#" class="file-action-button">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Check login status when loading the page
+            document.addEventListener('DOMContentLoaded', function() {
+                const currentUser = localStorage.getItem('currentUser');
+                const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                console.log('current login status:', currentUser ? 'Logged in as ' + currentUser : 'Not logged in');
                 
-                // Remover container de bolinhas existente
-                const dotsContainer = document.querySelector('.slideshow-dots');
-                if (dotsContainer) {
-                    dotsContainer.remove();
+                // If the user is logged in, make sure the UI is updated
+                if (currentUser && typeof updateUserInterface === 'function') {
+                    updateUserInterface(currentUser);
                 }
                 
-                // Criar um novo container de bolinhas
-                const novoContainer = document.createElement('div');
-                novoContainer.className = 'slideshow-dots';
-                novoContainer.style.cssText = `
-                    position: absolute;
-                    bottom: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    display: flex;
-                    gap: 10px;
-                    z-index: 999;
-                `;
+                // Load featured projects
+                loadFeaturedProjects();
                 
-                // Obter o número de slides
-                const slides = document.querySelectorAll('.hero-slide');
-                
-                // Criar as novas bolinhas
-                for (let i = 0; i < slides.length; i++) {
-                    const novaBolinha = document.createElement('div');
-                    novaBolinha.setAttribute('data-slide', i);
+                // Check for chat notifications
+                checkChatNotifications();
+            });
+            
+            // Function to check for unread notifications and show the indicator
+            async function checkChatNotifications() {
+                try {
+                    const currentUser = localStorage.getItem('currentUser');
+                    if (!currentUser || !window.supabase) return;
                     
-                    // Estilo base - bolinhas cinzas
-                    novaBolinha.style.cssText = `
-                        width: 12px;
-                        height: 12px;
-                        border-radius: 50%;
-                        background-color: rgba(255, 255, 255, 0.5);
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                    `;
+                    // Check for unread notifications
+                    const { data: notifications, error } = await window.supabase
+                        .from('notifications')
+                        .select('id')
+                        .eq('recipient_username', currentUser)
+                        .eq('read', false)
+                        .limit(1);
                     
-                    // A primeira bolinha começa branca
-                    if (i === 0) {
-                        novaBolinha.classList.add('active');
-                        novaBolinha.style.backgroundColor = '#ffffff';
-                        novaBolinha.style.transform = 'scale(1.2)';
+                    if (error) throw error;
+                    
+                    // Show notification indicator if there are unread notifications
+                    const indicator = document.getElementById('fixed-chat-notification');
+                    if (indicator && notifications && notifications.length > 0) {
+                        indicator.classList.add('active');
                     }
                     
-                    // Adicionar evento de clique que ativa o slideshow nessa posição
-                    novaBolinha.addEventListener('click', function() {
-                        const dots = document.querySelectorAll('.slideshow-dots > div');
-                        const index = parseInt(this.getAttribute('data-slide'));
-                        
-                        // Atualizar todas as bolinhas
-                        dots.forEach((dot, idx) => {
-                            if (idx === index) {
-                                dot.classList.add('active');
-                                dot.style.backgroundColor = '#ffffff';
-                                dot.style.transform = 'scale(1.2)';
-                            } else {
-                                dot.classList.remove('active');
-                                dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-                                dot.style.transform = 'scale(1)';
-                            }
-                        });
-                        
-                        // Usando o slidesFunction para mudar o slide (será definido depois)
-                        if (window.goToSlide) {
-                            window.goToSlide(index);
-                        }
-                    });
-                    
-                    novoContainer.appendChild(novaBolinha);
+                } catch (error) {
+                    console.error('Error checking notifications:', error);
                 }
-                
-                // Adicionar o container ao hero
-                const heroSection = document.getElementById('hero');
-                heroSection.appendChild(novoContainer);
-                
-                return novoContainer.querySelectorAll('div');
             }
             
-            // Criar função global para atualizar as bolinhas - será chamada pelo slideshow
-            window.atualizarBolinhas = function(index) {
-                const dots = document.querySelectorAll('.slideshow-dots > div');
-                
-                dots.forEach((dot, i) => {
-                    if (i === index) {
-                        dot.classList.add('active');
-                        dot.style.backgroundColor = '#ffffff';
-                        dot.style.transform = 'scale(1.2)';
-                    } else {
-                        dot.classList.remove('active');
-                        dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-                        dot.style.transform = 'scale(1)';
+            // Function to load featured projects from the database
+            async function loadFeaturedProjects() {
+                try {
+                    console.log('Starting to load featured projects...');
+                    
+                    // Check if Supabase is initialized
+                    if (!window.supabase) {
+                        console.error('Supabase client not initialized');
+                        throw new Error('Database connection not initialized');
                     }
-                });
-            };
-            
-            // SLIDESHOW COM EFEITO DE SLIDE HORIZONTAL - SEM AUTOROTAÇÃO
-            // Desativar a função initSlideshow original que está causando problemas
-            if (window.initSlideshow) {
-                window.originalInitSlideshow = window.initSlideshow;
-                window.initSlideshow = function() { 
-                    console.log('Função original desativada');
-                };
-            }
-            
-            // Implementação simplificada com suporte a drag e efeito slide
-            function novoSlideshow() {
-                console.log('Inicializando slideshow com bolinhas forçadamente brancas');
-                const slideContainer = document.querySelector('.hero-slideshow');
-                const slides = document.querySelectorAll('.hero-slide');
-                
-                if (!slides.length) return;
-                
-                // Criar novas bolinhas no DOM
-                const dots = corrigirBolinhas();
-                
-                // Configuração inicial
-                let currentIndex = 0;
-                let isDragging = false;
-                let startX = 0;
-                let currentTranslate = 0;
-                let prevTranslate = 0;
-                let animationID = 0;
-                let isChanging = false;
-                
-                // Inicializar estado
-                slides.forEach((slide, index) => {
-                    // Limpar classes existentes
-                    slide.classList.remove('active');
                     
-                    // Resetar estilos
-                    slide.style.position = 'absolute';
-                    slide.style.left = '0';
-                    slide.style.top = '0';
-                    slide.style.width = '100%';
-                    slide.style.height = '100%';
-                    slide.style.transform = `translateX(${100 * index}%)`;
-                    slide.style.transition = 'none';
-                    slide.style.opacity = '1';
-                    slide.style.zIndex = '1';
-                });
-                
-                // Configurar container
-                slideContainer.style.position = 'absolute';
-                slideContainer.style.top = '0';
-                slideContainer.style.left = '0';
-                slideContainer.style.width = '100%';
-                slideContainer.style.height = '100%';
-                slideContainer.style.overflow = 'hidden';
-                slideContainer.style.touchAction = 'none';
-                slideContainer.style.cursor = 'grab';
-                
-                // Criar elemento wrapper para manipular todos os slides juntos
-                const slidesWrapper = document.createElement('div');
-                slidesWrapper.className = 'slides-wrapper';
-                slidesWrapper.style.position = 'absolute';
-                slidesWrapper.style.width = '100%';
-                slidesWrapper.style.height = '100%';
-                slidesWrapper.style.display = 'flex';
-                slidesWrapper.style.transform = 'translateX(0)';
-                slidesWrapper.style.transition = 'transform 0.3s ease-out';
-                
-                // Reorganizar os slides dentro do wrapper
-                while (slideContainer.firstChild) {
-                    slidesWrapper.appendChild(slideContainer.firstChild);
-                }
-                slideContainer.appendChild(slidesWrapper);
-                
-                // Recapturar slides após reorganização
-                const allSlides = slidesWrapper.querySelectorAll('.hero-slide');
-                
-                // Configurar slides no wrapper
-                allSlides.forEach((slide, index) => {
-                    slide.style.position = 'relative';
-                    slide.style.minWidth = '100%';
-                    slide.style.minHeight = '100%';
-                    slide.style.transform = 'none';
-                    slide.style.left = '0';
-                    // Adicionar atributo de índice para referência
-                    slide.setAttribute('data-index', index);
-                });
-                
-                // Monitoramento ativo das bolinhas com requestAnimationFrame
-                function animate() {
-                    if (!isDragging) {
-                        cancelAnimationFrame(animationID);
+                    console.log('Fetching featured projects from database...');
+                    
+                    // Fetch featured projects from the database
+                    const { data: featuredProjects, error } = await window.supabase
+                        .from('projects')
+                        .select('*')
+                        .eq('is_featured', true)
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) {
+                        console.error('Error fetching featured projects:', error);
+                        throw error;
+                    }
+                    
+                    console.log('Featured projects fetched:', featuredProjects);
+                    
+                    // Get the container element
+                    const projectsContainer = document.getElementById('featured-projects-container');
+                    const carouselWrapper = document.querySelector('.project-carousel-wrapper');
+                    
+                    // Clear loading indicator
+                    projectsContainer.innerHTML = '';
+                    
+                    if (!featuredProjects || featuredProjects.length === 0) {
+                        console.log('No featured projects found');
+                        projectsContainer.innerHTML = '<p class="no-projects">No featured projects available at the moment.</p>';
+                        
+                        // Hide scroll buttons if no projects
+                        document.getElementById('scroll-left').classList.add('hidden');
+                        document.getElementById('scroll-right').classList.add('hidden');
                         return;
                     }
                     
-                    // Atualizar posição do slider
-                    slidesWrapper.style.transform = `translateX(${currentTranslate}%)`;
+                    console.log('Starting to render featured projects...');
                     
-                    // Calcular o índice do slide visível
-                    const visibleIndex = Math.round(Math.abs(currentTranslate / 100));
-                    if (visibleIndex >= 0 && visibleIndex < slides.length) {
-                        // Atualizar as bolinhas
-                        window.atualizarBolinhas(visibleIndex);
+                    // Map category to image file
+                    const categoryImageMap = {
+                        'rf-telecommunications': 'assets/Telecomunication.jpg',
+                        'energy': 'assets/Energy.jpg',
+                        'construction': 'assets/Construction.jpg',
+                        'banking': 'assets/Bank-insurance-office.jpg',
+                        'sand': 'assets/Stands.jpg',
+                        'oil-gas': 'assets/Oil-gas.jpg',
+                        'real-estate': 'assets/Real-Estate.jpg',
+                        'nuclear': 'assets/Nuclear.png',
+                        'industrial': 'assets/Industrial.jpg',
+                        'naval': 'assets/Naval.jpg',
+                        'bpo': 'assets/GDO.jpg',
+                        'automotive': 'assets/Automotive.jpg',
+                        'aerospace': 'assets/Aerospace.jpg',
+                        'chemistry-pharmaceutical': 'assets/Chemistry-Pharmacy.jpg'
+                    };
+                    
+                    // Default featured project images for fallback
+                    const featuredImages = [
+                        'assets/Featured Project 1.png',
+                        'assets/Featured Project 2.png',
+                        'assets/Featured Project 3.png'
+                    ];
+                    
+                    // Display each featured project
+                    featuredProjects.forEach((project, index) => {
+                        // Format category name for display
+                        let categoryDisplay = 'Uncategorized';
+                        if (project.category) {
+                            categoryDisplay = project.category
+                                .split('-')
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ');
+                        }
+                        
+                        // Create project card element
+                        const projectCard = document.createElement('div');
+                        projectCard.className = 'project-card';
+                        
+                        // Determine which image to use
+                        let imageUrl;
+                        
+                        if (project.file_url) {
+                            // Use project's own file if available and is an image
+                            const fileExt = project.file_url.split('.').pop().toLowerCase();
+                            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                            
+                            if (isImage) {
+                                imageUrl = project.file_url;
+                            } else {
+                                // Use category image if file is not an image
+                                imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                            }
+                        } else {
+                            // No file, use category image
+                            imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                        }
+                        
+                        // Fill the project card with content
+                        projectCard.innerHTML = `
+                            <div class="project-image" style="background-image: url('${imageUrl}')"></div>
+                            <h3>${project.name || 'Unnamed Project'}</h3>
+                            <p>${categoryDisplay}</p>
+                            <a href="javascript:void(0)" class="view-project-btn" data-file-url="${project.file_url || ''}" data-project-id="${project.id}" data-file-name="${project.file_url ? project.file_url.split('/').pop().split('?')[0] : ''}">View Project</a>
+                        `;
+                        
+                        // Add the project card to the container
+                        projectsContainer.appendChild(projectCard);
+                    });
+                    
+                    console.log('Featured projects rendered successfully');
+                    
+                    // Add event listeners to the "View Project" buttons
+                    document.querySelectorAll('.view-project-btn').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const fileUrl = this.getAttribute('data-file-url');
+                            const fileName = this.getAttribute('data-file-name');
+                            const projectId = this.getAttribute('data-project-id');
+                            
+                            if (fileUrl) {
+                                // Show file directly in modal
+                                showFileInModal(fileUrl, fileName);
+                            } else {
+                                // Fallback to the portfolios page if no file is available
+                                window.location.href = `portfolios.html?project=${projectId}`;
+                            }
+                        });
+                    });
+                    
+                    // Hide right button if 3 or fewer projects
+                    if (featuredProjects.length <= 3) {
+                        document.getElementById('scroll-right').classList.add('hidden');
                     }
                     
-                    animationID = requestAnimationFrame(animate);
+                    // Initialize carousel functionality
+                    initCarousel();
+                    
+                    // Force reset scroll position to start
+                    if (carouselWrapper) {
+                        carouselWrapper.scrollLeft = 0;
+                    }
+                    
+                } catch (error) {
+                    console.error('Error in loadFeaturedProjects:', error);
+                    const projectsContainer = document.getElementById('featured-projects-container');
+                    projectsContainer.innerHTML = `
+                        <p class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Failed to load featured projects. Please try again later.<br>
+                            <small>Error: ${error.message}</small>
+                        </p>
+                    `;
+                    
+                    // Hide scroll buttons if error
+                    document.getElementById('scroll-left').classList.add('hidden');
+                    document.getElementById('scroll-right').classList.add('hidden');
+                }
+            }
+            
+            // Initialize carousel functionality
+            function initCarousel() {
+                const carouselWrapper = document.querySelector('.project-carousel-wrapper');
+                const carousel = document.getElementById('featured-projects-container');
+                const leftBtn = document.getElementById('scroll-left');
+                const rightBtn = document.getElementById('scroll-right');
+                
+                if (!carousel || !carouselWrapper || !leftBtn || !rightBtn) return;
+                
+                const cards = carousel.querySelectorAll('.project-card');
+                
+                // If we have 3 or fewer cards, hide navigation buttons
+                if (cards.length <= 3) {
+                    leftBtn.classList.add('hidden');
+                    rightBtn.classList.add('hidden');
+                    return;
                 }
                 
-                // Funções principais
-                function setPositionByIndex() {
-                    currentTranslate = currentIndex * -100;
-                    prevTranslate = currentTranslate;
-                    slidesWrapper.style.transform = `translateX(${currentTranslate}%)`;
+                // Show navigation buttons
+                leftBtn.classList.remove('hidden');
+                rightBtn.classList.remove('hidden');
+                
+                // Center the carousel to show exactly 3 cards
+                const containerWidth = carouselWrapper.clientWidth;
+                const cardWidth = cards[0].offsetWidth;
+                const gap = 32; // 2rem gap
+                const scrollAmount = cardWidth + gap;
+                
+                // Ensure scroll snapping to cards
+                carouselWrapper.style.scrollSnapType = 'x mandatory';
+                cards.forEach(card => {
+                    card.style.scrollSnapAlign = 'center';
+                });
+                
+                // Disable left button initially (we're showing the first 3 cards)
+                leftBtn.disabled = true;
+                leftBtn.style.opacity = '0.5';
+                
+                // Scroll left/right with buttons - scroll exactly one card
+                leftBtn.addEventListener('click', () => {
+                    carouselWrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                });
+                
+                rightBtn.addEventListener('click', () => {
+                    carouselWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                });
+                
+                // Implement drag-to-scroll functionality
+                let isDown = false;
+                let startX;
+                let scrollLeft;
+                
+                // Mouse events for desktop
+                carouselWrapper.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    carouselWrapper.style.cursor = 'grabbing';
+                    startX = e.pageX - carouselWrapper.offsetLeft;
+                    scrollLeft = carouselWrapper.scrollLeft;
+                    e.preventDefault();
+                });
+                
+                carouselWrapper.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    carouselWrapper.style.cursor = 'grab';
+                });
+                
+                carouselWrapper.addEventListener('mouseup', () => {
+                    isDown = false;
+                    carouselWrapper.style.cursor = 'grab';
+                });
+                
+                carouselWrapper.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - carouselWrapper.offsetLeft;
+                    const walk = (x - startX) * 2; // Scroll speed multiplier
+                    carouselWrapper.scrollLeft = scrollLeft - walk;
+                });
+                
+                // Touch events for mobile
+                carouselWrapper.addEventListener('touchstart', (e) => {
+                    isDown = true;
+                    startX = e.touches[0].pageX - carouselWrapper.offsetLeft;
+                    scrollLeft = carouselWrapper.scrollLeft;
+                });
+                
+                carouselWrapper.addEventListener('touchend', () => {
+                    isDown = false;
+                });
+                
+                carouselWrapper.addEventListener('touchcancel', () => {
+                    isDown = false;
+                });
+                
+                carouselWrapper.addEventListener('touchmove', (e) => {
+                    if (!isDown) return;
+                    const x = e.touches[0].pageX - carouselWrapper.offsetLeft;
+                    const walk = (x - startX) * 2;
+                    carouselWrapper.scrollLeft = scrollLeft - walk;
+                    e.preventDefault(); // Prevent page scroll
+                });
+                
+                // Update button states on scroll
+                carouselWrapper.addEventListener('scroll', () => {
+                    const scrollPosition = carouselWrapper.scrollLeft;
+                    const maxScroll = carouselWrapper.scrollWidth - carouselWrapper.clientWidth;
+                    
+                    // Enable/disable buttons based on scroll position
+                    leftBtn.disabled = scrollPosition <= 0;
+                    leftBtn.style.opacity = scrollPosition <= 0 ? '0.5' : '0.9';
+                    
+                    rightBtn.disabled = scrollPosition >= maxScroll;
+                    rightBtn.style.opacity = scrollPosition >= maxScroll ? '0.5' : '0.9';
+                });
+            }
+        </script>
+        
+        <!-- Novo script para substituir o slideshow -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Função para substituir completamente as bolinhas
+                function corrigirBolinhas() {
+                    console.log("Substituindo bolinhas para forçar cor branca...");
+                    
+                    // Remover container de bolinhas existente
+                    const dotsContainer = document.querySelector('.slideshow-dots');
+                    if (dotsContainer) {
+                        dotsContainer.remove();
+                    }
+                    
+                    // Criar um novo container de bolinhas
+                    const novoContainer = document.createElement('div');
+                    novoContainer.className = 'slideshow-dots';
+                    novoContainer.style.cssText = `
+                        position: absolute;
+                        bottom: 20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        display: flex;
+                        gap: 10px;
+                        z-index: 999;
+                    `;
+                    
+                    // Obter o número de slides
+                    const slides = document.querySelectorAll('.hero-slide');
+                    
+                    // Criar as novas bolinhas
+                    for (let i = 0; i < slides.length; i++) {
+                        const novaBolinha = document.createElement('div');
+                        novaBolinha.setAttribute('data-slide', i);
+                        
+                        // Estilo base - bolinhas cinzas
+                        novaBolinha.style.cssText = `
+                            width: 12px;
+                            height: 12px;
+                            border-radius: 50%;
+                            background-color: rgba(255, 255, 255, 0.5);
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        `;
+                        
+                        // A primeira bolinha começa branca
+                        if (i === 0) {
+                            novaBolinha.classList.add('active');
+                            novaBolinha.style.backgroundColor = '#ffffff';
+                            novaBolinha.style.transform = 'scale(1.2)';
+                        }
+                        
+                        // Adicionar evento de clique que ativa o slideshow nessa posição
+                        novaBolinha.addEventListener('click', function() {
+                            const dots = document.querySelectorAll('.slideshow-dots > div');
+                            const index = parseInt(this.getAttribute('data-slide'));
+                            
+                            // Atualizar todas as bolinhas
+                            dots.forEach((dot, idx) => {
+                                if (idx === index) {
+                                    dot.classList.add('active');
+                                    dot.style.backgroundColor = '#ffffff';
+                                    dot.style.transform = 'scale(1.2)';
+                                } else {
+                                    dot.classList.remove('active');
+                                    dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+                                    dot.style.transform = 'scale(1)';
+                                }
+                            });
+                            
+                            // Usando o slidesFunction para mudar o slide (será definido depois)
+                            if (window.goToSlide) {
+                                window.goToSlide(index);
+                            }
+                        });
+                        
+                        novoContainer.appendChild(novaBolinha);
+                    }
+                    
+                    // Adicionar o container ao hero
+                    const heroSection = document.getElementById('hero');
+                    heroSection.appendChild(novoContainer);
+                    
+                    return novoContainer.querySelectorAll('div');
                 }
                 
-                // Função global para ir para um slide específico (será chamada pelas bolinhas)
-                window.goToSlide = function(index) {
-                    if (index < 0 || index >= slides.length || isChanging) return;
+                // Criar função global para atualizar as bolinhas - será chamada pelo slideshow
+                window.atualizarBolinhas = function(index) {
+                    const dots = document.querySelectorAll('.slideshow-dots > div');
                     
-                    isChanging = true;
-                    
-                    // Atualizar índice
-                    currentIndex = index;
-                    
-                    // Animar a transição
-                    slidesWrapper.style.transition = 'transform 0.3s ease-out';
-                    setPositionByIndex();
-                    
-                    // Atualizar bolinhas
-                    window.atualizarBolinhas(index);
-                    
-                    // Permitir nova transição após um tempo
-                    setTimeout(() => {
-                        isChanging = false;
-                    }, 300);
+                    dots.forEach((dot, i) => {
+                        if (i === index) {
+                            dot.classList.add('active');
+                            dot.style.backgroundColor = '#ffffff';
+                            dot.style.transform = 'scale(1.2)';
+                        } else {
+                            dot.classList.remove('active');
+                            dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+                            dot.style.transform = 'scale(1)';
+                        }
+                    });
                 };
                 
-                // Função para determinar qual slide está visível
-                function getVisibleSlideIndex() {
-                    const position = Math.abs(currentTranslate);
-                    return Math.round(position / 100);
+                // SLIDESHOW COM EFEITO DE SLIDE HORIZONTAL - SEM AUTOROTAÇÃO
+                // Desativar a função initSlideshow original que está causando problemas
+                if (window.initSlideshow) {
+                    window.originalInitSlideshow = window.initSlideshow;
+                    window.initSlideshow = function() { 
+                        console.log('Função original desativada');
+                    };
                 }
                 
-                // Eventos de interação
-                function touchStart(event) {
-                    if (isChanging) return;
+                // Implementação simplificada com suporte a drag e efeito slide
+                function novoSlideshow() {
+                    console.log('Inicializando slideshow com bolinhas forçadamente brancas');
+                    const slideContainer = document.querySelector('.hero-slideshow');
+                    const slides = document.querySelectorAll('.hero-slide');
                     
-                    event.preventDefault();
+                    if (!slides.length) return;
                     
-                    const touch = event.type.includes('mouse') 
-                        ? event 
-                        : event.touches[0];
+                    // Criar novas bolinhas no DOM
+                    const dots = corrigirBolinhas();
                     
-                    startX = touch.clientX;
-                    isDragging = true;
+                    // Configuração inicial
+                    let currentIndex = 0;
+                    let isDragging = false;
+                    let startX = 0;
+                    let currentTranslate = 0;
+                    let prevTranslate = 0;
+                    let animationID = 0;
+                    let isChanging = false;
                     
-                    slideContainer.style.cursor = 'grabbing';
+                    // Inicializar estado
+                    slides.forEach((slide, index) => {
+                        // Limpar classes existentes
+                        slide.classList.remove('active');
+                        
+                        // Resetar estilos
+                        slide.style.position = 'absolute';
+                        slide.style.left = '0';
+                        slide.style.top = '0';
+                        slide.style.width = '100%';
+                        slide.style.height = '100%';
+                        slide.style.transform = `translateX(${100 * index}%)`;
+                        slide.style.transition = 'none';
+                        slide.style.opacity = '1';
+                        slide.style.zIndex = '1';
+                    });
                     
-                    // Pausar transição durante o arrasto
-                    slidesWrapper.style.transition = 'none';
-                    
-                    // Iniciar animação para acompanhar as bolinhas
-                    cancelAnimationFrame(animationID);
-                    animationID = requestAnimationFrame(animate);
-                }
-                
-                function touchMove(event) {
-                    if (!isDragging) return;
-                    
-                    event.preventDefault();
-                    
-                    const touch = event.type.includes('mouse') 
-                        ? event 
-                        : event.touches[0];
-                    
-                    const currentX = touch.clientX;
-                    const diff = currentX - startX;
-                    
-                    // Converter pixels para porcentagem baseado na largura do container
-                    const percentMove = (diff / window.innerWidth) * 100;
-                    
-                    // Atualizar posição com movimento atual
-                    currentTranslate = prevTranslate + percentMove;
-                    
-                    // Limitar arrasto além dos limites
-                    const maxTranslate = 0;
-                    const minTranslate = (slides.length - 1) * -100;
-                    
-                    if (currentTranslate > maxTranslate) {
-                        currentTranslate = maxTranslate + (currentTranslate - maxTranslate) * 0.3;
-                    } else if (currentTranslate < minTranslate) {
-                        currentTranslate = minTranslate + (currentTranslate - minTranslate) * 0.3;
-                    }
-                }
-                
-                function touchEnd(event) {
-                    if (!isDragging) return;
-                    
-                    isDragging = false;
+                    // Configurar container
+                    slideContainer.style.position = 'absolute';
+                    slideContainer.style.top = '0';
+                    slideContainer.style.left = '0';
+                    slideContainer.style.width = '100%';
+                    slideContainer.style.height = '100%';
+                    slideContainer.style.overflow = 'hidden';
+                    slideContainer.style.touchAction = 'none';
                     slideContainer.style.cursor = 'grab';
                     
-                    // Parar animação
-                    cancelAnimationFrame(animationID);
-                    
-                    // Reativar transição
+                    // Criar elemento wrapper para manipular todos os slides juntos
+                    const slidesWrapper = document.createElement('div');
+                    slidesWrapper.className = 'slides-wrapper';
+                    slidesWrapper.style.position = 'absolute';
+                    slidesWrapper.style.width = '100%';
+                    slidesWrapper.style.height = '100%';
+                    slidesWrapper.style.display = 'flex';
+                    slidesWrapper.style.transform = 'translateX(0)';
                     slidesWrapper.style.transition = 'transform 0.3s ease-out';
                     
-                    // Determinar o índice mais próximo baseado na posição atual
-                    let newIndex = getVisibleSlideIndex();
+                    // Reorganizar os slides dentro do wrapper
+                    while (slideContainer.firstChild) {
+                        slidesWrapper.appendChild(slideContainer.firstChild);
+                    }
+                    slideContainer.appendChild(slidesWrapper);
                     
-                    // Garantir que o índice esteja dentro dos limites
-                    newIndex = Math.max(0, Math.min(newIndex, slides.length - 1));
+                    // Recapturar slides após reorganização
+                    const allSlides = slidesWrapper.querySelectorAll('.hero-slide');
                     
-                    // Atualizar para o slide mais próximo
-                    window.goToSlide(newIndex);
+                    // Configurar slides no wrapper
+                    allSlides.forEach((slide, index) => {
+                        slide.style.position = 'relative';
+                        slide.style.minWidth = '100%';
+                        slide.style.minHeight = '100%';
+                        slide.style.transform = 'none';
+                        slide.style.left = '0';
+                        // Adicionar atributo de índice para referência
+                        slide.setAttribute('data-index', index);
+                    });
+                    
+                    // Monitoramento ativo das bolinhas com requestAnimationFrame
+                    function animate() {
+                        if (!isDragging) {
+                            cancelAnimationFrame(animationID);
+                            return;
+                        }
+                        
+                        // Atualizar posição do slider
+                        slidesWrapper.style.transform = `translateX(${currentTranslate}%)`;
+                        
+                        // Calcular o índice do slide visível
+                        const visibleIndex = Math.round(Math.abs(currentTranslate / 100));
+                        if (visibleIndex >= 0 && visibleIndex < slides.length) {
+                            // Atualizar as bolinhas
+                            window.atualizarBolinhas(visibleIndex);
+                        }
+                        
+                        animationID = requestAnimationFrame(animate);
+                    }
+                    
+                    // Funções principais
+                    function setPositionByIndex() {
+                        currentTranslate = currentIndex * -100;
+                        prevTranslate = currentTranslate;
+                        slidesWrapper.style.transform = `translateX(${currentTranslate}%)`;
+                    }
+                    
+                    // Função global para ir para um slide específico (será chamada pelas bolinhas)
+                    window.goToSlide = function(index) {
+                        if (index < 0 || index >= slides.length || isChanging) return;
+                        
+                        isChanging = true;
+                        
+                        // Atualizar índice
+                        currentIndex = index;
+                        
+                        // Animar a transição
+                        slidesWrapper.style.transition = 'transform 0.3s ease-out';
+                        setPositionByIndex();
+                        
+                        // Atualizar bolinhas
+                        window.atualizarBolinhas(index);
+                        
+                        // Permitir nova transição após um tempo
+                        setTimeout(() => {
+                            isChanging = false;
+                        }, 300);
+                    };
+                    
+                    // Função para determinar qual slide está visível
+                    function getVisibleSlideIndex() {
+                        const position = Math.abs(currentTranslate);
+                        return Math.round(position / 100);
+                    }
+                    
+                    // Eventos de interação
+                    function touchStart(event) {
+                        if (isChanging) return;
+                        
+                        event.preventDefault();
+                        
+                        const touch = event.type.includes('mouse') 
+                            ? event 
+                            : event.touches[0];
+                        
+                        startX = touch.clientX;
+                        isDragging = true;
+                        
+                        slideContainer.style.cursor = 'grabbing';
+                        
+                        // Pausar transição durante o arrasto
+                        slidesWrapper.style.transition = 'none';
+                        
+                        // Iniciar animação para acompanhar as bolinhas
+                        cancelAnimationFrame(animationID);
+                        animationID = requestAnimationFrame(animate);
+                    }
+                    
+                    function touchMove(event) {
+                        if (!isDragging) return;
+                        
+                        event.preventDefault();
+                        
+                        const touch = event.type.includes('mouse') 
+                            ? event 
+                            : event.touches[0];
+                        
+                        const currentX = touch.clientX;
+                        const diff = currentX - startX;
+                        
+                        // Converter pixels para porcentagem baseado na largura do container
+                        const percentMove = (diff / window.innerWidth) * 100;
+                        
+                        // Atualizar posição com movimento atual
+                        currentTranslate = prevTranslate + percentMove;
+                        
+                        // Limitar arrasto além dos limites
+                        const maxTranslate = 0;
+                        const minTranslate = (slides.length - 1) * -100;
+                        
+                        if (currentTranslate > maxTranslate) {
+                            currentTranslate = maxTranslate + (currentTranslate - maxTranslate) * 0.3;
+                        } else if (currentTranslate < minTranslate) {
+                            currentTranslate = minTranslate + (currentTranslate - minTranslate) * 0.3;
+                        }
+                    }
+                    
+                    function touchEnd(event) {
+                        if (!isDragging) return;
+                        
+                        isDragging = false;
+                        slideContainer.style.cursor = 'grab';
+                        
+                        // Parar animação
+                        cancelAnimationFrame(animationID);
+                        
+                        // Reativar transição
+                        slidesWrapper.style.transition = 'transform 0.3s ease-out';
+                        
+                        // Determinar o índice mais próximo baseado na posição atual
+                        let newIndex = getVisibleSlideIndex();
+                        
+                        // Garantir que o índice esteja dentro dos limites
+                        newIndex = Math.max(0, Math.min(newIndex, slides.length - 1));
+                        
+                        // Atualizar para o slide mais próximo
+                        window.goToSlide(newIndex);
+                    }
+                    
+                    // Adicionar eventos
+                    slideContainer.addEventListener('mousedown', touchStart, { passive: false });
+                    slideContainer.addEventListener('touchstart', touchStart, { passive: false });
+                    
+                    window.addEventListener('mousemove', touchMove, { passive: false });
+                    window.addEventListener('touchmove', touchMove, { passive: false });
+                    
+                    window.addEventListener('mouseup', touchEnd);
+                    window.addEventListener('touchend', touchEnd);
+                    
+                    window.addEventListener('mouseleave', () => {
+                        if (isDragging) touchEnd();
+                    });
+                    
+                    // Navegação por teclado
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'ArrowLeft') window.goToSlide(Math.max(0, currentIndex - 1));
+                        if (e.key === 'ArrowRight') window.goToSlide(Math.min(slides.length - 1, currentIndex + 1));
+                    });
+                    
+                    // Inicializar posição
+                    setPositionByIndex();
+                    window.atualizarBolinhas(0);
+                    
+                    console.log('Slideshow com bolinhas forçadamente brancas inicializado!');
                 }
                 
-                // Adicionar eventos
-                slideContainer.addEventListener('mousedown', touchStart, { passive: false });
-                slideContainer.addEventListener('touchstart', touchStart, { passive: false });
-                
-                window.addEventListener('mousemove', touchMove, { passive: false });
-                window.addEventListener('touchmove', touchMove, { passive: false });
-                
-                window.addEventListener('mouseup', touchEnd);
-                window.addEventListener('touchend', touchEnd);
-                
-                window.addEventListener('mouseleave', () => {
-                    if (isDragging) touchEnd();
-                });
-                
-                // Navegação por teclado
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'ArrowLeft') window.goToSlide(Math.max(0, currentIndex - 1));
-                    if (e.key === 'ArrowRight') window.goToSlide(Math.min(slides.length - 1, currentIndex + 1));
-                });
-                
-                // Inicializar posição
-                setPositionByIndex();
-                window.atualizarBolinhas(0);
-                
-                console.log('Slideshow com bolinhas forçadamente brancas inicializado!');
-            }
-            
-            // Executar a nova implementação
-            setTimeout(novoSlideshow, 100);
-        });
-    </script>
-    
-    <script>
-        // Initialize file viewer when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait for scripts to load
-            setTimeout(initFileViewer, 500);
-        });
+                // Executar a nova implementação
+                setTimeout(novoSlideshow, 100);
+            });
+        </script>
         
-        // Function to initialize file viewer
-        function initFileViewer() {
-            // Get modal elements
-            const modal = document.getElementById('file-viewer-modal');
-            if (!modal) return; // Exit if modal not found
-            
-            const closeBtn = modal.querySelector('.close-modal');
-            const flipbook = document.getElementById('flipbook');
-            const prevBtn = document.getElementById('prev-page-btn');
-            const nextBtn = document.getElementById('next-page-btn');
-            const imgPreview = document.getElementById('file-image');
-            const zoomInButton = document.getElementById('zoom-in-button');
-            const zoomOutButton = document.getElementById('zoom-out-button');
-            
-            // Configure PDF.js worker
-            if (typeof pdfjsLib !== 'undefined') {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
-            }
-            
-            // Set initial zoom level
-            let currentZoom = 1;
-            
-            // Make the flipbook responsive
-            window.addEventListener('resize', function() {
-                if (flipbook && $(flipbook).turn("is")) {
-                    const parent = flipbook.parentElement;
-                    if (parent) {
-                        const width = parent.clientWidth * 0.9;
-                        $(flipbook).turn("size", width, 600);
-                    }
-                }
+        <script>
+            // Initialize file viewer when the page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                // Wait for scripts to load
+                setTimeout(initFileViewer, 500);
             });
             
-            // Close modal when clicking the close button
-            closeBtn.addEventListener('click', () => {
-                // Add closing animation class
-                modal.classList.add('closing');
+            // Function to initialize file viewer
+            function initFileViewer() {
+                // Get modal elements
+                const modal = document.getElementById('file-viewer-modal');
+                if (!modal) return; // Exit if modal not found
                 
-                // Wait for animation to complete before hiding
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                    modal.classList.remove('closing');
-                    
-                    // Destroy any existing flipbook
+                const closeBtn = modal.querySelector('.close-modal');
+                const flipbook = document.getElementById('flipbook');
+                const prevBtn = document.getElementById('prev-page-btn');
+                const nextBtn = document.getElementById('next-page-btn');
+                const imgPreview = document.getElementById('file-image');
+                const zoomInButton = document.getElementById('zoom-in-button');
+                const zoomOutButton = document.getElementById('zoom-out-button');
+                
+                // Configure PDF.js worker
+                if (typeof pdfjsLib !== 'undefined') {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                }
+                
+                // Set initial zoom level
+                let currentZoom = 1;
+                
+                // Make the flipbook responsive
+                window.addEventListener('resize', function() {
                     if (flipbook && $(flipbook).turn("is")) {
-                        $(flipbook).turn("destroy");
-                        flipbook.innerHTML = '';
+                        const parent = flipbook.parentElement;
+                        if (parent) {
+                            const width = parent.clientWidth * 0.9;
+                            $(flipbook).turn("size", width, 600);
+                        }
                     }
-                    
-                    // Remove resize event handler if it exists
-                    const flipContainer = document.getElementById('flipbook-pages');
-                    if (flipContainer && flipContainer.resizeHandler) {
-                        window.removeEventListener('resize', flipContainer.resizeHandler);
-                        delete flipContainer.resizeHandler;
-                    }
-                }, 300); // Match this with the animation duration
-            });
-            
-            // Close modal when clicking outside the modal content
-            window.addEventListener('click', (event) => {
-                if (event.target === modal) {
+                });
+                
+                // Close modal when clicking the close button
+                closeBtn.addEventListener('click', () => {
                     // Add closing animation class
                     modal.classList.add('closing');
                     
@@ -1444,421 +1718,428 @@
                             $(flipbook).turn("destroy");
                             flipbook.innerHTML = '';
                         }
-                        
-                        // Remove resize event handler if it exists
-                        const flipContainer = document.getElementById('flipbook-pages');
-                        if (flipContainer && flipContainer.resizeHandler) {
-                            window.removeEventListener('resize', flipContainer.resizeHandler);
-                            delete flipContainer.resizeHandler;
-                        }
                     }, 300); // Match this with the animation duration
-                }
-            });
-            
-            // Navigation buttons for flipbook
-            $(prevBtn).off('click').on('click', function(e) {
-                e.preventDefault();
-                try {
-                    // Safe way to check if Turn.js is initialized
-                    if ($(flipbook).data().turn) {
-                        $(flipbook).turn('previous');
+                });
+                
+                // Close modal when clicking outside the modal content
+                window.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        // Add closing animation class
+                        modal.classList.add('closing');
+                        
+                        // Wait for animation to complete before hiding
+                        setTimeout(() => {
+                            modal.style.display = 'none';
+                            modal.classList.remove('closing');
+                            
+                            // Destroy any existing flipbook
+                            if (flipbook && $(flipbook).turn("is")) {
+                                $(flipbook).turn("destroy");
+                                flipbook.innerHTML = '';
+                            }
+                        }, 300); // Match this with the animation duration
                     }
-                } catch (err) {
-                    console.error('Error on previous button:', err);
-                }
-                return false;
-            });
-            
-            $(nextBtn).off('click').on('click', function(e) {
-                e.preventDefault();
-                try {
-                    // Safe way to check if Turn.js is initialized
-                    if ($(flipbook).data().turn) {
-                        $(flipbook).turn('next');
+                });
+                
+                // Navigation buttons for flipbook
+                $(prevBtn).off('click').on('click', function(e) {
+                    e.preventDefault();
+                    try {
+                        // Safe way to check if Turn.js is initialized
+                        if ($(flipbook).data().turn) {
+                            $(flipbook).turn('previous');
+                        }
+                    } catch (err) {
+                        console.error('Error on previous button:', err);
                     }
-                } catch (err) {
-                    console.error('Error on next button:', err);
-                }
-                return false;
-            });
-            
-            // Zoom controls for images
-            zoomInButton.addEventListener('click', function() {
-                if (currentZoom < 3) {
-                    currentZoom += 0.2;
-                    imgPreview.style.transform = `scale(${currentZoom})`;
-                }
-            });
-            
-            zoomOutButton.addEventListener('click', function() {
-                if (currentZoom > 0.5) {
-                    currentZoom -= 0.2;
-                    imgPreview.style.transform = `scale(${currentZoom})`;
-                }
-            });
-        }
-        
-        // Show file in modal with appropriate preview based on file type
-        async function showFileInModal(fileUrl, fileName) {
-            const modal = document.getElementById('file-viewer-modal');
-            const title = document.getElementById('modal-file-title');
-            const iframe = document.getElementById('file-iframe');
-            const imgPreview = document.getElementById('file-image');
-            const unsupportedView = document.getElementById('file-unsupported');
-            const downloadLink = document.getElementById('file-download-link');
-            const downloadButton = document.getElementById('download-button');
-            const fileLoading = document.getElementById('file-loading');
-            const fileInfo = document.getElementById('file-info');
-            const fileTypeIcon = document.getElementById('file-type-icon');
-            const flipbook = document.getElementById('flipbook');
-            const flipbookWrapper = document.getElementById('flipbook-wrapper');
-            const prevBtn = document.getElementById('prev-page-btn');
-            const nextBtn = document.getElementById('next-page-btn');
-            
-            // Reset zoom
-            imgPreview.style.transform = 'scale(1)';
-            
-            // Show loading indicator
-            fileLoading.style.display = 'flex';
-            
-            // Hide all preview elements initially
-            iframe.style.display = 'none';
-            imgPreview.style.display = 'none';
-            unsupportedView.style.display = 'none';
-            flipbookWrapper.style.display = 'none';
-            flipbook.style.display = 'none';
-            
-            // Destroy any existing Turn.js instance
-            try {
-                if ($(flipbook).data().turn) {
-                    $(flipbook).turn('destroy');
-                }
-            } catch (e) {
-                console.log('No existing Turn instance to destroy:', e);
+                    return false;
+                });
+                
+                $(nextBtn).off('click').on('click', function(e) {
+                    e.preventDefault();
+                    try {
+                        // Safe way to check if Turn.js is initialized
+                        if ($(flipbook).data().turn) {
+                            $(flipbook).turn('next');
+                        }
+                    } catch (err) {
+                        console.error('Error on next button:', err);
+                    }
+                    return false;
+                });
+                
+                // Zoom controls for images
+                zoomInButton.addEventListener('click', function() {
+                    if (currentZoom < 3) {
+                        currentZoom += 0.2;
+                        imgPreview.style.transform = `scale(${currentZoom})`;
+                    }
+                });
+                
+                zoomOutButton.addEventListener('click', function() {
+                    if (currentZoom > 0.5) {
+                        currentZoom -= 0.2;
+                        imgPreview.style.transform = `scale(${currentZoom})`;
+                    }
+                });
             }
             
-            // Reset flipbook container
-            flipbook.innerHTML = '';
-            
-            // Set the modal title to the file name
-            title.textContent = fileName || 'File Preview';
-            
-            // Set download links
-            downloadLink.href = fileUrl;
-            downloadLink.setAttribute('download', fileName || 'download');
-            downloadButton.href = fileUrl;
-            downloadButton.setAttribute('download', fileName || 'download');
-            
-            // Determine file type and update file info
-            const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
-            const fileTypeMap = {
-                'jpg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
-                'jpeg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
-                'png': { type: 'Image', icon: 'PNG', color: '#28a745' },
-                'gif': { type: 'Image', icon: 'GIF', color: '#fd7e14' },
-                'svg': { type: 'Image', icon: 'SVG', color: '#6610f2' },
-                'webp': { type: 'Image', icon: 'WP', color: '#20c997' },
-                'pdf': { type: 'Document', icon: 'PDF', color: '#dc3545' },
-                'txt': { type: 'Text', icon: 'TXT', color: '#6c757d' },
-                'html': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
-                'htm': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
-                'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
-                'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
-                'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
-                'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
-            };
-            
-            const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
-            fileInfo.textContent = `${fileType.type} • ${formatFileSize(1024 * 1024)} • ${formatDate(new Date())}`;
-            fileTypeIcon.textContent = fileType.icon;
-            fileTypeIcon.style.background = fileType.color;
-            
-            // Show or hide zoom buttons based on file type
-            const canZoom = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension);
-            document.getElementById('zoom-in-button').style.display = canZoom ? 'flex' : 'none';
-            document.getElementById('zoom-out-button').style.display = canZoom ? 'flex' : 'none';
-            
-            // Show modal
-            modal.style.display = 'block';
-            
-            if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
-                // Image preview
-                imgPreview.onload = function() {
-                    fileLoading.style.display = 'none';
-                    imgPreview.style.display = 'block';
-                    
-                    // Ensure image fits properly
-                    const containerWidth = document.getElementById('file-viewer-container').offsetWidth * 0.9;
-                    const containerHeight = document.getElementById('file-viewer-container').offsetHeight * 0.9;
-                    
-                    // Adjust image size if needed
-                    if (imgPreview.naturalWidth > containerWidth || imgPreview.naturalHeight > containerHeight) {
-                        const widthRatio = containerWidth / imgPreview.naturalWidth;
-                        const heightRatio = containerHeight / imgPreview.naturalHeight;
-                        const scale = Math.min(widthRatio, heightRatio) * 0.95; // 5% safety margin
-                        
-                        imgPreview.style.maxWidth = Math.floor(imgPreview.naturalWidth * scale) + 'px';
-                        imgPreview.style.maxHeight = Math.floor(imgPreview.naturalHeight * scale) + 'px';
-                    }
-                };
-                imgPreview.onerror = function() {
-                    fileLoading.style.display = 'none';
-                    unsupportedView.style.display = 'block';
-                };
-                imgPreview.src = fileUrl;
-            } 
-            else if (['pdf'].includes(fileExtension)) {
-                // PDF Flipbook using PDF.js and Turn.js
-                flipbookWrapper.style.display = 'block';
+            // Show file in modal with appropriate preview based on file type
+            async function showFileInModal(fileUrl, fileName) {
+                const modal = document.getElementById('file-viewer-modal');
+                const title = document.getElementById('modal-file-title');
+                const iframe = document.getElementById('file-iframe');
+                const imgPreview = document.getElementById('file-image');
+                const unsupportedView = document.getElementById('file-unsupported');
+                const downloadLink = document.getElementById('file-download-link');
+                const downloadButton = document.getElementById('download-button');
+                const fileLoading = document.getElementById('file-loading');
+                const fileInfo = document.getElementById('file-info');
+                const fileTypeIcon = document.getElementById('file-type-icon');
+                const flipbook = document.getElementById('flipbook');
+                const flipbookWrapper = document.getElementById('flipbook-wrapper');
+                const prevBtn = document.getElementById('prev-page-btn');
+                const nextBtn = document.getElementById('next-page-btn');
                 
+                // Reset zoom
+                imgPreview.style.transform = 'scale(1)';
+                
+                // Show loading indicator
+                fileLoading.style.display = 'flex';
+                
+                // Hide all preview elements initially
+                iframe.style.display = 'none';
+                imgPreview.style.display = 'none';
+                unsupportedView.style.display = 'none';
+                flipbookWrapper.style.display = 'none';
+                flipbook.style.display = 'none';
+                
+                // Destroy any existing Turn.js instance
                 try {
-                    // First check if libraries are loaded
-                    if (typeof pdfjsLib === 'undefined') {
-                        throw new Error('PDF.js library not loaded');
+                    if ($(flipbook).data().turn) {
+                        $(flipbook).turn('destroy');
                     }
+                } catch (e) {
+                    console.log('No existing Turn instance to destroy:', e);
+                }
+                
+                // Reset flipbook container
+                flipbook.innerHTML = '';
+                
+                // Set the modal title to the file name
+                title.textContent = fileName || 'File Preview';
+                
+                // Set download links
+                downloadLink.href = fileUrl;
+                downloadLink.setAttribute('download', fileName || 'download');
+                downloadButton.href = fileUrl;
+                downloadButton.setAttribute('download', fileName || 'download');
+                
+                // Determine file type and update file info
+                const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
+                const fileTypeMap = {
+                    'jpg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+                    'jpeg': { type: 'Image', icon: 'JPG', color: '#3a7bd5' },
+                    'png': { type: 'Image', icon: 'PNG', color: '#28a745' },
+                    'gif': { type: 'Image', icon: 'GIF', color: '#fd7e14' },
+                    'svg': { type: 'Image', icon: 'SVG', color: '#6610f2' },
+                    'webp': { type: 'Image', icon: 'WP', color: '#20c997' },
+                    'pdf': { type: 'Document', icon: 'PDF', color: '#dc3545' },
+                    'txt': { type: 'Text', icon: 'TXT', color: '#6c757d' },
+                    'html': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+                    'htm': { type: 'Code', icon: 'HTML', color: '#e83e8c' },
+                    'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
+                    'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
+                    'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
+                    'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
+                };
+                
+                const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
+                fileInfo.textContent = `${fileType.type} • ${formatFileSize(1024 * 1024)} • ${formatDate(new Date())}`;
+                fileTypeIcon.textContent = fileType.icon;
+                fileTypeIcon.style.background = fileType.color;
+                
+                // Show or hide zoom buttons based on file type
+                const canZoom = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension);
+                document.getElementById('zoom-in-button').style.display = canZoom ? 'flex' : 'none';
+                document.getElementById('zoom-out-button').style.display = canZoom ? 'flex' : 'none';
+                
+                // Show modal
+                modal.style.display = 'block';
+                
+                if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
+                    // Image preview
+                    imgPreview.onload = function() {
+                        fileLoading.style.display = 'none';
+                        imgPreview.style.display = 'block';
+                        
+                        // Ensure image fits properly
+                        const containerWidth = document.getElementById('file-viewer-container').offsetWidth * 0.9;
+                        const containerHeight = document.getElementById('file-viewer-container').offsetHeight * 0.9;
+                        
+                        // Adjust image size if needed
+                        if (imgPreview.naturalWidth > containerWidth || imgPreview.naturalHeight > containerHeight) {
+                            const widthRatio = containerWidth / imgPreview.naturalWidth;
+                            const heightRatio = containerHeight / imgPreview.naturalHeight;
+                            const scale = Math.min(widthRatio, heightRatio) * 0.95; // 5% safety margin
+                            
+                            imgPreview.style.maxWidth = Math.floor(imgPreview.naturalWidth * scale) + 'px';
+                            imgPreview.style.maxHeight = Math.floor(imgPreview.naturalHeight * scale) + 'px';
+                        }
+                    };
+                    imgPreview.onerror = function() {
+                        fileLoading.style.display = 'none';
+                        unsupportedView.style.display = 'block';
+                    };
+                    imgPreview.src = fileUrl;
+                } 
+                else if (['pdf'].includes(fileExtension)) {
+                    // PDF Flipbook using PDF.js and Turn.js
+                    flipbookWrapper.style.display = 'block';
                     
-                    if (typeof $ === 'undefined' || typeof $.fn.turn === 'undefined') {
-                        throw new Error('Turn.js library not loaded');
-                    }
-                    
-                    // Load the PDF file
-                    pdfjsLib.getDocument(fileUrl).promise.then(function(pdf) {
-                        // Store number of pages globally
-                        window.numPages = pdf.numPages;
-                        
-                        // Clear existing content first
-                        flipbook.innerHTML = '';
-                        
-                        // Create a new container for Turn.js to avoid issues with reuse
-                        const flipContainer = document.createElement('div');
-                        flipContainer.id = 'flipbook-pages';
-                        flipContainer.className = 'flipbook-container';
-                        flipbook.appendChild(flipContainer);
-                        
-                        // Initialize the flipbook with only the exact required pages
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const pageDiv = document.createElement('div');
-                            pageDiv.className = 'page';
-                            pageDiv.id = `page-${i}`;
-                            pageDiv.style.position = 'relative';
-                            pageDiv.style.overflow = 'hidden';
-                            
-                            // Loading placeholder
-                            const placeholder = document.createElement('div');
-                            placeholder.style.position = 'absolute';
-                            placeholder.style.top = '50%';
-                            placeholder.style.left = '50%';
-                            placeholder.style.transform = 'translate(-50%, -50%)';
-                            placeholder.style.color = '#999';
-                            placeholder.textContent = `Loading page ${i}...`;
-                            pageDiv.appendChild(placeholder);
-                            
-                            // Page number for reference
-                            const pageNumber = document.createElement('div');
-                            pageNumber.textContent = i;
-                            pageNumber.style.position = 'absolute';
-                            pageNumber.style.bottom = '10px';
-                            pageNumber.style.right = '10px';
-                            pageNumber.style.fontSize = '12px';
-                            pageNumber.style.color = '#999';
-                            pageNumber.style.zIndex = '100';
-                            pageDiv.appendChild(pageNumber);
-                            
-                            flipContainer.appendChild(pageDiv);
+                    try {
+                        // First check if libraries are loaded
+                        if (typeof pdfjsLib === 'undefined') {
+                            throw new Error('PDF.js library not loaded');
                         }
                         
-                        // Initialize the flipbook with explicit numeric dimensions
-                        setTimeout(() => {
-                            try {
-                                // Get container dimensions
-                                const container = document.getElementById('file-viewer-container');
-                                const containerWidth = container.clientWidth * 0.95;
-                                const containerHeight = Math.min(700, container.clientHeight * 0.95);
-                                
-                                const isMobile = window.innerWidth <= 768;
-                                
-                                $(flipContainer).turn({
-                                    width: isMobile ? containerWidth : 820,
-                                    height: isMobile ? containerHeight : 650,
-                                    autoCenter: true,
-                                    display: 'single',
-                                    duration: 600,
-                                    acceleration: true,
-                                    gradients: true,
-                                    elevation: 50,
-                                    page: 1,
-                                    padding: isMobile ? 5 : 10,
-                                    margin: isMobile ? 5 : 10,
-                                    when: {
-                                        turning: function(event, page, view) {
-                                            // Load current page with high quality
-                                            loadPageContent(page);
-                                            
-                                            // Pre-load adjacent pages for smoother experience
-                                            if (page > 1) loadPageContent(page - 1);
-                                            if (page < pdf.numPages) loadPageContent(page + 1);
-                                        },
-                                        turned: function(event, page, view) {
-                                            // Update navigation button states
-                                            prevBtn.disabled = page <= 1;
-                                            nextBtn.disabled = page >= pdf.numPages;
-                                        }
-                                    }
-                                });
-                                
-                                // Load the first page
-                                loadPageContent(1);
-                                
-                                // Make navigation buttons work
-                                $(prevBtn).off('click').on('click', function() {
-                                    try {
-                                        $(flipContainer).turn('previous');
-                                    } catch (e) {
-                                        console.error('Error navigating to previous page:', e);
-                                    }
-                                    return false;
-                                });
-                                
-                                $(nextBtn).off('click').on('click', function() {
-                                    try {
-                                        $(flipContainer).turn('next');
-                                    } catch (e) {
-                                        console.error('Error navigating to next page:', e);
-                                    }
-                                    return false;
-                                });
-                                
-                                // Add resize handler for better responsiveness
-                                const resizeHandler = function() {
-                                    try {
-                                        if ($(flipContainer).data().turn) {
-                                            const container = document.getElementById('file-viewer-container');
-                                            const containerWidth = container.clientWidth * 0.95;
-                                            const containerHeight = Math.min(700, container.clientHeight * 0.95);
-                                            const isMobile = window.innerWidth <= 768;
-                                            
-                                            $(flipContainer).turn('size', 
-                                                isMobile ? containerWidth : 820, 
-                                                isMobile ? containerHeight : 650);
-                                        }
-                                    } catch (e) {
-                                        console.error('Error resizing flipbook:', e);
-                                    }
-                                };
-                                
-                                window.addEventListener('resize', resizeHandler);
-                                
-                                // Store the resize handler reference to remove it when modal is closed
-                                flipContainer.resizeHandler = resizeHandler;
-                                
-                                // Hide loading indicator
-                                fileLoading.style.display = 'none';
-                                flipbook.style.display = 'block';
-                                
-                            } catch (turnError) {
-                                console.error('Error initializing Turn.js:', turnError);
-                                fallbackToPdfViewer(fileUrl);
-                            }
-                        }, 100); // Small delay to ensure DOM is ready
+                        if (typeof $ === 'undefined' || typeof $.fn.turn === 'undefined') {
+                            throw new Error('Turn.js library not loaded');
+                        }
                         
-                        // Function to directly render PDF page to a canvas
-                        async function loadPageContent(pageNum) {
-                            if (pageNum < 1 || pageNum > pdf.numPages) return;
+                        // Load the PDF file
+                        pdfjsLib.getDocument(fileUrl).promise.then(function(pdf) {
+                            // Store number of pages globally
+                            window.numPages = pdf.numPages;
                             
-                            const pageDiv = document.getElementById(`page-${pageNum}`);
-                            if (!pageDiv || pageDiv.querySelector('canvas')) return;
+                            // Clear existing content first
+                            flipbook.innerHTML = '';
                             
-                            try {
-                                const page = await pdf.getPage(pageNum);
+                            // Create a new container for Turn.js to avoid issues with reuse
+                            const flipContainer = document.createElement('div');
+                            flipContainer.id = 'flipbook-pages';
+                            flipContainer.className = 'flipbook-container';
+                            flipbook.appendChild(flipContainer);
+                            
+                            // Initialize the flipbook with only the exact required pages
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const pageDiv = document.createElement('div');
+                                pageDiv.className = 'page';
+                                pageDiv.id = `page-${i}`;
+                                pageDiv.style.position = 'relative';
+                                pageDiv.style.overflow = 'hidden';
                                 
-                                // Get the viewport at scale 1.0
-                                const viewport = page.getViewport({scale: 1.0});
-                                const isMobile = window.innerWidth <= 768;
+                                // Loading placeholder
+                                const placeholder = document.createElement('div');
+                                placeholder.style.position = 'absolute';
+                                placeholder.style.top = '50%';
+                                placeholder.style.left = '50%';
+                                placeholder.style.transform = 'translate(-50%, -50%)';
+                                placeholder.style.color = '#999';
+                                placeholder.textContent = `Loading page ${i}...`;
+                                pageDiv.appendChild(placeholder);
                                 
-                                // Adjust container dimensions for mobile
-                                const containerWidth = isMobile ? 400 : 800;
-                                const containerHeight = isMobile ? 550 : 700;
-                                
-                                // Calculate scale to fit entirely within container
-                                const scaleX = (containerWidth - 2) / viewport.width;
-                                const scaleY = (containerHeight - 2) / viewport.height;
-                                let scale = Math.min(scaleX, scaleY) * 0.95;
-                                
-                                // Account for device pixel ratio for higher resolution
-                                const pixelRatio = window.devicePixelRatio || 1;
-                                const scaledViewport = page.getViewport({scale: scale});
-                                
-                                // Create high-resolution canvas
-                                const canvas = document.createElement('canvas');
-                                const context = canvas.getContext('2d');
-                                
-                                // Set canvas dimensions to match the scaled viewport with pixel ratio
-                                canvas.width = Math.floor(scaledViewport.width * pixelRatio);
-                                canvas.height = Math.floor(scaledViewport.height * pixelRatio);
-                                canvas.style.width = Math.floor(scaledViewport.width) + 'px';
-                                canvas.style.height = Math.floor(scaledViewport.height) + 'px';
-                                
-                                // Scale context for high DPI display
-                                context.scale(pixelRatio, pixelRatio);
-                                
-                                // Apply high-quality rendering settings
-                                context.imageSmoothingEnabled = true;
-                                context.imageSmoothingQuality = 'high';
-                                
-                                // Position canvas in center of page with enough margin
-                                canvas.style.position = 'absolute';
-                                canvas.style.top = '50%';
-                                canvas.style.left = '50%';
-                                canvas.style.transform = 'translate(-50%, -50%)';
-                                
-                                // Clear the page div and add the canvas
-                                pageDiv.innerHTML = '';
-                                pageDiv.appendChild(canvas);
-                                
-                                // Add page number 
+                                // Page number for reference
                                 const pageNumber = document.createElement('div');
-                                pageNumber.textContent = pageNum;
+                                pageNumber.textContent = i;
                                 pageNumber.style.position = 'absolute';
-                                pageNumber.style.bottom = '5px';
-                                pageNumber.style.right = '5px';
-                                pageNumber.style.fontSize = '10px';
-                                pageNumber.style.color = '#333';
-                                pageNumber.style.background = 'rgba(255,255,255,0.7)';
-                                pageNumber.style.padding = '2px 5px';
-                                pageNumber.style.borderRadius = '8px';
-                                pageNumber.style.zIndex = '2';
+                                pageNumber.style.bottom = '10px';
+                                pageNumber.style.right = '10px';
+                                pageNumber.style.fontSize = '12px';
+                                pageNumber.style.color = '#999';
+                                pageNumber.style.zIndex = '100';
                                 pageDiv.appendChild(pageNumber);
                                 
-                                // Render the PDF page with enhanced quality settings
-                                const renderContext = {
-                                    canvasContext: context,
-                                    viewport: scaledViewport,
-                                    background: 'white',
-                                    renderInteractiveForms: true
-                                };
-                                
-                                await page.render(renderContext).promise;
-                                
-                            } catch (error) {
-                                console.error(`Error rendering page ${pageNum}:`, error);
-                                pageDiv.innerHTML = `<div style="padding: 20px; text-align: center;">
-                                    Error loading page ${pageNum}<br>
-                                    <small>${error.message}</small>
-                                </div>`;
+                                flipContainer.appendChild(pageDiv);
                             }
-                        }
-                        
-                    }).catch(function(error) {
-                        console.error('Error loading PDF:', error);
+                            
+                            // Initialize the flipbook with explicit numeric dimensions
+                            setTimeout(() => {
+                                try {
+                                    $(flipContainer).turn({
+                                        width: 680,
+                                        height: 530,
+                                        autoCenter: true,
+                                        display: 'single',
+                                        duration: 600,
+                                        acceleration: true,
+                                        gradients: true,
+                                        elevation: 50,
+                                        page: 1,
+                                        padding: 10,
+                                        margin: 10,
+                                        when: {
+                                            turning: function(event, page, view) {
+                                                // Load current page with high quality
+                                                loadPageContent(page);
+                                                
+                                                // Pre-load adjacent pages for smoother experience
+                                                if (page > 1) loadPageContent(page - 1);
+                                                if (page < pdf.numPages) loadPageContent(page + 1);
+                                            },
+                                            turned: function(event, page, view) {
+                                                // Update navigation button states
+                                                prevBtn.disabled = page <= 1;
+                                                nextBtn.disabled = page >= pdf.numPages;
+                                            }
+                                        }
+                                    });
+                                    
+                                    // Load the first page
+                                    loadPageContent(1);
+                                    
+                                    // Make navigation buttons work
+                                    $(prevBtn).off('click').on('click', function() {
+                                        try {
+                                            $(flipContainer).turn('previous');
+                                        } catch (e) {
+                                            console.error('Error navigating to previous page:', e);
+                                        }
+                                        return false;
+                                    });
+                                    
+                                    $(nextBtn).off('click').on('click', function() {
+                                        try {
+                                            $(flipContainer).turn('next');
+                                        } catch (e) {
+                                            console.error('Error navigating to next page:', e);
+                                        }
+                                        return false;
+                                    });
+                                    
+                                    // Hide loading indicator
+                                    fileLoading.style.display = 'none';
+                                    flipbook.style.display = 'block';
+                                    
+                                } catch (turnError) {
+                                    console.error('Error initializing Turn.js:', turnError);
+                                    fallbackToPdfViewer(fileUrl);
+                                }
+                            }, 100); // Small delay to ensure DOM is ready
+                            
+                            // Function to directly render PDF page to a canvas
+                            async function loadPageContent(pageNum) {
+                                if (pageNum < 1 || pageNum > pdf.numPages) return;
+                                
+                                const pageDiv = document.getElementById(`page-${pageNum}`);
+                                if (!pageDiv || pageDiv.querySelector('canvas')) return;
+                                
+                                try {
+                                    const page = await pdf.getPage(pageNum);
+                                    
+                                    // Get the viewport at scale 1.0
+                                    const viewport = page.getViewport({scale: 1.0});
+                                    const containerWidth = 650;
+                                    const containerHeight = 500;
+                                    
+                                    // Calculate scale to fit entirely within container
+                                    const scaleX = (containerWidth - 2) / viewport.width;
+                                    const scaleY = (containerHeight - 2) / viewport.height;
+                                    let scale = Math.min(scaleX, scaleY) * 1;
+                                    
+                                    // Account for device pixel ratio for higher resolution
+                                    const pixelRatio = window.devicePixelRatio || 1;
+                                    const scaledViewport = page.getViewport({scale: scale});
+                                    
+                                    // Create high-resolution canvas
+                                    const canvas = document.createElement('canvas');
+                                    const context = canvas.getContext('2d');
+                                    
+                                    // Set canvas dimensions to match the scaled viewport with pixel ratio
+                                    canvas.width = Math.floor(scaledViewport.width * pixelRatio);
+                                    canvas.height = Math.floor(scaledViewport.height * pixelRatio);
+                                    canvas.style.width = Math.floor(scaledViewport.width) + 'px';
+                                    canvas.style.height = Math.floor(scaledViewport.height) + 'px';
+                                    
+                                    // Scale context for high DPI display
+                                    context.scale(pixelRatio, pixelRatio);
+                                    
+                                    // Apply high-quality rendering settings
+                                    context.imageSmoothingEnabled = true;
+                                    context.imageSmoothingQuality = 'high';
+                                    
+                                    // Position canvas in center of page with enough margin
+                                    canvas.style.position = 'absolute';
+                                    canvas.style.top = '50%';
+                                    canvas.style.left = '50%';
+                                    canvas.style.transform = 'translate(-50%, -50%)';
+                                    
+                                    // Clear the page div and add the canvas
+                                    pageDiv.innerHTML = '';
+                                    pageDiv.appendChild(canvas);
+                                    
+                                    // Add page number 
+                                    const pageNumber = document.createElement('div');
+                                    pageNumber.textContent = pageNum;
+                                    pageNumber.style.position = 'absolute';
+                                    pageNumber.style.bottom = '5px';
+                                    pageNumber.style.right = '5px';
+                                    pageNumber.style.fontSize = '10px';
+                                    pageNumber.style.color = '#333';
+                                    pageNumber.style.background = 'rgba(255,255,255,0.7)';
+                                    pageNumber.style.padding = '2px 5px';
+                                    pageNumber.style.borderRadius = '8px';
+                                    pageNumber.style.zIndex = '2';
+                                    pageDiv.appendChild(pageNumber);
+                                    
+                                    // Render the PDF page with enhanced quality settings
+                                    const renderContext = {
+                                        canvasContext: context,
+                                        viewport: scaledViewport,
+                                        background: 'white',
+                                        renderInteractiveForms: true
+                                    };
+                                    
+                                    await page.render(renderContext).promise;
+                                    
+                                } catch (error) {
+                                    console.error(`Error rendering page ${pageNum}:`, error);
+                                    pageDiv.innerHTML = `<div style="padding: 20px; text-align: center;">
+                                        Error loading page ${pageNum}<br>
+                                        <small>${error.message}</small>
+                                    </div>`;
+                                }
+                            }
+                            
+                        }).catch(function(error) {
+                            console.error('Error loading PDF:', error);
+                            fallbackToPdfViewer(fileUrl);
+                        });
+                    } catch (e) {
+                        console.error('General error in PDF processing:', e);
                         fallbackToPdfViewer(fileUrl);
-                    });
-                } catch (e) {
-                    console.error('General error in PDF processing:', e);
-                    fallbackToPdfViewer(fileUrl);
+                    }
+                }
+                else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExtension)) {
+                    // Use Google Docs Viewer for Office files
+                    iframe.onload = function() {
+                        fileLoading.style.display = 'none';
+                        iframe.style.display = 'block';
+                    };
+                    iframe.onerror = function() {
+                        fileLoading.style.display = 'none';
+                        unsupportedView.style.display = 'block';
+                    };
+                    iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+                }
+                else {
+                    // Unsupported file type
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
                 }
             }
-            else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExtension)) {
-                // Use Google Docs Viewer for Office files
+            
+            // Fallback function for PDF viewing
+            function fallbackToPdfViewer(pdfUrl) {
+                console.log('Using fallback PDF viewer');
+                const fileLoading = document.getElementById('file-loading');
+                const flipbookWrapper = document.getElementById('flipbook-wrapper');
+                const iframe = document.getElementById('file-iframe');
+                const unsupportedView = document.getElementById('file-unsupported');
+                
+                fileLoading.style.display = 'none';
+                flipbookWrapper.style.display = 'none';
+                
                 iframe.onload = function() {
                     fileLoading.style.display = 'none';
                     iframe.style.display = 'block';
@@ -1867,451 +2148,348 @@
                     fileLoading.style.display = 'none';
                     unsupportedView.style.display = 'block';
                 };
-                iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-            }
-            else {
-                // Unsupported file type
-                fileLoading.style.display = 'none';
-                unsupportedView.style.display = 'block';
-            }
-        }
-        
-        // Fallback function for PDF viewing
-        function fallbackToPdfViewer(pdfUrl) {
-            console.log('Using fallback PDF viewer');
-            const fileLoading = document.getElementById('file-loading');
-            const flipbookWrapper = document.getElementById('flipbook-wrapper');
-            const iframe = document.getElementById('file-iframe');
-            const unsupportedView = document.getElementById('file-unsupported');
-            
-            fileLoading.style.display = 'none';
-            flipbookWrapper.style.display = 'none';
-            
-            iframe.onload = function() {
-                fileLoading.style.display = 'none';
-                iframe.style.display = 'block';
-            };
-            iframe.onerror = function() {
-                fileLoading.style.display = 'none';
-                unsupportedView.style.display = 'block';
-            };
-            iframe.src = pdfUrl;
-        }
-        
-        // Function to format file size
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-        
-        // Function to format date
-        function formatDate(date) {
-            if (!date) return '';
-            
-            return date.toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-    </script>
-    <style>
-        /* File Viewer Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal-content {
-            background-color: #fff;
-            height: 100vh;
-            width: 65%;
-            max-width: 800px;
-            position: relative;
-            margin: 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            transform: translateX(-100%);
-            animation: slideIn 0.4s forwards;
-            border-radius: 0;
-            overflow: hidden;
-        }
-        
-        @keyframes slideIn {
-            to { transform: translateX(0); }
-        }
-        
-        @keyframes slideOut {
-            from { transform: translateX(0); }
-            to { transform: translateX(-100%); }
-        }
-        
-        .modal.closing .modal-content {
-            animation: slideOut 0.3s forwards;
-        }
-        
-        .modal-header {
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1.25rem;
-            color: #333;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 80%;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #888;
-            transition: color 0.3s;
-        }
-        
-        .close-modal:hover {
-            color: #333;
-        }
-        
-        .modal-body {
-            min-height: 600px;
-            padding: 0;
-            overflow: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        #file-viewer-container {
-            width: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: visible;
-            padding: 10px;
-            box-sizing: border-box;
-            min-height: 650px;
-        }
-        
-        #file-iframe {
-            border: none;
-            width: 100%;
-            height: 100%;
-            min-height: 650px;
-        }
-        
-        #file-image {
-            max-width: 90%;
-            max-height: calc(100vh - 200px);
-            object-fit: contain;
-            margin: 0 auto;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            transform-origin: center;
-        }
-        
-        .modal img {
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            backface-visibility: hidden;
-        }
-        
-        #flipbook-wrapper {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            width: 100%;
-            position: relative;
-            padding: 10px 0;
-            min-height: 650px;
-            max-width: 100%;
-            margin: 0 auto;
-            overflow: visible;
-        }
-        
-        #flipbook {
-            width: 100%;
-            height: 100%;
-            flex: 1;
-            margin: 0 auto;
-            display: none;
-            position: relative;
-            z-index: 1;
-        }
-        
-        #flipbook .page {
-            background-color: white;
-            background-size: 100% 100%;
-            border-radius: 0;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 10px;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .flipbook-nav {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-        
-        .flipbook-nav button {
-            position: relative;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            pointer-events: auto;
-            opacity: 0.7;
-            margin: 0 10px;
-        }
-        
-        .flipbook-nav button:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-            opacity: 1;
-        }
-        
-        .flipbook-nav button:disabled {
-            background-color: rgba(0, 0, 0, 0.2);
-            cursor: not-allowed;
-            opacity: 0.3;
-        }
-        
-        #prev-page-btn {
-            left: auto;
-            margin-right: 10px;
-        }
-        
-        #next-page-btn {
-            right: auto;
-            margin-left: 10px;
-        }
-        
-        .file-info-bar {
-            padding: 10px 15px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-        }
-        
-        .file-type-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #dc3545;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            margin-right: 15px;
-        }
-        
-        .file-actions {
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px 15px;
-            border-top: 1px solid #eee;
-            gap: 10px;
-        }
-        
-        .file-action-button {
-            padding: 6px 12px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .file-action-button:hover {
-            background-color: #e9ecef;
-            border-color: #ccc;
-        }
-        
-        .modal-loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.8);
-            z-index: 5;
-        }
-        
-        .modal-loading .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        
-        .modal-loading p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Responsive styling for modal */
-        @media (max-width: 992px) {
-            .modal-content {
-                width: 90%;
-                max-width: none;
-                height: 90vh;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .modal-content {
-                width: 100%;
-                height: 100vh;
-                max-width: none;
-                max-height: 100vh;
-                border-radius: 0;
-                margin: 0;
+                iframe.src = pdfUrl;
             }
             
-            #file-viewer-container {
-                min-height: auto;
-                padding: 10px;
+            // Function to format file size
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
             
-            .flipbook-nav button {
-                width: 36px;
-                height: 36px;
+            // Function to format date
+            function formatDate(date) {
+                if (!date) return '';
+                
+                return date.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
             }
-            
-            #flipbook-wrapper {
-                min-height: auto;
-                padding: 10px 0;
-            }
-            
-            #flipbook .page, #flipbook-pages .page {
-                padding: 5px;
-            }
-            
-            .file-info-bar {
-                padding: 8px 10px;
-            }
-            
-            .modal-header {
-                padding: 8px 10px;
-            }
-            
-            .file-actions {
-                padding: 8px 10px;
-            }
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            #file-viewer-modal {
-                padding: 0;
-            }
-            
-            .modal-content {
-                animation: slideUpMobile 0.3s forwards;
-                transform: translateY(100%);
+        </script>
+        <style>
+            /* File Viewer Modal Styles */
+            .modal {
+                display: none;
                 position: fixed;
-                bottom: 0;
+                z-index: 1000;
                 left: 0;
-                right: 0;
+                top: 0;
                 width: 100%;
-                max-width: 100%;
                 height: 100%;
-                margin: 0;
-                border-radius: 0;
+                overflow: hidden;
+                background-color: rgba(0,0,0,0.7);
+                backdrop-filter: blur(5px);
             }
             
-            @keyframes slideUpMobile {
-                to { transform: translateY(0); }
+            .modal-content {
+                background-color: #fff;
+                height: 100vh;
+                width: 65%;
+                max-width: 800px;
+                position: relative;
+                margin: 0;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                display: flex;
+                flex-direction: column;
+                transform: translateX(-100%);
+                animation: slideIn 0.4s forwards;
+                border-radius: 0;
+                overflow: hidden;
+            }
+            
+            @keyframes slideIn {
+                to { transform: translateX(0); }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); }
+                to { transform: translateX(-100%); }
             }
             
             .modal.closing .modal-content {
-                animation: slideDownMobile 0.3s forwards;
+                animation: slideOut 0.3s forwards;
             }
             
-            @keyframes slideDownMobile {
-                from { transform: translateY(0); }
-                to { transform: translateY(100%); }
+            .modal-header {
+                padding: 10px 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #eee;
             }
             
-            #flipbook .page, #flipbook-pages .page {
-                padding: 5px;
+            .modal-header h3 {
+                margin: 0;
+                font-size: 1.25rem;
+                color: #333;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 80%;
             }
             
-            .file-action-button {
-                padding: 5px 10px;
-                font-size: 0.8rem;
+            .close-modal {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: #888;
+                transition: color 0.3s;
+            }
+            
+            .close-modal:hover {
+                color: #333;
+            }
+            
+            .modal-body {
+                min-height: 500px;
+                padding: 0;
+                overflow: auto;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            #file-viewer-container {
+                min-height: 500px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                overflow: visible;
+                padding: 20px;
+                box-sizing: border-box;
+                position: relative;
+            }
+            
+            #file-iframe {
+                border: none;
+                width: 100%;
+                height: 100%;
+                min-height: 500px;
+            }
+            
+            #file-image {
+                max-width: 90%;
+                max-height: calc(100vh - 200px);
+                object-fit: contain;
+                margin: 0 auto;
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+                transform-origin: center;
+            }
+            
+            .modal img {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+                backface-visibility: hidden;
+            }
+            
+            #flipbook-wrapper {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                width: 100%;
+                position: relative;
+                padding: 20px 0;
+                min-height: 500px;
+                max-width: 100%;
+                margin: 0 auto;
+                overflow: visible;
+            }
+            
+            #flipbook {
+                width: 100%;
+                height: 100%;
+                flex: 1;
+                margin: 0 auto;
+                display: none;
+                position: relative;
+                z-index: 1;
+            }
+            
+            #flipbook .page {
+                background-color: white;
+                background-size: 100% 100%;
+                border-radius: 0;
+                overflow: hidden;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                padding: 10px;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .flipbook-nav {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 100;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
             }
             
             .flipbook-nav button {
-                transform: scale(0.9);
+                position: relative;
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s;
+                pointer-events: auto;
+                opacity: 0.7;
+                margin: 0 10px;
             }
-        }
-    </style>
-</body>
+            
+            .flipbook-nav button:hover {
+                background-color: rgba(0, 0, 0, 0.8);
+                opacity: 1;
+            }
+            
+            .flipbook-nav button:disabled {
+                background-color: rgba(0, 0, 0, 0.2);
+                cursor: not-allowed;
+                opacity: 0.3;
+            }
+            
+            #prev-page-btn {
+                left: auto;
+                margin-right: 10px;
+            }
+            
+            #next-page-btn {
+                right: auto;
+                margin-left: 10px;
+            }
+            
+            .file-info-bar {
+                padding: 10px 15px;
+                background-color: #f8f9fa;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                align-items: center;
+            }
+            
+            .file-type-icon {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #dc3545;
+                color: white;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 0.8rem;
+                margin-right: 15px;
+            }
+            
+            .file-actions {
+                display: flex;
+                justify-content: flex-end;
+                padding: 10px 15px;
+                border-top: 1px solid #eee;
+                gap: 10px;
+            }
+            
+            .file-action-button {
+                padding: 6px 12px;
+                background-color: #f8f9fa;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                color: #333;
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+            
+            .file-action-button:hover {
+                background-color: #e9ecef;
+                border-color: #ccc;
+            }
+            
+            .modal-loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(255, 255, 255, 0.8);
+                z-index: 5;
+            }
+            
+            .modal-loading .loading-spinner {
+                width: 50px;
+                height: 50px;
+                border: 3px solid #f3f3f3;
+                border-top: 3px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 15px;
+            }
+            
+            .modal-loading p {
+                color: #666;
+                font-size: 14px;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            /* Responsive styling for modal */
+            @media (max-width: 992px) {
+                .modal-content {
+                    width: 75%;
+                    max-width: none;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .modal-content {
+                    width: 100%;
+                    max-width: none;
+                }
+                
+                #file-viewer-container {
+                    min-height: auto;
+                }
+                
+                .flipbook-nav button {
+                    width: 36px;
+                    height: 36px;
+                }
+            }
+        </style>
+    </body>
 </html>
-
-
