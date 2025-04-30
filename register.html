@@ -3,10 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co;">
     <title>Register - Architecture Portfolio</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Load auth.js -->
+    <!-- Load Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Ensure Supabase is globally accessible
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Checking supabase:', typeof supabase);
+            if (typeof supabase !== 'undefined') {
+                window.supabase = supabase;
+                console.log('Supabase made available globally');
+            }
+        });
+    </script>
+    <!-- Load auth.js after Supabase -->
     <script src="auth.js" defer></script>
     
     <style>
@@ -48,7 +60,7 @@
 <body>
     <div class="auth-container">
         <div class="auth-box">
-            <h2>Create an Account</h2>
+            <h2>Register</h2>
             <div id="error-message" class="error-message"></div>
             <form id="registerForm" class="auth-form">
                 <div class="form-group">
@@ -58,17 +70,17 @@
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
-                    <small>Must be at least 8 characters with uppercase, lowercase, number, and special character</small>
                 </div>
                 <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input type="password" id="confirm-password" name="confirm-password" required>
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
                 </div>
                 <div class="button-group">
-                    <a href="login.html" class="back-button">Back to Login</a>
+                    <a href="index.html" class="back-button">Back</a>
                     <button type="submit" class="submit-button">Register</button>
                 </div>
             </form>
+            <p class="auth-link">Already have an account? <a href="login.html">Login here</a></p>
         </div>
     </div>
 
@@ -86,7 +98,7 @@
                 
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm-password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
                 
                 // Basic validation
                 if (!username || !password || !confirmPassword) {
@@ -99,29 +111,55 @@
                     return;
                 }
                 
+                // Enhanced password validation
                 if (password.length < 8) {
                     showError('Password must be at least 8 characters long');
                     return;
                 }
                 
+                // Check for uppercase letters
+                if (!/[A-Z]/.test(password)) {
+                    showError('Password must contain at least one uppercase letter');
+                    return;
+                }
+                
+                // Check for lowercase letters
+                if (!/[a-z]/.test(password)) {
+                    showError('Password must contain at least one lowercase letter');
+                    return;
+                }
+                
+                // Check for numbers
+                if (!/[0-9]/.test(password)) {
+                    showError('Password must contain at least one number');
+                    return;
+                }
+                
+                // Check for special characters
+                if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+                    showError('Password must contain at least one special character');
+                    return;
+                }
+                
                 try {
-                    // Check if authFunctions is available
-                    if (typeof window.authFunctions !== 'object' || typeof window.authFunctions.register !== 'function') {
+                    // Check if register function is available
+                    if (typeof register !== 'function') {
                         console.error('Register function not available!');
-                        showError('Registration system is currently unavailable. Please try again later.');
+                        showError('Error in the registration system. Please try again later.');
                         return;
                     }
                     
-                    // Try to register
-                    const result = await window.authFunctions.register(username, password);
+                    // Try to register the user
+                    const result = await register(username, password);
                     console.log('Registration result:', result);
                     
-                    if (result.error) {
-                        // Registration failed
-                        showError(result.error);
+                    if (result.success) {
+                        // Registration successful
+                        alert('Registration successful! Please log in with your credentials.');
+                        window.location.href = 'login.html';
                     } else {
-                        // Registration successful, redirect to index page
-                        window.location.href = 'index.html';
+                        // Registration failed
+                        showError(result.error || 'Error creating account. Please try again.');
                     }
                 } catch (error) {
                     console.error('Error during registration:', error);

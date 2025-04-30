@@ -8,8 +8,17 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Load scripts -->
-    <script src="auth.js"></script>
+    <!-- Load Supabase first -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialize Supabase client only once
+        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+        window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase initialized in project-form.html');
+    </script>
+    <!-- Then load other scripts -->
+    <script src="auth.js" defer></script>
     <script src="project-form.js" defer></script>
 </head>
 <body>
@@ -101,23 +110,5 @@
             <p>&copy; 2025 Architecture Portfolio Admin. All rights reserved.</p>
         </div>
     </footer>
-    
-    <script>
-        // Add event listener for logout button
-        document.getElementById('logout-button').addEventListener('click', async function(e) {
-            e.preventDefault();
-            if (window.authFunctions && window.authFunctions.logout) {
-                await window.authFunctions.logout();
-                window.location.href = 'login.html';
-            } else {
-                console.error('Logout function not available');
-                // Fallback logout
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('isAdmin');
-                localStorage.removeItem('userId');
-                window.location.href = 'login.html';
-            }
-        });
-    </script>
 </body>
 </html> 
