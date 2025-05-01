@@ -2273,7 +2273,6 @@ async function toggleFeaturedStatus(projectId, isFeatured) {
         const projectRow = document.querySelector(`tr[data-project-id="${projectId}"]`);
         if (projectRow) {
             const featureButton = projectRow.querySelector('.feature-button');
-            const projectTitle = projectRow.querySelector('.project-title');
             
             if (featureButton) {
                 // Update button appearance
@@ -2281,24 +2280,10 @@ async function toggleFeaturedStatus(projectId, isFeatured) {
                     featureButton.classList.add('featured');
                     featureButton.querySelector('i').className = 'fas fa-star';
                     featureButton.title = 'Remove from featured';
-                    
-                    // Add feature tag if not exists
-                    if (!projectTitle.querySelector('.feature-tag')) {
-                        const featureTag = document.createElement('span');
-                        featureTag.className = 'feature-tag';
-                        featureTag.innerHTML = '<i class="fas fa-star"></i> Featured';
-                        projectTitle.appendChild(featureTag);
-                    }
                 } else {
                     featureButton.classList.remove('featured');
                     featureButton.querySelector('i').className = 'far fa-star';
                     featureButton.title = 'Add to featured';
-                    
-                    // Remove feature tag if exists
-                    const featureTag = projectTitle.querySelector('.feature-tag');
-                    if (featureTag) {
-                        featureTag.remove();
-                    }
                 }
                 
                 // Update the onclick handler
@@ -2317,7 +2302,7 @@ async function toggleFeaturedStatus(projectId, isFeatured) {
         hideLoadingIndicator();
         showNotification('Error updating featured status. Please try again.', 'error');
     }
-} 
+}
 
 // Get current filters for user section
 function getUserFilters() {
@@ -2484,19 +2469,14 @@ function updateUsersTable(users) {
             // Nome e 3 pontinhos juntos na primeira célula
             row.innerHTML = `
                 <td style="position: relative;">
-<<<<<<< HEAD
-                        <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
-                    <div class="card-menu mobile-actions" style="position: absolute; top: 50%; right: -150px; transform: translateY(-50%); display: none;">
-=======
                     <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
                     <div class="card-menu mobile-actions" style="position: absolute; top: 50%; left: 150px; transform: translateY(-50%); display: block;">
->>>>>>> 7ddf22c000f88f4cc4e3bf2659f1b4868d913254
                         <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
-                        <div class="menu-dropdown" style="display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 100%; z-index: 1000; padding: 10px 12px; flex-direction: column; gap: 10px; align-items: center; justify-content: center;">
-                            <button class="action-button edit-button" onclick="showUserModal('${user.id}')" title="Edit" style="width: 44px; height: 44px; border-radius: 10px; margin: 0;"><i class="fas fa-edit" style="color: #fff; font-size: 1.25em;"></i></button>
-                            <button class="action-button delete-button" onclick="deleteUser('${user.id}')" title="Delete" style="width: 44px; height: 44px; border-radius: 10px; margin: 0;"><i class="fas fa-trash-alt" style="color: #fff; font-size: 1.25em;"></i></button>
+                        <div class="menu-dropdown" style="display: none; position: absolute; top: 0; right: 30px; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; z-index: 1000;">
+                            <button class="dropdown-item edit-item" onclick="showUserModal('${user.id}')">Edit</button>
+                            <button class="dropdown-item delete-item" onclick="deleteUser('${user.id}')">Delete</button>
                         </div>
                     </div>
                 </td>

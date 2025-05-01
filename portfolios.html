@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; frame-src 'self' data: blob: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co https://docs.google.com; object-src 'self' blob: data: https://*.supabase.co;">
-    <title>Projects - Architecture Portfolio</title>
-    <link rel="icon" type="image/png" href="assets/logo(2).png">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; frame-src 'self' data: blob: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co https://docs.google.com; object-src 'self' blob: data: https://*.supabase.co; media-src 'self' blob: data: https://*.supabase.co;">
+    <title>Portfolios - Architecture Portfolio</title>
+    <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -242,6 +242,21 @@
                         <div class="flipbook-nav">
                             <button id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
                             <button id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    
+                    <!-- Video preview element -->
+                    <div id="video-wrapper" style="display: none;">
+                        <video id="video-player" controls width="100%">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="video-controls">
+                            <a id="video-download-button" href="#" class="video-control-button" download title="Download Video">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button id="video-fullscreen-button" class="video-control-button" title="Fullscreen">
+                                <i class="fas fa-expand"></i>
+                            </button>
                         </div>
                     </div>
                     
@@ -503,6 +518,10 @@
                 const flipbookWrapper = document.getElementById('flipbook-wrapper');
                 const prevBtn = document.getElementById('prev-page-btn');
                 const nextBtn = document.getElementById('next-page-btn');
+                const videoWrapper = document.getElementById('video-wrapper');
+                const videoPlayer = document.getElementById('video-player');
+                const videoDownloadButton = document.getElementById('video-download-button');
+                const videoFullscreenButton = document.getElementById('video-fullscreen-button');
                 
                 // Reset zoom
                 imgPreview.style.transform = 'scale(1)';
@@ -516,6 +535,7 @@
                 unsupportedView.style.display = 'none';
                 flipbookWrapper.style.display = 'none';
                 flipbook.style.display = 'none';
+                videoWrapper.style.display = 'none';
                 
                 // Destroy any existing Turn.js instance
                 try {
@@ -554,8 +574,18 @@
                     'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
                     'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
                     'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
-                    'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
+                    'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' },
+                    'mp4': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                    'webm': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                    'mov': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                    'avi': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                    'wmv': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                    'mpeg': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                    'mpg': { type: 'Video', icon: 'VID', color: '#e83e8c' }
                 };
+                
+                // Check if the filename contains video prefix
+                const isVideoFile = fileExtension.match(/(mp4|webm|mov|avi|wmv|mpeg|mpg)$/i) || (fileName && fileName.includes('video-'));
                 
                 const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
                 fileInfo.textContent = `${fileType.type} • ${formatFileSize(1024 * 1024)} • ${formatDate(new Date())}`;
@@ -570,7 +600,54 @@
                 // Show modal
                 modal.style.display = 'block';
                 
-                if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
+                if (isVideoFile) {
+                    // Video preview
+                    videoWrapper.style.display = 'block';
+                    videoPlayer.src = fileUrl;
+                    
+                    // Set download link
+                    videoDownloadButton.href = fileUrl;
+                    videoDownloadButton.setAttribute('download', fileName);
+                    
+                    // Add fullscreen functionality
+                    videoFullscreenButton.onclick = function() {
+                        if (videoPlayer.requestFullscreen) {
+                            videoPlayer.requestFullscreen();
+                        } else if (videoPlayer.webkitRequestFullscreen) { /* Safari */
+                            videoPlayer.webkitRequestFullscreen();
+                        } else if (videoPlayer.msRequestFullscreen) { /* IE11 */
+                            videoPlayer.msRequestFullscreen();
+                        }
+                    };
+                    
+                    // Update the file type icon for video
+                    fileTypeIcon.textContent = 'VID';
+                    fileTypeIcon.style.background = '#e83e8c';
+                    
+                    // Video events
+                    videoPlayer.onloadeddata = function() {
+                        fileLoading.style.display = 'none';
+                        
+                        // Update file info with actual duration
+                        const duration = Math.round(videoPlayer.duration);
+                        const minutes = Math.floor(duration / 60);
+                        const seconds = duration % 60;
+                        const durationText = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                        
+                        const fileSizeText = formatFileSize(1024 * 1024); // Placeholder size
+                        fileInfo.textContent = `Video • ${fileSizeText} • ${durationText}`;
+                    };
+                    
+                    videoPlayer.onerror = function() {
+                        fileLoading.style.display = 'none';
+                        unsupportedView.style.display = 'block';
+                        console.error('Video loading error:', videoPlayer.error);
+                    };
+                    
+                    // Try to load the video
+                    videoPlayer.load();
+                } 
+                else if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
                     // Image preview
                     imgPreview.onload = function() {
                         fileLoading.style.display = 'none';
@@ -1088,7 +1165,10 @@
                             
                             // Determine the image source
                             let imageElement = '';
-                            if (project.file_url) {
+                            if (project.image_data) {
+                                // Use the project's dedicated image if available
+                                imageElement = `<img src="${project.image_data}" alt="${project.name}">`;
+                            } else if (project.file_url) {
                                 const fileUrl = project.file_url.toLowerCase();
                                 if (fileUrl.endsWith('.pdf')) {
                                     // For PDF files, create a canvas to render the first page with a container
@@ -1132,13 +1212,11 @@
                                     // For other file types, try to display as image
                                     imageElement = `<img src="${project.file_url}" alt="${project.name}" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/svgs/solid/file.svg'; this.style.padding='40px'; this.style.background='white';">`;
                                 }
-                            } else if (project.image_url) {
-                                imageElement = `<img src="${project.image_url}" alt="${project.name}">`;
                             }
                             
                             card.innerHTML = `
                                 <div class="portfolio-image" style="background-color: ${bgColor};">
-                                    ${imageElement}
+                                    ${imageElement || ''}
                                     ${sharedBadge}
                                 </div>
                                 <div class="portfolio-content">
@@ -2158,8 +2236,8 @@
             max-height: calc(100vh - 200px);
             object-fit: contain;
             margin: 0 auto;
-            image-rendering: -webkit-optimize-contrast; /* Improves image sharpness on Webkit browsers */
-            image-rendering: crisp-edges; /* Modern browsers */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
             transform-origin: center;
         }
         
@@ -2335,6 +2413,61 @@
             .flipbook-nav button {
                 transform: scale(0.9);
             }
+        }
+        
+        /* Video player styles */
+        #video-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            max-width: 95%;
+            margin: 0 auto;
+        }
+        
+        #video-player {
+            width: 100%;
+            max-height: calc(100vh - 200px);
+            background-color: #000;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-controls {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            padding: 10px 0;
+            gap: 10px;
+        }
+        
+        .video-control-button {
+            padding: 6px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .video-control-button:hover {
+            background-color: #e9ecef;
+            border-color: #ccc;
+        }
+        
+        .modal img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            backface-visibility: hidden;
         }
     </style>
 </body>

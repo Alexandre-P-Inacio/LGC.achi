@@ -3,7 +3,7 @@
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; frame-src 'self' data: blob: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co https://docs.google.com; object-src 'self' blob: data: https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net https://*.supabase.co https://cdnjs.cloudflare.com; worker-src blob:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co; frame-src 'self' data: blob: https://*.supabase.co https://pwsgmskiamkpzgtlaikm.supabase.co https://docs.google.com; object-src 'self' blob: data: https://*.supabase.co; media-src 'self' blob: data: https://*.supabase.co;">
     <title>Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
@@ -249,12 +249,25 @@
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
         
+        /* Updated image styles with !important to ensure they take effect */
         .project-image {
-            height: 240px;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            overflow: hidden;
+            height: 240px !important;
+            position: relative !important;
+            overflow: hidden !important;
+            background-color: #f5f5f5 !important;
+        }
+        
+        .project-image img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            display: block !important;
+            transition: transform 0.3s ease !important;
+        }
+        
+        .project-card:hover .project-image img {
+            transform: scale(1.05) !important;
         }
         
         .project-image::before {
@@ -267,6 +280,7 @@
             background: linear-gradient(to bottom, transparent 70%, rgba(0, 0, 0, 0.4));
             opacity: 0;
             transition: opacity 0.3s ease;
+            z-index: 1;
         }
         
         .project-card:hover .project-image::before {
@@ -652,6 +666,21 @@
                         </div>
                     </div>
                     
+                    <!-- Video preview element -->
+                    <div id="video-wrapper" style="display: none;">
+                        <video id="video-player" controls width="100%">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="video-controls">
+                            <a id="video-download-button" href="#" class="video-control-button" download title="Download Video">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button id="video-fullscreen-button" class="video-control-button" title="Fullscreen">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <!-- Original preview elements -->
                     <iframe id="file-iframe" width="100%" height="600" style="display: none;"></iframe>
                     <img id="file-image" style="display: none;" />
@@ -803,6 +832,14 @@
                 
                 // Display each featured project
                 featuredProjects.forEach((project, index) => {
+                    // Debug the project data
+                    console.log(`Project ${index}:`, {
+                        name: project.name,
+                        category: project.category,
+                        image_data: project.image_data ? 'Has image_data' : 'No image_data',
+                        file_url: project.file_url ? 'Has file_url' : 'No file_url'
+                    });
+                    
                     // Format category name for display
                     let categoryDisplay = 'Uncategorized';
                     if (project.category) {
@@ -819,25 +856,126 @@
                     // Determine which image to use
                     let imageUrl;
                     
-                    if (project.file_url) {
+                    // Function to check if a string appears to be a valid URL
+                    function isValidImageUrl(url) {
+                        if (!url) return false;
+                        
+                        // Basic URL validation
+                        try {
+                            new URL(url); // This will throw if not a valid URL
+                            return true;
+                        } catch (e) {
+                            return false;
+                        }
+                    }
+                    
+                    // Function to check if a string is Base64 encoded
+                    function isBase64(str) {
+                        try {
+                            // Base64 strings are typically long and contain only certain characters
+                            if (!str || str.length < 50) return false;
+                            
+                            // Base64 characters are A-Z, a-z, 0-9, +, /, and = for padding
+                            const base64Regex = /^[A-Za-z0-9+/=]+$/;
+                            
+                            // Check if it matches the pattern of Base64
+                            return base64Regex.test(str);
+                        } catch (e) {
+                            return false;
+                        }
+                    }
+                    
+                    // Function to create a data URL from Base64
+                    function createDataUrl(base64String) {
+                        // If it already has a data: prefix, return as is
+                        if (base64String.startsWith('data:')) {
+                            return base64String;
+                        }
+                        
+                        // Otherwise, assume it's JPEG and create a data URL
+                        return `data:image/jpeg;base64,${base64String}`;
+                    }
+                    
+                    if (project.image_data) {
+                        // First check if it's already a data URL
+                        if (project.image_data.startsWith('data:')) {
+                            imageUrl = project.image_data;
+                            console.log(`Project ${index} using data URL from image_data`);
+                        }
+                        // Then check if it's a valid URL
+                        else if (isValidImageUrl(project.image_data)) {
+                            imageUrl = project.image_data;
+                            console.log(`Project ${index} using image_data URL:`, imageUrl.substring(0, 30) + '...');
+                        }
+                        // Then check if it's Base64 encoded
+                        else if (isBase64(project.image_data)) {
+                            imageUrl = createDataUrl(project.image_data);
+                            console.log(`Project ${index} using Base64 image data (converted to data URL)`);
+                        }
+                        // If not a valid format, fall back to file_url or category image
+                        else {
+                            console.warn(`Project ${index} has invalid image_data format`);
+                            if (project.file_url) {
+                                const fileExt = project.file_url.split('.').pop().toLowerCase();
+                                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                                
+                                if (isImage) {
+                                    imageUrl = project.file_url;
+                                    console.log(`Project ${index} falling back to file_url as image`);
+                                } else {
+                                    imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                                    console.log(`Project ${index} falling back to category image`);
+                                }
+                            } else {
+                                imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                                console.log(`Project ${index} falling back to category image`);
+                            }
+                        }
+                    } 
+                    else if (project.file_url) {
                         // Use project's own file if available and is an image
                         const fileExt = project.file_url.split('.').pop().toLowerCase();
                         const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
                         
                         if (isImage) {
                             imageUrl = project.file_url;
+                            console.log(`Project ${index} using file_url as image`);
                         } else {
                             // Use category image if file is not an image
                             imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                            console.log(`Project ${index} using category image`);
                         }
                     } else {
-                        // No file, use category image
+                        // No file or image, use category image
                         imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
+                        console.log(`Project ${index} using fallback category image`);
                     }
                     
-                    // Fill the project card with content
+                    // Helper function to ensure image URLs can be loaded cross-origin
+                    function ensureImageLoads(url) {
+                        if (!url) return '';
+                        // If it's a data URL, return as is
+                        if (url.startsWith('data:')) {
+                            return url;
+                        }
+                        // If it's a Supabase URL, make sure it's properly formatted
+                        if (url.includes('supabase.co')) {
+                            console.log('Formatting Supabase URL to avoid CORS:', url.substring(0, 30) + '...');
+                            return url;
+                        }
+                        return url;
+                    }
+                    
+                    // Fill the project card with content using both img tag and background image
                     projectCard.innerHTML = `
-                        <div class="project-image" style="background-image: url('${imageUrl}')"></div>
+                        <div class="project-image" style="height: 240px; position: relative; overflow: hidden; background-color: #f5f5f5;">
+                            <img src="${ensureImageLoads(imageUrl)}" 
+                                alt="${project.name || 'Project Image'}" 
+                                ${imageUrl && !imageUrl.startsWith('data:') ? 'crossorigin="anonymous"' : ''}
+                                onerror="console.error('Image failed to load:', this.src.substring(0, 30) + '...'); this.onerror=null; this.src='${categoryImageMap[project.category] || featuredImages[index % featuredImages.length]}';"
+                                onload="console.log('Image loaded successfully:' + (this.src.startsWith('data:') ? ' [data URL]' : (' ' + this.src.substring(0, 30) + '...')))"
+                                style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;">
+                        </div>
                         <h3>${project.name || 'Unnamed Project'}</h3>
                         <p>${categoryDisplay}</p>
                         <a href="javascript:void(0)" class="view-project-btn" data-file-url="${project.file_url || ''}" data-project-id="${project.id}" data-file-name="${project.file_url ? project.file_url.split('/').pop().split('?')[0] : ''}">View Project</a>
@@ -1514,6 +1652,10 @@
             const flipbookWrapper = document.getElementById('flipbook-wrapper');
             const prevBtn = document.getElementById('prev-page-btn');
             const nextBtn = document.getElementById('next-page-btn');
+            const videoWrapper = document.getElementById('video-wrapper');
+            const videoPlayer = document.getElementById('video-player');
+            const videoDownloadButton = document.getElementById('video-download-button');
+            const videoFullscreenButton = document.getElementById('video-fullscreen-button');
             
             // Reset zoom
             imgPreview.style.transform = 'scale(1)';
@@ -1527,6 +1669,7 @@
             unsupportedView.style.display = 'none';
             flipbookWrapper.style.display = 'none';
             flipbook.style.display = 'none';
+            videoWrapper.style.display = 'none';
             
             // Destroy any existing Turn.js instance
             try {
@@ -1565,8 +1708,18 @@
                 'css': { type: 'Code', icon: 'CSS', color: '#007bff' },
                 'js': { type: 'Code', icon: 'JS', color: '#ffc107' },
                 'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
-                'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' }
+                'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' },
+                'mp4': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                'webm': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                'mov': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                'avi': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                'wmv': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                'mpeg': { type: 'Video', icon: 'VID', color: '#e83e8c' },
+                'mpg': { type: 'Video', icon: 'VID', color: '#e83e8c' }
             };
+            
+            // Check if the filename contains video prefix
+            const isVideoFile = fileExtension.match(/(mp4|webm|mov|avi|wmv|mpeg|mpg)$/i) || (fileName && fileName.includes('video-'));
             
             const fileType = fileTypeMap[fileExtension] || { type: 'Unknown', icon: 'FILE', color: '#6c757d' };
             fileInfo.textContent = `${fileType.type} • ${formatFileSize(1024 * 1024)} • ${formatDate(new Date())}`;
@@ -1581,7 +1734,54 @@
             // Show modal
             modal.style.display = 'block';
             
-            if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
+            if (isVideoFile) {
+                // Video preview
+                videoWrapper.style.display = 'block';
+                videoPlayer.src = fileUrl;
+                
+                // Set download link
+                videoDownloadButton.href = fileUrl;
+                videoDownloadButton.setAttribute('download', fileName);
+                
+                // Add fullscreen functionality
+                videoFullscreenButton.onclick = function() {
+                    if (videoPlayer.requestFullscreen) {
+                        videoPlayer.requestFullscreen();
+                    } else if (videoPlayer.webkitRequestFullscreen) { /* Safari */
+                        videoPlayer.webkitRequestFullscreen();
+                    } else if (videoPlayer.msRequestFullscreen) { /* IE11 */
+                        videoPlayer.msRequestFullscreen();
+                    }
+                };
+                
+                // Update the file type icon for video
+                fileTypeIcon.textContent = 'VID';
+                fileTypeIcon.style.background = '#e83e8c';
+                
+                // Video events
+                videoPlayer.onloadeddata = function() {
+                    fileLoading.style.display = 'none';
+                    
+                    // Update file info with actual duration
+                    const duration = Math.round(videoPlayer.duration);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const durationText = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                    
+                    const fileSizeText = formatFileSize(1024 * 1024); // Placeholder size
+                    fileInfo.textContent = `Video • ${fileSizeText} • ${durationText}`;
+                };
+                
+                videoPlayer.onerror = function() {
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
+                    console.error('Video loading error:', videoPlayer.error);
+                };
+                
+                // Try to load the video
+                videoPlayer.load();
+            } 
+            else if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(fileExtension)) {
                 // Image preview
                 imgPreview.onload = function() {
                     fileLoading.style.display = 'none';
@@ -2039,6 +2239,55 @@
             backface-visibility: hidden;
         }
         
+        /* Video player styles */
+        #video-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            max-width: 95%;
+            margin: 0 auto;
+        }
+        
+        #video-player {
+            width: 100%;
+            max-height: calc(100vh - 200px);
+            background-color: #000;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-controls {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            padding: 10px 0;
+            gap: 10px;
+        }
+        
+        .video-control-button {
+            padding: 6px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .video-control-button:hover {
+            background-color: #e9ecef;
+            border-color: #ccc;
+        }
+        
         #flipbook-wrapper {
             height: 100%;
             display: flex;
@@ -2261,6 +2510,25 @@
             
             .file-actions {
                 padding: 8px 10px;
+            }
+            
+            /* Video player mobile styles */
+            #video-wrapper {
+                max-width: 100%;
+                padding: 0 10px;
+            }
+            
+            #video-player {
+                max-height: calc(100vh - 250px);
+            }
+            
+            .video-controls {
+                padding: 8px 0;
+            }
+            
+            .video-control-button {
+                padding: 5px 10px;
+                font-size: 0.8rem;
             }
         }
         

@@ -143,7 +143,7 @@ async function loadProjectData(projectId) {
     }
     
     // Display current image if exists
-    if (data.image_url) {
+    if (data.image_data) {
         const imageInput = document.getElementById('project-image');
         
         // Create a display element for current image
@@ -151,7 +151,7 @@ async function loadProjectData(projectId) {
         currentImageDisplay.className = 'current-image-display';
         currentImageDisplay.innerHTML = `
             <p>Current image:</p>
-            <img src="${data.image_url}" alt="${data.name}" style="max-width: 200px; max-height: 150px; object-fit: contain; margin-bottom: 10px;">
+            <img src="${data.image_data}" alt="${data.name}" style="max-width: 200px; max-height: 150px; object-fit: contain; margin-bottom: 10px;">
             <p><small>Upload a new image only if you want to replace the current one</small></p>
         `;
         
@@ -191,14 +191,10 @@ async function saveProject(event) {
         // Get form values
         const projectName = document.getElementById('project-title').value;
         const projectCategory = document.getElementById('project-category').value;
-<<<<<<< HEAD
         const contentType = document.querySelector('input[name="content-type"]:checked').value;
         const projectFile = contentType === 'file' ? document.getElementById('project-file').files[0] : null;
         const projectVideo = contentType === 'video' ? document.getElementById('project-video').files[0] : null;
-=======
-        const projectFile = document.getElementById('project-file').files[0];
         const projectImage = document.getElementById('project-image').files[0];
->>>>>>> 4f196fb755e65e2bf078e21eebae52809f175dfe
         const projectStatus = document.getElementById('project-status').value;
         
         if (!projectName) {
@@ -331,7 +327,7 @@ async function saveProject(event) {
         
         // Add image URL if a new image was uploaded
         if (imageUrl) {
-            projectData.image_url = imageUrl;
+            projectData.image_data = imageUrl;
         }
         
         console.log('Project data to save:', projectData);
@@ -378,7 +374,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await checkAdminAccess();
         
-        // Create the projects table if it doesn't exist with image_url field
+        // Create the projects table if it doesn't exist with image_data field
         // Note: This is not the ideal way to create tables, but it works for this example
         // In a production environment, you would use Supabase migrations or Admin UI
         const { error: tableError } = await supabase.rpc('create_projects_table_if_not_exists');
@@ -386,14 +382,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error ensuring projects table exists:', tableError);
         }
         
-        // Ensure the image_url column exists in the projects table
-        const { error: columnError } = await supabase.rpc('add_image_url_column_if_not_exists');
+        // Ensure the image_data column exists in the projects table
+        const { error: columnError } = await supabase.rpc('add_image_data_column_if_not_exists');
         if (columnError) {
-            console.error('Error ensuring image_url column exists:', columnError);
+            console.error('Error ensuring image_data column exists:', columnError);
             // Try a fallback method if the RPC is not available
             try {
                 // This is a silent operation, it will fail if column already exists and that's OK
-                const { error: alterError } = await supabase.from('projects').alter('image_url', null);
+                const { error: alterError } = await supabase.from('projects').alter('image_data', null);
                 console.log('Alter table operation completed:', alterError ? 'with error' : 'successfully');
             } catch (e) {
                 console.log('Expected error if column already exists:', e);
