@@ -191,11 +191,19 @@ async function saveProject(event) {
         // Get form values
         const projectName = document.getElementById('project-title').value;
         const projectCategory = document.getElementById('project-category').value;
+<<<<<<< Updated upstream
         const contentType = document.querySelector('input[name="content-type"]:checked').value;
         const projectFile = contentType === 'file' ? document.getElementById('project-file').files[0] : null;
         const projectVideo = contentType === 'video' ? document.getElementById('project-video').files[0] : null;
+=======
+        const projectFile = document.getElementById('project-file').files[0];
+        const projectVideo = document.getElementById('project-video').files[0];
+>>>>>>> Stashed changes
         const projectImage = document.getElementById('project-image').files[0];
         const projectStatus = document.getElementById('project-status').value;
+        
+        // Get the content type from radio buttons
+        const contentType = document.getElementById('content-type-video').checked ? 'video' : 'file';
         
         if (!projectName) {
             alert('Project name is required!');
