@@ -855,100 +855,67 @@
                     
                     // Determine which image to use
                     let imageUrl;
+                    let hasValidImage = false;
                     
-                    // Function to check if a string appears to be a valid URL
-                    function isValidImageUrl(url) {
-                        if (!url) return false;
+                    // Function to convert hex data to URL
+                    function hexToUrl(hexData) {
+                        if (!hexData || typeof hexData !== 'string') return null;
                         
-                        // Basic URL validation
-                        try {
-                            new URL(url); // This will throw if not a valid URL
-                            return true;
-                        } catch (e) {
-                            return false;
-                        }
-                    }
-                    
-                    // Function to check if a string is Base64 encoded
-                    function isBase64(str) {
-                        try {
-                            // Base64 strings are typically long and contain only certain characters
-                            if (!str || str.length < 50) return false;
-                            
-                            // Base64 characters are A-Z, a-z, 0-9, +, /, and = for padding
-                            const base64Regex = /^[A-Za-z0-9+/=]+$/;
-                            
-                            // Check if it matches the pattern of Base64
-                            return base64Regex.test(str);
-                        } catch (e) {
-                            return false;
-                        }
-                    }
-                    
-                    // Function to create a data URL from Base64
-                    function createDataUrl(base64String) {
-                        // If it already has a data: prefix, return as is
-                        if (base64String.startsWith('data:')) {
-                            return base64String;
-                        }
-                        
-                        // Otherwise, assume it's JPEG and create a data URL
-                        return `data:image/jpeg;base64,${base64String}`;
-                    }
-                    
-                    if (project.image_data) {
-                        // First check if it's already a data URL
-                        if (project.image_data.startsWith('data:')) {
-                            imageUrl = project.image_data;
-                            console.log(`Project ${index} using data URL from image_data`);
-                        }
-                        // Then check if it's a valid URL
-                        else if (isValidImageUrl(project.image_data)) {
-                            imageUrl = project.image_data;
-                            console.log(`Project ${index} using image_data URL:`, imageUrl.substring(0, 30) + '...');
-                        }
-                        // Then check if it's Base64 encoded
-                        else if (isBase64(project.image_data)) {
-                            imageUrl = createDataUrl(project.image_data);
-                            console.log(`Project ${index} using Base64 image data (converted to data URL)`);
-                        }
-                        // If not a valid format, fall back to file_url or category image
-                        else {
-                            console.warn(`Project ${index} has invalid image_data format`);
-                            if (project.file_url) {
-                                const fileExt = project.file_url.split('.').pop().toLowerCase();
-                                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
+                        // Check if it's a hex format starting with \x
+                        if (hexData.includes('\\x')) {
+                            try {
+                                // Remove the \x and convert hex pairs to characters
+                                const hexClean = hexData.replace(/\\x/g, "");
+                                let url = "";
                                 
-                                if (isImage) {
-                                    imageUrl = project.file_url;
-                                    console.log(`Project ${index} falling back to file_url as image`);
-                                } else {
-                                    imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
-                                    console.log(`Project ${index} falling back to category image`);
+                                for (let i = 0; i < hexClean.length; i += 2) {
+                                    url += String.fromCharCode(parseInt(hexClean.substr(i, 2), 16));
                                 }
-                            } else {
-                                imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
-                                console.log(`Project ${index} falling back to category image`);
+                                
+                                console.log(`Converted hex to URL: ${url.substring(0, 50)}...`);
+                                return url;
+                            } catch (e) {
+                                console.error('Error converting hex to URL:', e);
+                                return null;
                             }
                         }
-                    } 
-                    else if (project.file_url) {
-                        // Use project's own file if available and is an image
-                        const fileExt = project.file_url.split('.').pop().toLowerCase();
-                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt);
-                        
-                        if (isImage) {
-                            imageUrl = project.file_url;
-                            console.log(`Project ${index} using file_url as image`);
-                        } else {
-                            // Use category image if file is not an image
-                            imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
-                            console.log(`Project ${index} using category image`);
+                        return null;
+                    }
+                    
+                    // PRIORITIZE image_data column
+                    if (project.image_data && project.image_data.trim() !== '') {
+                        // Try to parse as hex format with \x
+                        const hexUrl = hexToUrl(project.image_data);
+                        if (hexUrl) {
+                            imageUrl = hexUrl;
+                            hasValidImage = true;
+                            console.log(`Project ${index} using URL decoded from hex data`);
                         }
-                    } else {
-                        // No file or image, use category image
+                        // If not hex or hex conversion failed, try other formats
+                        else if (project.image_data.startsWith('data:')) {
+                            // It's already a data URL
+                            imageUrl = project.image_data;
+                            hasValidImage = true;
+                            console.log(`Project ${index} using data URL from image_data`);
+                        }
+                        // If it looks like a URL
+                        else if (project.image_data.match(/^https?:\/\//i)) {
+                            imageUrl = project.image_data;
+                            hasValidImage = true;
+                            console.log(`Project ${index} using direct URL from image_data`);
+                        }
+                        // Otherwise assume it's base64 and create a data URL
+                        else if (project.image_data.length > 50) {
+                            imageUrl = `data:image/jpeg;base64,${project.image_data}`;
+                            hasValidImage = true;
+                            console.log(`Project ${index} using base64 image data`);
+                        }
+                    }
+                    
+                    // Fallback to default images if no valid image_data
+                    if (!hasValidImage) {
                         imageUrl = categoryImageMap[project.category] || featuredImages[index % featuredImages.length];
-                        console.log(`Project ${index} using fallback category image`);
+                        console.log(`Project ${index} using fallback image - no valid image_data found`);
                     }
                     
                     // Helper function to ensure image URLs can be loaded cross-origin
