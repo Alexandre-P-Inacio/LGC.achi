@@ -143,7 +143,7 @@ async function loadProjectData(projectId) {
     }
     
     // Display current image if exists
-    if (data.image_data) {
+    if (data.image_url) {
         const imageInput = document.getElementById('project-image');
         
         // Create a display element for current image
@@ -151,7 +151,7 @@ async function loadProjectData(projectId) {
         currentImageDisplay.className = 'current-image-display';
         currentImageDisplay.innerHTML = `
             <p>Current image:</p>
-            <img src="${data.image_data}" alt="${data.name}" style="max-width: 200px; max-height: 150px; object-fit: contain; margin-bottom: 10px;">
+            <img src="${data.image_url}" alt="${data.name}" style="max-width: 200px; max-height: 150px; object-fit: contain; margin-bottom: 10px;">
             <p><small>Upload a new image only if you want to replace the current one</small></p>
         `;
         
@@ -191,14 +191,8 @@ async function saveProject(event) {
         // Get form values
         const projectName = document.getElementById('project-title').value;
         const projectCategory = document.getElementById('project-category').value;
-<<<<<<< Updated upstream
-        const contentType = document.querySelector('input[name="content-type"]:checked').value;
         const projectFile = contentType === 'file' ? document.getElementById('project-file').files[0] : null;
         const projectVideo = contentType === 'video' ? document.getElementById('project-video').files[0] : null;
-=======
-        const projectFile = document.getElementById('project-file').files[0];
-        const projectVideo = document.getElementById('project-video').files[0];
->>>>>>> Stashed changes
         const projectImage = document.getElementById('project-image').files[0];
         const projectStatus = document.getElementById('project-status').value;
         
@@ -221,7 +215,6 @@ async function saveProject(event) {
         }
         
         let fileUrl = null;
-        let imageUrl = null;
         
         // Upload file if exists (document or video)
         const fileToUpload = projectFile || projectVideo;
@@ -283,32 +276,6 @@ async function saveProject(event) {
             }
         }
         
-        // Upload image if exists
-        if (projectImage) {
-            // Create a random file name to avoid collisions
-            const imageExt = projectImage.name.split('.').pop();
-            const imageName = `image-${Math.random().toString(36).substring(2)}-${Date.now()}.${imageExt}`;
-            const imagePath = `project-images/${imageName}`;
-            
-            // Upload image to Supabase Storage
-            const { data: uploadImageData, error: uploadImageError } = await supabase.storage
-                .from('projects')
-                .upload(imagePath, projectImage);
-                
-            if (uploadImageError) {
-                console.error('Error uploading image:', uploadImageError);
-                alert(`Error uploading image: ${uploadImageError.message}`);
-                return;
-            }
-            
-            // Get the public URL for the image
-            const { data: { publicUrl: publicImageUrl } } = supabase.storage
-                .from('projects')
-                .getPublicUrl(imagePath);
-                
-            imageUrl = publicImageUrl;
-        }
-        
         // Create project data object
         const projectData = {
             name: projectName,
@@ -335,7 +302,7 @@ async function saveProject(event) {
         
         // Add image URL if a new image was uploaded
         if (imageUrl) {
-            projectData.image_data = imageUrl;
+            projectData.image_url = imageUrl;
         }
         
         console.log('Project data to save:', projectData);
@@ -382,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await checkAdminAccess();
         
-        // Create the projects table if it doesn't exist with image_data field
+        // Create the projects table if it doesn't exist with image_url field
         // Note: This is not the ideal way to create tables, but it works for this example
         // In a production environment, you would use Supabase migrations or Admin UI
         const { error: tableError } = await supabase.rpc('create_projects_table_if_not_exists');
@@ -390,14 +357,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error ensuring projects table exists:', tableError);
         }
         
-        // Ensure the image_data column exists in the projects table
-        const { error: columnError } = await supabase.rpc('add_image_data_column_if_not_exists');
+        // Ensure the image_url column exists in the projects table
+        const { error: columnError } = await supabase.rpc('add_image_url_column_if_not_exists');
         if (columnError) {
-            console.error('Error ensuring image_data column exists:', columnError);
+            console.error('Error ensuring image_url column exists:', columnError);
             // Try a fallback method if the RPC is not available
             try {
                 // This is a silent operation, it will fail if column already exists and that's OK
-                const { error: alterError } = await supabase.from('projects').alter('image_data', null);
+                const { error: alterError } = await supabase.from('projects').alter('image_url', null);
                 console.log('Alter table operation completed:', alterError ? 'with error' : 'successfully');
             } catch (e) {
                 console.log('Expected error if column already exists:', e);
@@ -451,27 +418,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (bucketException) {
             console.error('Exception during bucket creation:', bucketException);
-        }
-        
-        // Create directory for project images if not exists
-        try {
-            const { data: dirExists } = await supabase.storage
-                .from('projects')
-                .list('project-images');
-                
-            if (!dirExists || dirExists.length === 0) {
-                console.log('Creating project-images directory...');
-                // Create an empty file to create the directory
-                const { error: dirError } = await supabase.storage
-                    .from('projects')
-                    .upload('project-images/.gitkeep', new Blob(['']));
-                    
-                if (dirError && !dirError.message.includes('already exists')) {
-                    console.error('Error creating project-images directory:', dirError);
-                }
-            }
-        } catch (e) {
-            console.log('Error checking/creating image directory, might already exist:', e);
         }
         
         const projectId = getProjectIdFromUrl();
