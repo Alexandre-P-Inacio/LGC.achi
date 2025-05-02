@@ -2470,11 +2470,7 @@ function updateUsersTable(users) {
             row.innerHTML = `
                 <td style="position: relative;">
                     <span style="font-weight: 500;">${user.username || 'Unnamed User'}</span>
-<<<<<<< HEAD
                     <div class="card-menu mobile-actions" style="position: absolute; top: 50%; left: 150px; transform: translateY(-50%); display: block;">
-=======
-                    <div class="card-menu mobile-actions" style="position: absolute; top: 50%; right: -150px; transform: translateY(-50%); display: none;">
->>>>>>> parent of d6d2286 (image project)
                         <button class="menu-btn" onclick="toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%; margin: 0;">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>

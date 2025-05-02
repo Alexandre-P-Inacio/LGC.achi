@@ -30,7 +30,11 @@
     
     <!-- Load Supabase first -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="image-utils.js"></script>
     <script>
+        // Initialize the Supabase client
+        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+        
         // Make Supabase globally accessible
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Checking supabase:', typeof supabase);
@@ -1166,8 +1170,18 @@
                             // Determine the image source
                             let imageElement = '';
                             if (project.image_data) {
-                                // Use the project's dedicated image if available
-                                imageElement = `<img src="${project.image_data}" alt="${project.name}">`;
+                                // Get the default category image as fallback
+                                const categoryImage = getCategoryImage(project.category);
+                                
+                                // Use our utility function to decode the image data - handles hex, base64, or URL formats
+                                const imageUrl = decodeImageData(project.image_data, categoryImage);
+                                
+                                // Create the image element with the decoded URL
+                                imageElement = `<img src="${imageUrl}" alt="${project.name}" onerror="this.onerror=null; this.src='${categoryImage}'; console.log('Fallback to category image');">`;
+                                
+                                console.log(`Project ${project.id} image:`, 
+                                          typeof imageUrl === 'string' ? 
+                                          (imageUrl.substring(0, 30) + '...') : 'Non-string data');
                             } else if (project.file_url) {
                                 const fileUrl = project.file_url.toLowerCase();
                                 if (fileUrl.endsWith('.pdf')) {

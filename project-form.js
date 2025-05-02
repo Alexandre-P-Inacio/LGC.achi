@@ -4,6 +4,66 @@ const supabase = window.supabase;
 
 console.log('Using existing Supabase client:', supabase);
 
+// Function to create an RPC function that fixes the image_data column type
+async function createFixImageDataColumnFunction() {
+    console.log('Creating fix_image_data_column_type function...');
+    try {
+        // This SQL function will:
+        // 1. Check if the image_data column exists
+        // 2. Check its data type
+        // 3. If it's BYTEA, convert it to TEXT
+        // 4. If it's already TEXT, do nothing
+        const createFunctionSQL = `
+            CREATE OR REPLACE FUNCTION fix_image_data_column_type()
+            RETURNS void AS $$
+            DECLARE
+                column_type text;
+            BEGIN
+                -- Check if column exists and get its type
+                SELECT data_type INTO column_type
+                FROM information_schema.columns 
+                WHERE table_name = 'projects' AND column_name = 'image_data';
+                
+                -- If column doesn't exist, create it as TEXT
+                IF column_type IS NULL THEN
+                    EXECUTE 'ALTER TABLE projects ADD COLUMN image_data TEXT DEFAULT NULL';
+                -- If column exists but is BYTEA, convert to TEXT
+                ELSIF column_type = 'bytea' THEN
+                    -- First create a temporary column
+                    EXECUTE 'ALTER TABLE projects ADD COLUMN image_data_new TEXT DEFAULT NULL';
+                    
+                    -- Update the temporary column, converting each BYTEA to base64 text
+                    EXECUTE 'UPDATE projects SET image_data_new = encode(image_data, ''base64'')';
+                    
+                    -- Drop the original column
+                    EXECUTE 'ALTER TABLE projects DROP COLUMN image_data';
+                    
+                    -- Rename the new column
+                    EXECUTE 'ALTER TABLE projects RENAME COLUMN image_data_new TO image_data';
+                END IF;
+            END;
+            $$ LANGUAGE plpgsql SECURITY DEFINER;
+        `;
+        
+        // Execute the SQL to create the function
+        const { error } = await supabase.rpc('exec_sql', { sql: createFunctionSQL });
+        if (error) {
+            // If exec_sql RPC doesn't exist or fails, try a different approach
+            console.error('Error creating fix_image_data_column_type function:', error);
+            console.log('Using fallback method to create function...');
+            
+            // We'll have to rely on the direct alter method in the initialization code
+            return false;
+        }
+        
+        console.log('fix_image_data_column_type function created successfully');
+        return true;
+    } catch (e) {
+        console.error('Exception creating fix_image_data_column_type function:', e);
+        return false;
+    }
+}
+
 // Check if user is admin and redirect if not
 async function checkAdminAccess() {
     console.log('Checking admin access...');
@@ -65,12 +125,22 @@ async function loadProjectData(projectId) {
     
     // Set category dropdown value if it exists
     const categorySelect = document.getElementById('project-category');
-    if (categorySelect && data.category) {
-        // Find and select the matching option
-        for (let i = 0; i < categorySelect.options.length; i++) {
-            if (categorySelect.options[i].value === data.category) {
-                categorySelect.selectedIndex = i;
-                break;
+    if (categorySelect) {
+        if (data.category) {
+            // Find and select the matching option
+            for (let i = 0; i < categorySelect.options.length; i++) {
+                if (categorySelect.options[i].value === data.category) {
+                    categorySelect.selectedIndex = i;
+                    break;
+                }
+            }
+        } else {
+            // If category is null or undefined, select the "No Category" option
+            for (let i = 0; i < categorySelect.options.length; i++) {
+                if (categorySelect.options[i].value === 'none') {
+                    categorySelect.selectedIndex = i;
+                    break;
+                }
             }
         }
     }
@@ -142,8 +212,8 @@ async function loadProjectData(projectId) {
         fileInput.removeAttribute('required');
     }
     
-    // Display current image if exists
-    if (data.image_url) {
+    // Display current image if exists from image_data
+    if (data.image_data) {
         const imageInput = document.getElementById('project-image');
         
         // Create a display element for current image
@@ -151,7 +221,7 @@ async function loadProjectData(projectId) {
         currentImageDisplay.className = 'current-image-display';
         currentImageDisplay.innerHTML = `
             <p>Current image:</p>
-            <img src="${data.image_url}" alt="${data.name}" style="max-width: 200px; max-height: 150px; object-fit: contain; margin-bottom: 10px;">
+            <img src="${data.image_data}" alt="${data.name}" style="max-width: 200px; max-height: 150px; object-fit: contain; margin-bottom: 10px;">
             <p><small>Upload a new image only if you want to replace the current one</small></p>
         `;
         
@@ -188,6 +258,10 @@ async function saveProject(event) {
     console.log('Is edit mode:', isEdit, 'Project ID:', projectId);
     
     try {
+        // Get selected content type from radio buttons
+        const contentType = document.getElementById('content-type-video').checked ? 'video' : 'file';
+        console.log('Selected content type:', contentType);
+        
         // Get form values
         const projectName = document.getElementById('project-title').value;
         const projectCategory = document.getElementById('project-category').value;
@@ -196,23 +270,32 @@ async function saveProject(event) {
         const projectImage = document.getElementById('project-image').files[0];
         const projectStatus = document.getElementById('project-status').value;
         
-        // Get the content type from radio buttons
-        const contentType = document.getElementById('content-type-video').checked ? 'video' : 'file';
+        // For debugging only - log the image information
+        if (projectImage) {
+            console.log('Project image details:', {
+                name: projectImage.name,
+                type: projectImage.type,
+                size: `${(projectImage.size / 1024).toFixed(2)} KB`
+            });
+        }
         
         if (!projectName) {
             alert('Project name is required!');
             return;
         }
         
-        if (!projectCategory) {
-            alert('Project category is required!');
-            return;
-        }
+        // Category is now optional, so we don't need to validate it
+        // if (!projectCategory) {
+        //     alert('Project category is required!');
+        //     return;
+        // }
         
         if (!isEdit && !projectFile && !projectVideo) {
             alert('Project file or video is required for new projects!');
             return;
         }
+        
+        // Note: Project image is optional - no validation required
         
         let fileUrl = null;
         
@@ -276,15 +359,92 @@ async function saveProject(event) {
             }
         }
         
+        // Upload and process image if exists
+        let imageUrl = null;
+        let imageData = null;
+        
+        // Image is OPTIONAL - only process if an image file was selected
+        if (projectImage) {
+            console.log('Processing project image - this is optional');
+            
+            // 1. Upload the image to storage for image_url
+            try {
+                // Create a random file name for the image
+                const fileExt = projectImage.name.split('.').pop();
+                const fileName = `image-${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+                const filePath = `project-images/${fileName}`;
+                
+                console.log('Starting image upload to path:', filePath);
+                
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('projects')
+                    .upload(filePath, projectImage, {
+                        cacheControl: '3600',
+                        upsert: true,
+                        contentType: projectImage.type
+                    });
+                    
+                if (uploadError) {
+                    console.error('Error uploading image:', uploadError);
+                    alert(`Error uploading image: ${uploadError.message}`);
+                    return;
+                }
+                
+                console.log('Image upload successful:', uploadData);
+                
+                // Get the public URL for the image
+                const { data: { publicUrl } } = supabase.storage
+                    .from('projects')
+                    .getPublicUrl(filePath);
+                    
+                console.log('Image public URL generated:', publicUrl);
+                imageUrl = publicUrl;
+                
+                // 2. Convert image to base64 for image_data column
+                const reader = new FileReader();
+                imageData = await new Promise((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(projectImage);
+                });
+                
+                console.log('Image converted to base64:', 
+                    imageData ? `${imageData.substring(0, 50)}... (length: ${imageData.length})` : 'failed');
+                
+                // Ensure image_data is in the correct format
+                if (imageData) {
+                    console.log('Image data type:', typeof imageData);
+                    // Make sure it's a data URL format
+                    if (!imageData.startsWith('data:')) {
+                        console.warn('Image data is not in data URL format, adding prefix');
+                        imageData = `data:${projectImage.type};base64,${imageData}`;
+                    }
+                }
+                
+            } catch (uploadException) {
+                console.error('Exception during image processing:', uploadException);
+                alert(`Image processing failed: ${uploadException.message}`);
+                return;
+            }
+        }
+        
         // Create project data object
         const projectData = {
             name: projectName,
-            category: projectCategory,
             status: projectStatus,
             // Store content type as a field in the database
             // Since the content_type column doesn't exist yet, commenting this out
             // content_type: contentType 
         };
+        
+        // Handle category field
+        if (projectCategory && projectCategory !== 'none' && projectCategory !== '') {
+            // Add the category if it has a valid value
+            projectData.category = projectCategory;
+        } else {
+            // Explicitly set category to null when "No Category" is selected or empty
+            projectData.category = null;
+        }
         
         if (isEdit) {
             // For updates, only set updated_at
@@ -302,7 +462,15 @@ async function saveProject(event) {
         
         // Add image URL if a new image was uploaded
         if (imageUrl) {
-            projectData.image_url = imageUrl;
+            // Don't use image_url column since it doesn't exist in the database
+            // projectData.image_url = imageUrl;
+            console.log('Image URL saved to storage but not added to database record since image_url column does not exist');
+        }
+        
+        // Add image data if a new image was uploaded
+        if (imageData) {
+            projectData.image_data = imageData;
+            console.log('Saving image data to image_data column');
         }
         
         console.log('Project data to save:', projectData);
@@ -328,7 +496,18 @@ async function saveProject(event) {
         
         if (result.error) {
             console.error('Error saving project:', result.error);
-            alert(`Error ${isEdit ? 'updating' : 'adding'} project: ${result.error.message}`);
+            console.error('Error details:', JSON.stringify(result.error, null, 2));
+            console.error('Project data size:', JSON.stringify(projectData).length, 'bytes');
+            
+            // Check if error is related to image_data size
+            if (imageData && result.error.message && 
+                (result.error.message.includes('too large') || 
+                 result.error.message.includes('size') || 
+                 result.error.message.includes('limit'))) {
+                alert(`Error: The image may be too large. Try using a smaller image file.`);
+            } else {
+                alert(`Error ${isEdit ? 'updating' : 'adding'} project: ${result.error.message}`);
+            }
             return;
         }
 
@@ -357,18 +536,81 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error ensuring projects table exists:', tableError);
         }
         
-        // Ensure the image_url column exists in the projects table
-        const { error: columnError } = await supabase.rpc('add_image_url_column_if_not_exists');
-        if (columnError) {
-            console.error('Error ensuring image_url column exists:', columnError);
-            // Try a fallback method if the RPC is not available
+        // Ensure the image_data column exists and is the correct type
+        console.log('Checking image_data column type...');
+        const { error: fixError } = await supabase.rpc('fix_image_data_column_type');
+        if (fixError) {
+            console.error('Error fixing image_data column type:', fixError);
+            
+            // Try direct SQL via REST API as a fallback
+            console.log('Attempting direct SQL method to fix column type...');
             try {
-                // This is a silent operation, it will fail if column already exists and that's OK
-                const { error: alterError } = await supabase.from('projects').alter('image_url', null);
-                console.log('Alter table operation completed:', alterError ? 'with error' : 'successfully');
-            } catch (e) {
-                console.log('Expected error if column already exists:', e);
+                // First, let's check the column type using REST API
+                const response = await fetch(`${supabase.supabaseUrl}/rest/v1/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabase.supabaseKey}`,
+                        'apikey': supabase.supabaseKey
+                    },
+                    body: JSON.stringify({
+                        query: `
+                            SELECT data_type 
+                            FROM information_schema.columns 
+                            WHERE table_name = 'projects' 
+                            AND column_name = 'image_data'
+                        `
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Column type information:', data);
+                    
+                    if (data.length > 0 && data[0].data_type === 'bytea') {
+                        console.log('Column is BYTEA, attempting to convert to TEXT...');
+                        
+                        // If the column is BYTEA, try to convert it to TEXT
+                        const alterResponse = await fetch(`${supabase.supabaseUrl}/rest/v1/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${supabase.supabaseKey}`,
+                                'apikey': supabase.supabaseKey
+                            },
+                            body: JSON.stringify({
+                                query: `
+                                    ALTER TABLE projects 
+                                    ADD COLUMN image_data_new TEXT DEFAULT NULL;
+                                    
+                                    UPDATE projects 
+                                    SET image_data_new = encode(image_data, 'base64');
+                                    
+                                    ALTER TABLE projects 
+                                    DROP COLUMN image_data;
+                                    
+                                    ALTER TABLE projects 
+                                    RENAME COLUMN image_data_new TO image_data;
+                                `
+                            })
+                        });
+                        
+                        if (alterResponse.ok) {
+                            console.log('Successfully converted image_data column to TEXT');
+                        } else {
+                            console.error('Failed to convert column:', await alterResponse.text());
+                        }
+                    } else {
+                        console.log('Column is already TEXT or does not exist, no conversion needed');
+                    }
+                } else {
+                    console.error('Failed to check column type:', await response.text());
+                }
+            } catch (sqlError) {
+                console.error('Error in direct SQL fix:', sqlError);
             }
+        } else {
+            console.log('Image data column fixed successfully via RPC');
         }
         
         // Create storage bucket if it doesn't exist
@@ -392,7 +634,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'video/quicktime',
                     'video/x-msvideo',
                     'video/x-ms-wmv',
-                    'video/mpeg'
+                    'video/mpeg',
+                    // Image types
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
+                    'image/webp',
+                    'image/svg+xml',
+                    'image/bmp',
+                    'image/tiff'
                 ]
         });
             
@@ -414,6 +664,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error('Error updating bucket settings:', updateError);
                 } else {
                     console.log('Bucket settings updated successfully');
+                }
+                
+                // Ensure the project-images directory exists in the storage bucket
+                try {
+                    console.log('Creating project-images directory if it doesn\'t exist');
+                    // We can't create directories directly, but we can upload a small placeholder file
+                    const placeholderContent = new Blob([''], { type: 'text/plain' });
+                    const { error: dirError } = await supabase.storage
+                        .from('projects')
+                        .upload('project-images/.placeholder', placeholderContent, {
+                            upsert: true
+                        });
+                    
+                    if (dirError && dirError.message !== 'The resource already exists') {
+                        console.error('Error creating project-images directory:', dirError);
+                    } else {
+                        console.log('project-images directory ready');
+                    }
+                } catch (dirException) {
+                    console.error('Exception during directory creation:', dirException);
                 }
             }
         } catch (bucketException) {

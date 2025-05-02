@@ -1791,3 +1791,139 @@ html, body {
     max-width: 100%;
     overflow-x: hidden;
 }
+
+@media (min-width: 769px) and (max-width: 1023px) {
+    /* Estilo para modo tablet */
+    
+    /* Esconder os botões de ação individuais em modo tablet */
+    .projects-table .action-buttons {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* Esconder todos os botões originais em tablets */
+    .projects-table .action-button {
+        display: none;
+    }
+    
+    /* Adicionar botão de menu de três pontinhos */
+    .projects-table .action-buttons:before {
+        content: '\f142'; /* Código do ícone de três pontinhos verticais (ellipsis-v) */
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a1a1a, #444444);
+        border-radius: 8px;
+        font-size: 18px;
+        color: white;
+        cursor: pointer;
+        z-index: 5;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+    }
+    
+    /* Efeito hover para o botão de menu */
+    .projects-table .action-buttons:hover:before {
+        background: linear-gradient(135deg, #000000, #333333);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
+    }
+    
+    /* Indicação visual quando o menu está aberto */
+    .projects-table .action-buttons.menu-open:before {
+        background: linear-gradient(135deg, #000000, #222222);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+        color: #ffdd00; /* Cor dourada para indicar que está ativo */
+    }
+    
+    /* Estilo para o menu dropdown em tablets */
+    .projects-table .action-buttons .menu-dropdown {
+        display: none;
+        position: absolute;
+        top: -10px; /* Posicionado um pouco acima do botão */
+        right: 45px;
+        background: #222;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+        width: auto;
+        padding: 12px;
+        flex-direction: column;
+        gap: 12px;
+        animation: menuFadeIn 0.2s ease;
+    }
+    
+    /* Animação de entrada do menu */
+    @keyframes menuFadeIn {
+        from {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* Seta apontando para o botão de menu */
+    .projects-table .action-buttons .menu-dropdown:after {
+        content: '';
+        position: absolute;
+        top: 15px;
+        right: -10px;
+        width: 0;
+        height: 0;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-left: 10px solid #222;
+    }
+    
+    /* Quando o menu está aberto */
+    .projects-table .action-buttons.menu-open .menu-dropdown {
+        display: flex;
+    }
+    
+    /* Estilo para os botões dentro do menu */
+    .projects-table .action-buttons .menu-dropdown .action-button {
+        display: flex;
+        width: 48px;
+        height: 48px;
+        margin: 0;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #1a1a1a, #444444);
+    }
+    
+    /* Efeito hover para os botões do menu */
+    .projects-table .action-buttons .menu-dropdown .action-button:hover {
+        background: linear-gradient(135deg, #000000, #333333);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
+    }
+    
+    /* Cor de destaque para o botão de estrela quando ativado */
+    .projects-table .action-buttons .menu-dropdown .action-button.feature-button.featured i {
+        color: #FFD700; /* Cor dourada para a estrela quando ativada */
+    }
+    
+    /* Ícones dentro dos botões do menu */
+    .projects-table .action-buttons .menu-dropdown .action-button i {
+        font-size: 18px;
+    }
+    
+    /* Esconder texto, mostrar apenas ícones nos botões do menu */
+    .projects-table .action-buttons .menu-dropdown .action-button span {
+        display: none;
+    }
+}
