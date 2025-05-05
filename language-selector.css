@@ -1,0 +1,157 @@
+.language-selector {
+    position: relative;
+    margin-left: 20px;
+    z-index: 1002;
+}
+
+.lang-selector-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.language-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #222;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    overflow: hidden;
+}
+
+.language-button img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.language-dropdown {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background-color: #222;
+    border-radius: 8px;
+    width: 180px;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1003;
+}
+
+.language-selector.active .language-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.language-option {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    color: white;
+    font-size: 14px;
+}
+
+.language-option:hover {
+    background-color: #333;
+}
+
+.language-option img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.language-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1001;
+    display: none;
+}
+
+.language-selector.active .language-overlay {
+    display: block;
+}
+
+/* Style scrollbar for the language dropdown */
+.language-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.language-dropdown::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 4px;
+}
+
+.language-dropdown::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.language-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+/* RTL (Right-to-Left) language support */
+html[dir="rtl"] .language-option img {
+    margin-right: 0;
+    margin-left: 12px;
+}
+
+html[dir="rtl"] .language-dropdown {
+    left: 0;
+    right: auto;
+}
+
+/* Additional styles for RTL support */
+html[dir="rtl"] body {
+    text-align: right;
+}
+
+html[dir="rtl"] .nav-links {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .hero-content {
+    text-align: right;
+}
+
+html[dir="rtl"] .about-content {
+    text-align: right;
+}
+
+html[dir="rtl"] .footer-content {
+    direction: rtl;
+}
+
+@media (max-width: 768px) {
+    .language-selector {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .lang-selector-wrapper {
+        margin-left: 10px;
+    }
+
+    html[dir="rtl"] .lang-selector-wrapper {
+        margin-left: 0;
+        margin-right: 10px;
+    }
+} 

@@ -1,0 +1,349 @@
+// Language selector functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Languages data with flags and names
+    const languages = [
+        { code: 'en', name: 'English', flag: 'assets/flags/uk.png' },
+        { code: 'es', name: 'Español', flag: 'assets/flags/spain.png' },
+        { code: 'fr', name: 'Français', flag: 'assets/flags/france.png' },
+        { code: 'pt', name: 'Português', flag: 'assets/flags/portugal.png' },
+        { code: 'de', name: 'Deutsch', flag: 'assets/flags/germany.png' },
+        { code: 'zh', name: '中文', flag: 'assets/flags/china.png' },
+        { code: 'it', name: 'Italiano', flag: 'assets/flags/italy.png' },
+        { code: 'ar', name: 'العربية', flag: 'assets/flags/saudi-arabia.png' }
+    ];
+
+    // Define translations for the website
+    const translations = {
+        // English translations (default)
+        'en': {
+            'nav-home': 'Home',
+            'nav-portfolios': 'Portfolios',
+            'nav-about': 'About',
+            'nav-contact': 'Contact',
+            'login-button': 'Sign In',
+            'register-button': 'Register',
+            'logout-button': 'Logout',
+            'hero-title': 'Architecture Portfolio',
+            'featured-projects': 'Featured Projects',
+            'about-title': 'About Us',
+            'about-content': 'LLGC ingegneria architettura was founded in 2009. The collaboration between different professional skills through integrated design between engineering and architecture has become a point of strength and distinction over time. An approach aimed at understanding the needs of the interlocutor by evaluating the different peculiarities of each client, with a view to research and innovation in the sector. LGC ia has gained multiple experiences in the field of building, industrial, interior design, exhibit, structural, plant design, following each project in the different study phases, from preliminary design also through 3D graphic modeling, obtaining authorization titles, up to the construction phase with particular attention to work management and safety. LGC has also developed its specialization in the sector of infrastructures for radio telecommunications networks, providing its engineering and architecture services to the main national operators. LGC ia over the years has become a design partner of Italian and foreign multinational companies.',
+            'show-more': 'Show More',
+            'show-less': 'Show Less',
+            'view-project': 'View Project',
+            'footer-copyright': '© 2025 Architecture Portfolio. All rights reserved.',
+            'practices-title': 'Practices',
+            'select-practice': 'Select a practice area below'
+        },
+        // Spanish translations
+        'es': {
+            'nav-home': 'Inicio',
+            'nav-portfolios': 'Portafolios',
+            'nav-about': 'Nosotros',
+            'nav-contact': 'Contacto',
+            'login-button': 'Iniciar Sesión',
+            'register-button': 'Registrarse',
+            'logout-button': 'Cerrar Sesión',
+            'hero-title': 'Portafolio de Arquitectura',
+            'featured-projects': 'Proyectos Destacados',
+            'about-title': 'Sobre Nosotros',
+            'about-content': 'LLGC ingegneria architettura fue fundada en 2009. La colaboración entre diferentes habilidades profesionales a través del diseño integrado entre ingeniería y arquitectura se ha convertido en un punto de fortaleza y distinción con el tiempo. Un enfoque dirigido a comprender las necesidades del interlocutor evaluando las diferentes peculiaridades de cada cliente, con miras a la investigación y la innovación en el sector. LGC ia ha ganado múltiples experiencias en el campo de la construcción, diseño industrial, diseño de interiores, exhibición, diseño estructural, diseño de plantas, siguiendo cada proyecto en las diferentes fases de estudio, desde el diseño preliminar también a través del modelado gráfico 3D, obteniendo títulos de autorización, hasta la fase de construcción con particular atención a la gestión del trabajo y la seguridad. LGC también ha desarrollado su especialización en el sector de infraestructuras para redes de telecomunicaciones por radio, prestando sus servicios de ingeniería y arquitectura a los principales operadores nacionales. LGC ia a lo largo de los años se ha convertido en un socio de diseño de empresas multinacionales italianas y extranjeras.',
+            'show-more': 'Mostrar Más',
+            'show-less': 'Mostrar Menos',
+            'view-project': 'Ver Proyecto',
+            'footer-copyright': '© 2025 Portafolio de Arquitectura. Todos los derechos reservados.',
+            'practices-title': 'Prácticas',
+            'select-practice': 'Seleccione un área de práctica a continuación'
+        },
+        // French translations
+        'fr': {
+            'nav-home': 'Accueil',
+            'nav-portfolios': 'Portfolios',
+            'nav-about': 'À Propos',
+            'nav-contact': 'Contact',
+            'login-button': 'Connexion',
+            'register-button': "S'inscrire",
+            'logout-button': 'Déconnexion',
+            'hero-title': "Portfolio d'Architecture",
+            'featured-projects': 'Projets en Vedette',
+            'about-title': 'À Propos de Nous',
+            'about-content': "LLGC ingegneria architettura a été fondée en 2009. La collaboration entre différentes compétences professionnelles à travers une conception intégrée entre l'ingénierie et l'architecture est devenue un point de force et de distinction au fil du temps. Une approche visant à comprendre les besoins de l'interlocuteur en évaluant les différentes particularités de chaque client, dans une optique de recherche et d'innovation dans le secteur. LGC ia a acquis de multiples expériences dans le domaine de la construction, du design industriel, de la décoration intérieure, de l'exposition, de la conception structurelle, de la conception d'usines, en suivant chaque projet dans les différentes phases d'étude, de la conception préliminaire également à travers la modélisation graphique 3D, l'obtention de titres d'autorisation, jusqu'à la phase de construction avec une attention particulière à la gestion du travail et à la sécurité. LGC a également développé sa spécialisation dans le secteur des infrastructures pour les réseaux de radiocommunications, en fournissant ses services d'ingénierie et d'architecture aux principaux opérateurs nationaux. LGC ia au fil des ans est devenu un partenaire de conception de sociétés multinationales italiennes et étrangères.",
+            'show-more': 'Voir Plus',
+            'show-less': 'Voir Moins',
+            'view-project': 'Voir le Projet',
+            'footer-copyright': "© 2025 Portfolio d'Architecture. Tous droits réservés.",
+            'practices-title': 'Pratiques',
+            'select-practice': 'Sélectionnez un domaine de pratique ci-dessous'
+        },
+        // Portuguese translations
+        'pt': {
+            'nav-home': 'Início',
+            'nav-portfolios': 'Portfólios',
+            'nav-about': 'Sobre',
+            'nav-contact': 'Contato',
+            'login-button': 'Entrar',
+            'register-button': 'Registrar',
+            'logout-button': 'Sair',
+            'hero-title': 'Portfólio de Arquitetura',
+            'featured-projects': 'Projetos em Destaque',
+            'about-title': 'Sobre Nós',
+            'about-content': 'A LLGC ingegneria architettura foi fundada em 2009. A colaboração entre diferentes competências profissionais através do design integrado entre engenharia e arquitetura tornou-se um ponto de força e distinção ao longo do tempo. Uma abordagem que visa compreender as necessidades do interlocutor, avaliando as diferentes peculiaridades de cada cliente, com vista à investigação e inovação no setor. A LGC ia adquiriu múltiplas experiências na área da construção, design industrial, design de interiores, exposição, design estrutural, projeto de instalações, seguindo cada projeto nas diferentes fases de estudo, desde o projeto preliminar também através da modelagem gráfica 3D, obtenção de títulos de autorização, até à fase de construção com particular atenção à gestão do trabalho e à segurança. A LGC também desenvolveu a sua especialização no setor de infraestruturas para redes de radiotelecomunicações, prestando os seus serviços de engenharia e arquitetura aos principais operadores nacionais. A LGC ia ao longo dos anos tornou-se parceira de design de empresas multinacionais italianas e estrangeiras.',
+            'show-more': 'Mostrar Mais',
+            'show-less': 'Mostrar Menos',
+            'view-project': 'Ver Projeto',
+            'footer-copyright': '© 2025 Portfólio de Arquitetura. Todos os direitos reservados.',
+            'practices-title': 'Práticas',
+            'select-practice': 'Selecione uma área de prática abaixo'
+        },
+        // German translations
+        'de': {
+            'nav-home': 'Startseite',
+            'nav-portfolios': 'Portfolios',
+            'nav-about': 'Über uns',
+            'nav-contact': 'Kontakt',
+            'login-button': 'Anmelden',
+            'register-button': 'Registrieren',
+            'logout-button': 'Abmelden',
+            'hero-title': 'Architektur-Portfolio',
+            'featured-projects': 'Ausgewählte Projekte',
+            'about-title': 'Über Uns',
+            'about-content': 'LLGC ingegneria architettura wurde 2009 gegründet. Die Zusammenarbeit zwischen verschiedenen Fachkompetenzen durch integriertes Design zwischen Ingenieurwesen und Architektur ist im Laufe der Zeit zu einem Punkt der Stärke und Unterscheidung geworden. Ein Ansatz, der darauf abzielt, die Bedürfnisse des Gesprächspartners zu verstehen, indem die verschiedenen Besonderheiten jedes Kunden bewertet werden, mit Blick auf Forschung und Innovation in der Branche. LGC ia hat vielfältige Erfahrungen im Bereich Bau, Industriedesign, Innenarchitektur, Ausstellung, Strukturdesign, Anlagendesign gesammelt und jeden Projekt in den verschiedenen Studienphasen begleitet, von der Vorplanung auch durch 3D-Grafikmodellierung, Einholung von Genehmigungstiteln bis hin zur Bauphase mit besonderer Aufmerksamkeit für Arbeitsmanagement und Sicherheit. LGC hat auch seine Spezialisierung im Bereich der Infrastrukturen für Radiotelekommunikationsnetze entwickelt und bietet seine Ingenieur- und Architekturdienstleistungen für die wichtigsten nationalen Betreiber an. LGC ia ist im Laufe der Jahre zu einem Designpartner italienischer und ausländischer multinationaler Unternehmen geworden.',
+            'show-more': 'Mehr anzeigen',
+            'show-less': 'Weniger anzeigen',
+            'view-project': 'Projekt ansehen',
+            'footer-copyright': '© 2025 Architektur-Portfolio. Alle Rechte vorbehalten.',
+            'practices-title': 'Praktiken',
+            'select-practice': 'Wählen Sie unten einen Praxisbereich aus'
+        },
+        // Chinese translations
+        'zh': {
+            'nav-home': '首页',
+            'nav-portfolios': '作品集',
+            'nav-about': '关于我们',
+            'nav-contact': '联系我们',
+            'login-button': '登录',
+            'register-button': '注册',
+            'logout-button': '退出',
+            'hero-title': '建筑作品集',
+            'featured-projects': '精选项目',
+            'about-title': '关于我们',
+            'about-content': 'LLGC 工程建筑公司成立于2009年。通过工程与建筑之间的集成设计，不同专业技能之间的协作已成为一种优势和特色。我们的方法旨在评估每个客户的不同特点，了解对话者的需求，着眼于行业研究与创新。LGC在建筑、工业设计、室内设计、展览、结构设计、工厂设计等领域积累了丰富经验，跟踪每个项目的不同研究阶段，从初步设计到3D图形建模，获取授权许可，直至建设阶段，特别注重工作管理和安全。LGC还在无线电通信网络基础设施领域发展了专业化，为主要国家运营商提供工程和建筑服务。多年来，LGC成为了意大利和外国跨国公司的设计合作伙伴。',
+            'show-more': '显示更多',
+            'show-less': '显示更少',
+            'view-project': '查看项目',
+            'footer-copyright': '© 2025 建筑作品集。保留所有权利。',
+            'practices-title': '业务领域',
+            'select-practice': '请在下方选择业务领域'
+        },
+        // Italian translations
+        'it': {
+            'nav-home': 'Home',
+            'nav-portfolios': 'Portfolio',
+            'nav-about': 'Chi Siamo',
+            'nav-contact': 'Contatti',
+            'login-button': 'Accedi',
+            'register-button': 'Registrati',
+            'logout-button': 'Esci',
+            'hero-title': 'Portfolio di Architettura',
+            'featured-projects': 'Progetti in Evidenza',
+            'about-title': 'Chi Siamo',
+            'about-content': 'LLGC ingegneria architettura è stata fondata nel 2009. La collaborazione tra diverse competenze professionali attraverso la progettazione integrata tra ingegneria e architettura è diventata nel tempo un punto di forza e distinzione. Un approccio volto a comprendere le esigenze dell\'interlocutore valutando le diverse peculiarità di ogni cliente, nell\'ottica della ricerca e dell\'innovazione nel settore. LGC ia ha maturato molteplici esperienze nel campo dell\'edilizia, del design industriale, dell\'interior design, dell\'exhibit, della progettazione strutturale, impiantistica, seguendo ogni progetto nelle diverse fasi di studio, dalla progettazione preliminare anche attraverso la modellazione grafica 3D, l\'ottenimento dei titoli autorizzativi, fino alla fase costruttiva con particolare attenzione alla gestione lavori e sicurezza. LGC ha inoltre sviluppato la propria specializzazione nel settore delle infrastrutture per le reti di radio-telecomunicazioni, fornendo i propri servizi di ingegneria e architettura ai principali operatori nazionali. LGC ia nel corso degli anni è diventata partner progettuale di multinazionali italiane e straniere.',
+            'show-more': 'Mostra di più',
+            'show-less': 'Mostra meno',
+            'view-project': 'Visualizza Progetto',
+            'footer-copyright': '© 2025 Portfolio di Architettura. Tutti i diritti riservati.',
+            'practices-title': 'Pratiche',
+            'select-practice': "Seleziona un'area di pratica qui sotto"
+        },
+        // Arabic translations (right-to-left language)
+        'ar': {
+            'nav-home': 'الرئيسية',
+            'nav-portfolios': 'المشاريع',
+            'nav-about': 'من نحن',
+            'nav-contact': 'اتصل بنا',
+            'login-button': 'تسجيل الدخول',
+            'register-button': 'التسجيل',
+            'logout-button': 'تسجيل الخروج',
+            'hero-title': 'معرض أعمال الهندسة المعمارية',
+            'featured-projects': 'المشاريع المميزة',
+            'about-title': 'من نحن',
+            'about-content': 'تأسست LLGC للهندسة والعمارة في عام 2009. وأصبح التعاون بين المهارات المهنية المختلفة من خلال التصميم المتكامل بين الهندسة والعمارة نقطة قوة وتميز مع مرور الوقت. نهج يهدف إلى فهم احتياجات المتعامل من خلال تقييم الخصائص المختلفة لكل عميل، مع التركيز على البحث والابتكار في القطاع. اكتسبت LGC خبرات متعددة في مجال البناء والتصميم الصناعي والتصميم الداخلي والمعارض والتصميم الهيكلي وتصميم المصانع، ومتابعة كل مشروع في مراحل الدراسة المختلفة، من التصميم الأولي أيضًا من خلال النمذجة الرسومية ثلاثية الأبعاد، والحصول على تراخيص، وصولاً إلى مرحلة البناء مع اهتمام خاص بإدارة العمل والسلامة. كما طورت LGC تخصصها في قطاع البنية التحتية لشبكات الاتصالات اللاسلكية، حيث تقدم خدمات الهندسة والعمارة للمشغلين الوطنيين الرئيسيين. أصبحت LGC على مر السنين شريكًا في التصميم للشركات الإيطالية والأجنبية متعددة الجنسيات.',
+            'show-more': 'عرض المزيد',
+            'show-less': 'عرض أقل',
+            'view-project': 'عرض المشروع',
+            'footer-copyright': '© 2025 معرض أعمال الهندسة المعمارية. جميع الحقوق محفوظة.',
+            'practices-title': 'مجالات العمل',
+            'select-practice': 'اختر مجال عمل أدناه'
+        }
+    };
+
+    // Translation mapping for elements that need to be processed specifically
+    const elementTranslations = {
+        '#nav-home': 'nav-home',
+        '#nav-portfolios': 'nav-portfolios',
+        '#nav-about': 'nav-about', 
+        '#nav-contact': 'nav-contact',
+        '.login-button': 'login-button',
+        '.register-button': 'register-button',
+        '#logout-button, #logout-link': 'logout-button',
+        '.hero-content h1': 'hero-title',
+        '#projects h2': 'featured-projects',
+        '.about h2': 'about-title',
+        '.desktop-paragraph': 'about-content',
+        '.show-more-text': 'show-more',
+        '.show-less-text': 'show-less',
+        '.view-project-btn': 'view-project',
+        '.footer-content p': 'footer-copyright',
+        '.dashboard-popup-header h2': 'practices-title',
+        '.dashboard-popup-content p': 'select-practice'
+    };
+
+    // Load translations when the page loads
+    function applyTranslations(langCode) {
+        // Default to English if the language is not supported
+        const currentTranslations = translations[langCode] || translations['en'];
+        
+        // Apply translations to the page
+        for (const [selector, key] of Object.entries(elementTranslations)) {
+            const elements = document.querySelectorAll(selector);
+            
+            elements.forEach(element => {
+                // Only translate if we have a translation
+                if (currentTranslations[key]) {
+                    element.innerText = currentTranslations[key];
+                }
+            });
+        }
+        
+        // Handle RTL languages (like Arabic)
+        if (langCode === 'ar') {
+            document.documentElement.setAttribute('dir', 'rtl');
+            document.body.classList.add('rtl');
+        } else {
+            document.documentElement.setAttribute('dir', 'ltr');
+            document.body.classList.remove('rtl');
+        }
+        
+        console.log(`Translations applied for: ${langCode}`);
+    }
+
+    // Wait a bit for navigation.js to inject the navigation structure
+    setTimeout(function() {
+        // Get navigation element to inject the language selector
+        const nav = document.querySelector('nav');
+        
+        if (nav) {
+            // Create language selector container
+            const languageSelector = document.createElement('div');
+            languageSelector.className = 'language-selector';
+            
+            // Create the language button with current language (default to English)
+            const currentLangCode = localStorage.getItem('selectedLanguage') || 'en';
+            const currentLanguage = languages.find(lang => lang.code === currentLangCode) || languages[0];
+            
+            const languageButton = document.createElement('button');
+            languageButton.className = 'language-button';
+            languageButton.innerHTML = `<img src="${currentLanguage.flag}" alt="${currentLanguage.name}">`;
+            languageSelector.appendChild(languageButton);
+            
+            // Create dropdown container
+            const dropdown = document.createElement('div');
+            dropdown.className = 'language-dropdown';
+            
+            // Add language options to dropdown
+            languages.forEach(lang => {
+                const option = document.createElement('div');
+                option.className = 'language-option';
+                option.setAttribute('data-lang', lang.code);
+                option.innerHTML = `<img src="${lang.flag}" alt="${lang.name}"> ${lang.name}`;
+                
+                // Add click event for language selection
+                option.addEventListener('click', function() {
+                    // Update button with selected language
+                    languageButton.innerHTML = `<img src="${lang.flag}" alt="${lang.name}">`;
+                    
+                    // Close dropdown
+                    languageSelector.classList.remove('active');
+                    
+                    // Handle language change
+                    changeLanguage(lang.code);
+                });
+                
+                dropdown.appendChild(option);
+            });
+            
+            languageSelector.appendChild(dropdown);
+            
+            // Create overlay for closing the dropdown when clicking outside
+            const overlay = document.createElement('div');
+            overlay.className = 'language-overlay';
+            overlay.addEventListener('click', function() {
+                languageSelector.classList.remove('active');
+            });
+            languageSelector.appendChild(overlay);
+            
+            // Toggle dropdown on button click
+            languageButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                languageSelector.classList.toggle('active');
+            });
+            
+            // Insert language selector next to logout button
+            const logoutButton = document.getElementById('logout-button') || document.getElementById('logout-link');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (logoutButton) {
+                // Create a wrapper element for the language selector
+                const langSelectorWrapper = document.createElement('li');
+                langSelectorWrapper.className = 'lang-selector-wrapper';
+                langSelectorWrapper.appendChild(languageSelector);
+                
+                // Insert after the logout button's parent li
+                const logoutLi = logoutButton.closest('li');
+                if (logoutLi && logoutLi.parentNode) {
+                    logoutLi.parentNode.insertBefore(langSelectorWrapper, logoutLi.nextSibling);
+                } else if (navLinks) {
+                    // If we can't find logout button's parent, append to nav-links
+                    navLinks.appendChild(langSelectorWrapper);
+                }
+            } else {
+                // Fallback to old positioning if logout button not found
+                const logo = nav.querySelector('.logo');
+                const hamburger = nav.querySelector('.hamburger-menu');
+                
+                if (logo && hamburger) {
+                    nav.insertBefore(languageSelector, hamburger);
+                } else if (logo) {
+                    logo.after(languageSelector);
+                }
+            }
+            
+            // Close dropdown when clicking anywhere else on the page
+            document.addEventListener('click', function(e) {
+                if (!languageSelector.contains(e.target)) {
+                    languageSelector.classList.remove('active');
+                }
+            });
+            
+            // Close dropdown when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    languageSelector.classList.remove('active');
+                }
+            });
+            
+            // Apply initial translations
+            applyTranslations(currentLangCode);
+        }
+    }, 300); // Short delay to ensure navigation is loaded
+
+    // Function to change the language
+    function changeLanguage(langCode) {
+        console.log(`Changing language to: ${langCode}`);
+        
+        // Store the selected language in localStorage
+        localStorage.setItem('selectedLanguage', langCode);
+        
+        // Apply translations for the selected language
+        applyTranslations(langCode);
+    }
+}); 
