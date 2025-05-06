@@ -76,11 +76,11 @@
                     <input type="password" id="confirmPassword" name="confirmPassword" required>
                 </div>
                 <div class="button-group">
-                    <a href="index.html" class="back-button">Back</a>
+                    <a href="index.php" class="back-button">Back</a>
                     <button type="submit" class="submit-button">Register</button>
                 </div>
             </form>
-            <p class="auth-link">Already have an account? <a href="login.html">Login here</a></p>
+            <p class="auth-link">Already have an account? <a href="login.php">Login here</a></p>
         </div>
     </div>
 
@@ -131,7 +131,7 @@
                     if (result.success) {
                         // Registration successful
                         alert('Registration successful! Please log in with your credentials.');
-                        window.location.href = 'login.html';
+                        window.location.href = 'login.php';
                     } else {
                         // Registration failed
                         showError(result.error || 'Error creating account. Please try again.');

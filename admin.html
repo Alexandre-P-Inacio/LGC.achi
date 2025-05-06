@@ -20,7 +20,7 @@
         const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
         window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Supabase client initialized in admin.html');
+        console.log('Supabase client initialized in admin.php');
     </script>
     <script src="auth.js" defer></script>
     <script src="admin.js" defer></script>
@@ -689,7 +689,7 @@
                 ADMIN DASHBOARD
             </div>
             <ul class="nav-links">
-                <li><a href="index.html"><i class="fas fa-arrow-left"></i> Back to Site</a></li>
+                <li><a href="index.php"><i class="fas fa-arrow-left"></i> Back to Site</a></li>
                 <li><span id="admin-name"></span></li>
                 <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
@@ -739,7 +739,7 @@
         <section class="admin-section">
             <div class="section-header">
                 <h2 class="section-title"><i class="fas fa-folder-open"></i> Project Management</h2>
-                <a href="project-form.html" class="add-project-button">
+                <a href="project-form.php" class="add-project-button">
                     <i class="fas fa-plus"></i> Add New Project
                 </a>
             </div>

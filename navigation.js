@@ -1,20 +1,27 @@
 // Script that automatically inserts the same navigation bar on all HTML pages
 document.addEventListener('DOMContentLoaded', function() {
-    // Navigation bar structure (upperbar)
+    // Skip navigation insertion for PHP pages
+    if (window.location.pathname.endsWith('.php')) {
+        // Only handle active link highlighting and other features for PHP pages
+        setupNavHighlighting();
+        return;
+    }
+    
+    // Navigation bar structure (upperbar) - only used for HTML pages
     const navHTML = `
     <header>
         <nav>
-            <a href="index.html" class="logo">
+            <a href="index.php" class="logo">
                 <img src="assets/LGC LOGO.png" alt="LGC Logo" class="logo-image">
             </a>
             <ul class="nav-links">
-                <li><a href="index.html" id="nav-home">Home</a></li>
-                <li><a href="portfolios.html" id="nav-portfolios">Portfolios</a></li>
-                <li><a href="index.html#about" id="nav-about">About</a></li>
-                <li><a href="contact.html" id="nav-contact">Contact</a></li>
+                <li><a href="index.php" id="nav-home">Home</a></li>
+                <li><a href="portfolios.php" id="nav-portfolios">Portfolios</a></li>
+                <li><a href="index.php#about" id="nav-about">About</a></li>
+                <li><a href="contact.php" id="nav-contact">Contact</a></li>
                 <li class="auth-buttons">
-                    <a href="login.html" class="login-button">Sign In</a>
-                    <a href="register.html" class="register-button">Register</a>
+                    <a href="login.php" class="login-button">Sign In</a>
+                    <a href="register.php" class="register-button">Register</a>
                 </li>
             </ul>
         </nav>
@@ -31,7 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // If it doesn't exist, insert at the beginning of the body
         document.body.insertAdjacentHTML('afterbegin', navHTML);
     }
- 
+    
+    setupNavHighlighting();
+});
+
+// Extracted navigation highlight function to be used by both HTML and PHP pages
+function setupNavHighlighting() {
     // Mark the active link in navigation based on current URL
     const currentPage = window.location.pathname.split('/').pop();
    
@@ -41,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
    
     // Add the 'active' class to the link corresponding to the current page
-    if (currentPage === '' || currentPage === 'index.html') {
+    if (currentPage === '' || currentPage === 'index.php') {
         document.getElementById('nav-home')?.classList.add('active');
         
         // Check if hash is dashboard to highlight dashboard link
@@ -49,13 +61,13 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('nav-dashboard')?.classList.add('active');
             document.getElementById('nav-home')?.classList.remove('active');
         }
-    } else if (currentPage === 'portfolios.html') {
+    } else if (currentPage === 'portfolios.php') {
         document.getElementById('nav-portfolios')?.classList.add('active');
-    } else if (currentPage === 'contact.html') {
+    } else if (currentPage === 'contact.php') {
         document.getElementById('nav-contact')?.classList.add('active');
     } else if (currentPage.includes('about')) {
         document.getElementById('nav-about')?.classList.add('active');
-    } else if (currentPage === 'chat.html') {
+    } else if (currentPage === 'chat.php') {
         document.getElementById('nav-chat')?.classList.add('active');
     }
  
@@ -82,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let userMenu = '';
             
             if (isAdmin) {
-                userMenu = `<span>Hello, ${currentUser}</span> | <a href="admin.html">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+                userMenu = `<span>Hello, ${currentUser}</span> | <a href="admin.php">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
             } else {
                 userMenu = `<span>Hello, ${currentUser}</span> | <a href="#client-dashboard" id="nav-dashboard" onclick="showDashboard(); return false;">My Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
             }
@@ -111,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (aboutLink) {
         aboutLink.addEventListener('click', function(e) {
             // Only do smooth scroll if we're already on the home page
-            const isHomePage = currentPage === '' || currentPage === 'index.html';
+            const isHomePage = currentPage === '' || currentPage === 'index.php';
             
             if (isHomePage) {
                 e.preventDefault();
@@ -127,10 +139,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     history.pushState(null, '', '#about');
                 }
             }
-            // Otherwise, default link behavior will navigate to index.html#about
+            // Otherwise, default link behavior will navigate to index.php#about
         });
     }
-});
+}
 
 // Function to check for unread messages
 async function checkUnreadMessages() {

@@ -12,6 +12,29 @@ $is_home_page = ($current_page === 'index.php');
 $is_portfolios_page = ($current_page === 'portfolios.php');
 $is_contact_page = ($current_page === 'contact.php');
 $is_about_section = isset($_GET['section']) && $_GET['section'] === 'about';
+
+// Session should be already started before including this file
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Function to determine if current page is active
+function isCurrentPage($pageName) {
+    $currentPage = basename($_SERVER['PHP_SELF']);
+    return ($currentPage == $pageName) ? 'active' : '';
+}
+
+// Check if user is logged in
+$isLoggedIn = isset($_SESSION['username']);
+$isAdmin = false;
+
+// Check if the user is an admin if logged in
+if ($isLoggedIn) {
+    // Use the session variable directly instead of calling the function
+    $isAdmin = isset($_SESSION['is_admin']) ? $_SESSION['is_admin'] : false;
+}
+
+$username = $isLoggedIn ? $_SESSION['username'] : '';
 ?>
 
 <header>
@@ -25,24 +48,24 @@ $is_about_section = isset($_GET['section']) && $_GET['section'] === 'about';
             <div class="bar3"></div>
         </div>
         <ul class="nav-links">
-            <li><a href="index.php" id="nav-home" <?php echo $is_home_page ? 'class="active"' : ''; ?>>Home</a></li>
-            <li><a href="portfolios.php" id="nav-portfolios" <?php echo $is_portfolios_page ? 'class="active"' : ''; ?>>Portfolios</a></li>
-            <li><a href="index.php#about" id="nav-about" <?php echo $is_about_section ? 'class="active"' : ''; ?>>About</a></li>
-            <li><a href="contact.php" id="nav-contact" <?php echo $is_contact_page ? 'class="active"' : ''; ?>>Contact</a></li>
-            <?php if ($current_user): ?>
-                <li id="user-display" class="user-display">
-                    <span>Hello, <?php echo htmlspecialchars($current_user); ?></span>
-                    <?php if ($is_admin): ?>
-                        <a href="admin.php" id="nav-admin" class="admin-link">Admin Dashboard</a>
-                    <?php else: ?>
-                        <a href="#client-dashboard" id="nav-dashboard" class="admin-link">My Dashboard</a>
-                    <?php endif; ?>
-                    <a href="<?php echo $current_page; ?>?logout=1" id="logout-link" class="logout-link">Logout</a>
-                </li>
-            <?php else: ?>
+            <li><a href="index.php" id="nav-home" class="<?php echo isCurrentPage('index.php'); ?>">Home</a></li>
+            <li><a href="portfolios.php" id="nav-portfolios" class="<?php echo isCurrentPage('portfolios.php'); ?>">Portfolios</a></li>
+            <li><a href="index.php#about" id="nav-about" class="<?php echo strpos($_SERVER['REQUEST_URI'], '#about') !== false ? 'active' : ''; ?>">About</a></li>
+            <li><a href="contact.php" id="nav-contact" class="<?php echo isCurrentPage('contact.php'); ?>">Contact</a></li>
+            <?php if (!$isLoggedIn): ?>
                 <li class="auth-buttons">
                     <a href="login.php" class="login-button">Sign In</a>
                     <a href="register.php" class="register-button">Register</a>
+                </li>
+            <?php else: ?>
+                <li class="user-display">
+                    <span>Hello, <?php echo htmlspecialchars($username); ?></span> | 
+                    <?php if ($isAdmin): ?>
+                        <a href="admin.php">Admin Dashboard</a>
+                    <?php else: ?>
+                        <a href="#client-dashboard" id="nav-dashboard">My Dashboard</a>
+                    <?php endif; ?> | 
+                    <a href="logout.php" id="logout-link">Logout</a>
                 </li>
             <?php endif; ?>
         </ul>
@@ -102,7 +125,8 @@ $is_about_section = isset($_GET['section']) && $_GET['section'] === 'about';
     if (aboutLink) {
         aboutLink.addEventListener('click', function(e) {
             // Only do smooth scroll if we're already on the home page
-            const isHomePage = window.location.pathname.endsWith('index.php');
+            const isHomePage = window.location.pathname.endsWith('index.php') || 
+                              window.location.pathname.endsWith('/');
             
             if (isHomePage) {
                 e.preventDefault();
@@ -118,7 +142,6 @@ $is_about_section = isset($_GET['section']) && $_GET['section'] === 'about';
                     history.pushState(null, '', '#about');
                 }
             }
-            // Otherwise, default link behavior will navigate to index.php#about
         });
     }
     

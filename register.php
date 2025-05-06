@@ -75,6 +75,7 @@ $conn->close();
     <title>Register - Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
         .error-message {
@@ -121,6 +122,21 @@ $conn->close();
         .back-button:hover {
             background-color: #95a5a6;
         }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -140,11 +156,17 @@ $conn->close();
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
+                    <div class="password-field">
                     <input type="password" id="password" name="password" required>
+                        <button type="button" class="password-toggle"><i class="fas fa-eye"></i></button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
+                    <div class="password-field">
                     <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        <button type="button" class="password-toggle"><i class="fas fa-eye"></i></button>
+                    </div>
                 </div>
                 <div class="button-group">
                     <a href="index.php" class="back-button">Back</a>
@@ -156,4 +178,22 @@ $conn->close();
         </div>
     </div>
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password toggle functionality
+        const passwordToggles = document.querySelectorAll('.password-toggle');
+        passwordToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const passwordField = this.parentElement.querySelector('input');
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    passwordField.type = 'password';
+                    this.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
+        });
+    });
+</script>
 </html> 

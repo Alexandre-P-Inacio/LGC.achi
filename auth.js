@@ -55,8 +55,8 @@ try {
 supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN') {
         // Only redirect if we're not already on the home page
-        if (window.location.pathname !== '/index.html' && window.location.pathname !== '/') {
-            window.location.href = 'index.html';
+        if (window.location.pathname !== '/index.php' && window.location.pathname !== '/') {
+            window.location.href = 'index.php';
         }
     }
 });
@@ -148,7 +148,7 @@ async function login(username, password) {
             if (redirectUrl) {
                 window.location.href = redirectUrl;
             } else {
-                window.location.href = 'index.html';
+                window.location.href = 'index.php';
             }
             
             // Return success
@@ -203,7 +203,7 @@ async function updateUserInterface(username) {
             let userMenu = '';
             
             if (data && data.is_admin) {
-                userMenu = `<span>Hello, ${username}</span> | <a href="admin.html">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
+                userMenu = `<span>Hello, ${username}</span> | <a href="admin.php">Admin Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
             } else {
                 userMenu = `<span>Hello, ${username}</span> | <a href="#client-dashboard" id="nav-dashboard" onclick="showDashboard(); return false;">My Dashboard</a> | <a href="#" id="logout-link">Logout</a>`;
             }
@@ -263,7 +263,7 @@ async function logout() {
     
     // Redirect to index page
     console.log('Redirecting to index page...');
-    window.location.href = 'index.html';
+    window.location.href = 'index.php';
 }
 
 // Check if user is admin

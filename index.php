@@ -93,91 +93,343 @@ $featured_images = [
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://*.azureedge.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self';">
     <title>Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- jQuery required for Turn.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <!-- Turn.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
-    <!-- PDF.js for PDF processing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <script>
-        // Configure PDF.js worker
-        window.addEventListener('DOMContentLoaded', function() {
-            if (typeof pdfjsLib !== 'undefined') {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
-                console.log('PDF.js worker configured');
-            } else {
-                console.error('PDF.js library not loaded');
-            }
-        });
-    </script>
-    
     <!-- Load scripts -->
     <script src="animation.js" defer></script>
+    <!-- Removed navigation.js as it conflicts with PHP navigation -->
+    <!-- <script src="navigation.js"></script> -->
     <script src="client-dashboard.js" defer></script>
     
     <style>
-        /* Fixed Chat Button Styles */
-        .fixed-chat-button {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background-color: #0a66c2;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 99;
-            transition: all 0.3s ease;
+
+        
+        /* Fix hero section spacing to avoid overlap with fixed navbar */
+        #hero {
+            padding-top: 100px; /* Add padding to push content down below the navbar */
+            margin-top: 0;
         }
         
-        .fixed-chat-button:hover {
-            transform: scale(1.05);
-            background-color: #094d8f;
+        /* Enhanced Featured Projects Styles */
+        #projects {
+            padding: 5rem 0;
+            background-color: #f8f9fa;
         }
         
-        .fixed-chat-button i {
-            font-size: 24px;
-        }
-        
-        .fixed-chat-button {
-            transition: transform 0.3s ease, background-color 0.3s ease;
+        #projects h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
             position: relative;
+            color: #333;
         }
         
-        .fixed-chat-button i {
-            transform: scale(1);
-            transition: transform 0.3s ease;
+        #projects h2:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #333, #828282);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+        
+        /* Carousel Layout */
+        .projects-container {
+            position: relative;
+            max-width: 1320px; /* Exact width for 3 cards: 3 x 400px + 2 x 32px gaps + padding */
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            overflow: visible;
+        }
+        
+        .project-carousel-wrapper {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            scroll-behavior: smooth;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+            cursor: grab;
+            mask-image: linear-gradient(to right, transparent 0%, black 0%, black 100%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 0%, black 100%, transparent 100%);
+        }
+        
+        /* Hide scrollbar */
+        .project-carousel-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .project-carousel {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem 0.5rem;
+            min-width: max-content;
+            justify-content: flex-start;
+            margin: 0 auto;
+        }
+        
+        /* Add initial padding to center the first 3 cards */
+        @media (min-width: 1200px) {
+            .project-carousel-wrapper {
+                overflow: hidden;
+                padding: 0;
+            }
+            
+            .project-carousel {
+                justify-content: center;
+            }
+        }
+        
+        /* Scroll Buttons */
+        .scroll-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            color: #333;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            opacity: 0.9;
+        }
+        
+        .scroll-btn:hover {
+            background-color: #333;
+            color: white;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            opacity: 1;
+        }
+        
+        .scroll-btn:focus {
+            outline: none;
+        }
+        
+        .scroll-left {
+            left: -25px;
+        }
+        
+        .scroll-right {
+            right: -25px;
+        }
+        
+        /* Hide scroll buttons when not needed */
+        .scroll-btn.hidden {
+            display: none;
+        }
+        
+        /* Project Card */
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            flex: 0 0 auto;
+            width: 400px; /* Fixed width for all cards */
+            min-width: 350px;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            margin-right: 0;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .project-image {
+            height: 240px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .project-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 70%, rgba(0, 0, 0, 0.4));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .project-card:hover .project-image::before {
+            opacity: 1;
+        }
+        
+        .project-card h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 1.5rem 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .project-card p {
+            color: #666;
+            margin: 0 1.5rem 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .view-project-btn {
+            margin: auto 1.5rem 1.5rem;
+            padding: 0.8rem 1.5rem;
+            background-color: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            display: block;
+        }
+        
+        .view-project-btn:hover {
+            background-color: #000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .no-projects, .error-message {
+            width: 100%;
+            text-align: center;
+            padding: 3rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .error-message i {
+            color: #dc3545;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            width: 100%;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #333;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Make the layout responsive */
+        @media (max-width: 1200px) {
+            .projects-container {
+                max-width: 800px; /* Width for 2 cards on tablets */
+            }
+            
+            .project-card {
+                width: 360px;
+            }
         }
         
         @media (max-width: 768px) {
-            .fixed-chat-button {
-                width: 65px;
-                height: 65px;
-                bottom: 20px;
-                right: 20px;
+            #projects {
+                padding: 3rem 0;
             }
             
-            .fixed-chat-button i {
-                font-size: 26px;
+            #projects h2 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+            }
+            
+            .projects-container {
+                padding: 0 1rem;
+                max-width: 400px; /* Width for 1 card on mobile */
+            }
+            
+            .project-carousel {
+                gap: 1.5rem;
+            }
+            
+            .project-card {
+                width: 360px;
+                min-width: 280px;
+            }
+            
+            .project-image {
+                height: 200px;
+            }
+            
+            .project-card h3 {
+                font-size: 1.2rem;
+                margin: 1.2rem 1.2rem 0.4rem;
+            }
+            
+            .project-card p {
+                margin: 0 1.2rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .view-project-btn {
+                margin: auto 1.2rem 1.2rem;
+                padding: 0.7rem 1.2rem;
+                font-size: 0.8rem;
+            }
+            
+            .scroll-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            .scroll-left {
+                left: 5px;
+            }
+            
+            .scroll-right {
+                right: 5px;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <?php include 'navigation.php'; ?>
+        <?php include_once 'navigation.php'; ?>
     </header>
-    
     <main>
         <section id="hero">
             <div class="hero-slideshow" id="hero-slideshow">
@@ -236,6 +488,9 @@ $featured_images = [
                                     // If it looks like a URL
                                     else if (preg_match('/^https?:\/\//i', $project['image_data'])) {
                                         $image_url = $project['image_data'];
+                                    } else {
+                                        // It's binary data, create a data URL
+                                        $image_url = 'data:image/jpeg;base64,' . base64_encode($project['image_data']);
                                     }
                                 }
                                 
@@ -247,20 +502,12 @@ $featured_images = [
                                 }
                                 ?>
                                 <div class="project-card">
-                                    <div class="project-image" style="height: 240px; position: relative; overflow: hidden; background-color: #f5f5f5;">
-                                        <img src="<?php echo htmlspecialchars($image_url); ?>" 
-                                            alt="<?php echo htmlspecialchars($project['name'] ?? 'Project Image'); ?>" 
-                                            onerror="this.onerror=null; this.src='<?php echo htmlspecialchars($category_image_map[$project['category']] ?? $featured_images[$index % count($featured_images)]); ?>';"
-                                            style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;">
-                                    </div>
+                                    <div class="project-image" style="background-image: url('<?php echo htmlspecialchars($image_url); ?>')"></div>
                                     <h3><?php echo htmlspecialchars($project['name'] ?? 'Unnamed Project'); ?></h3>
                                     <?php if ($show_category): ?>
                                         <p><?php echo htmlspecialchars($category_display); ?></p>
                                     <?php endif; ?>
-                                    <a href="javascript:void(0)" class="view-project-btn" 
-                                       data-file-url="<?php echo htmlspecialchars($project['file_url'] ?? ''); ?>" 
-                                       data-project-id="<?php echo htmlspecialchars($project['id']); ?>" 
-                                       data-file-name="<?php echo htmlspecialchars(basename($project['file_url'] ?? '')); ?>">
+                                    <a href="portfolios.php?project=<?php echo htmlspecialchars($project['id']); ?>" class="view-project-btn">
                                         View Project
                                     </a>
                                 </div>
@@ -274,33 +521,10 @@ $featured_images = [
             </div>
         </section>
 
-        <section id="about" class="about">
+        <section id="about">
             <div class="about-content">
                 <h2>About Us</h2>
-                <div class="about-text">
-                    <!-- Desktop paragraph (single paragraph for PC view) -->
-                    <p class="desktop-paragraph">
-                        LLGC ingegneria architettura was founded in 2009. The collaboration between different professional skills through integrated design between engineering and architecture has become a point of strength and distinction over time. An approach aimed at understanding the needs of the interlocutor by evaluating the different peculiarities of each client, with a view to research and innovation in the sector. LGC ia has gained multiple experiences in the field of building, industrial, interior design, exhibit, structural, plant design, following each project in the different study phases, from preliminary design also through 3D graphic modeling, obtaining authorization titles, up to the construction phase with particular attention to work management and safety. LGC has also developed its specialization in the sector of infrastructures for radio telecommunications networks, providing its engineering and architecture services to the main national operators. LGC ia over the years has become a design partner of Italian and foreign multinational companies.
-                    </p>
-                    
-                    <!-- Mobile paragraphs (multiple paragraphs for mobile view) -->
-                    <div class="about-text-content">
-                        <p class="mobile-paragraph">LLGC ingegneria architettura was founded in 2009. The collaboration between different professional skills through integrated design between engineering and architecture has become a point of strength and distinction over time.</p>
-                        
-                        <p class="mobile-paragraph">An approach aimed at understanding the needs of the interlocutor by evaluating the different peculiarities of each client, with a view to research and innovation in the sector.</p>
-                        
-                        <p class="mobile-paragraph collapsible-content">LGC ia has gained multiple experiences in the field of building, industrial, interior design, exhibit, structural, plant design, following each project in the different study phases, from preliminary design also through 3D graphic modeling, obtaining authorization titles, up to the construction phase with particular attention to work management and safety.</p>
-                        
-                        <p class="mobile-paragraph collapsible-content">LGC has also developed its specialization in the sector of infrastructures for radio telecommunications networks, providing its engineering and architecture services to the main national operators.</p>
-                        
-                        <p class="mobile-paragraph collapsible-content">LGC ia over the years has become a design partner of Italian and foreign multinational companies.</p>
-                    </div>
-                    <button id="about-toggle-btn" class="about-toggle-btn">
-                        <span class="show-more-text">Show More</span>
-                        <span class="show-less-text">Show Less</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                </div>
+                <p>LLGC ingegneria architettura was founded in 2009. The collaboration between different professional skills through integrated design between engineering and architecture has become a point of strength and distinction over time. An approach aimed at understanding the needs of the interlocutor by evaluating the different peculiarities of each client, with a view to research and innovation in the sector. LGC ia has gained multiple experiences in the field of building, industrial, interior design, exhibit, structural, plant design, following each project in the different study phases, from preliminary design also through 3D graphic modeling, obtaining authorization titles, up to the construction phase with particular attention to work management and safety. LGC has also developed its specialization in the sector of infrastructures for radio telecommunications networks, providing its engineering and architecture services to the main national operators. LGC ia over the years has become a design partner of Italian and foreign multinational companies.</p>
             </div>
         </section>
     </main>
@@ -428,88 +652,9 @@ $featured_images = [
         </div>
     </footer>
     
-    <!-- File Viewer Modal -->
-    <div id="file-viewer-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-file-title">File Preview</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="file-info-bar">
-                <div class="file-type-icon" id="file-type-icon">DOC</div>
-                <span id="file-info">Loading file information...</span>
-            </div>
-            <div class="modal-body">
-                <div id="file-viewer-container">
-                    <!-- Turn.js Flipbook container -->
-                    <div id="flipbook-wrapper">
-                        <div id="flipbook"></div>
-                        <div class="flipbook-nav">
-                            <button id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
-                            <button id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                    </div>
-                    
-                    <!-- Video preview element -->
-                    <div id="video-wrapper" style="display: none;">
-                        <video id="video-player" controls width="100%">
-                            Your browser does not support the video tag.
-                        </video>
-                        <div class="video-controls">
-                            <a id="video-download-button" href="#" class="video-control-button" download title="Download Video">
-                                <i class="fas fa-download"></i>
-                            </a>
-                            <button id="video-fullscreen-button" class="video-control-button" title="Fullscreen">
-                                <i class="fas fa-expand"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Original preview elements -->
-                    <iframe id="file-iframe" width="100%" height="600" style="display: none;"></iframe>
-                    <img id="file-image" style="display: none;" />
-                    <div id="file-unsupported" style="display: none;">
-                        <i class="fas fa-file-alt"></i>
-                        <h3>This file type cannot be previewed</h3>
-                        <p>The file may need to be downloaded to be viewed.</p>
-                        <a id="file-download-link" href="#" class="action-button">
-                            <i class="fas fa-download"></i> Download File
-                        </a>
-                    </div>
-                    
-                    <!-- Loading indicator -->
-                    <div class="modal-loading" id="file-loading">
-                        <div class="loading-spinner"></div>
-                        <p>Loading file....</p>
-                    </div>
-                </div>
-            </div>
-            <div class="file-actions">
-                <button class="file-action-button" id="zoom-in-button">
-                    <i class="fas fa-search-plus"></i> Zoom In
-                </button>
-                <button class="file-action-button" id="zoom-out-button">
-                    <i class="fas fa-search-minus"></i> Zoom Out
-                </button>
-                <a id="download-button" href="#" class="file-action-button">
-                    <i class="fas fa-download"></i> Download
-                </a>
-            </div>
-        </div>
-    </div>
-    
     <script>
-        // About section show more/less button functionality
+        // Check login status when loading the page
         document.addEventListener('DOMContentLoaded', function() {
-            const toggleBtn = document.getElementById('about-toggle-btn');
-            const aboutText = document.querySelector('.about-text');
-            
-            if (toggleBtn && aboutText) {
-                toggleBtn.addEventListener('click', function() {
-                    aboutText.classList.toggle('expanded');
-                });
-            }
-            
             // Initialize carousel functionality
             initCarousel();
         });
@@ -561,6 +706,61 @@ $featured_images = [
                 carouselWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
             });
             
+            // Implement drag-to-scroll functionality
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+            
+            // Mouse events for desktop
+            carouselWrapper.addEventListener('mousedown', (e) => {
+                isDown = true;
+                carouselWrapper.style.cursor = 'grabbing';
+                startX = e.pageX - carouselWrapper.offsetLeft;
+                scrollLeft = carouselWrapper.scrollLeft;
+                e.preventDefault();
+            });
+            
+            carouselWrapper.addEventListener('mouseleave', () => {
+                isDown = false;
+                carouselWrapper.style.cursor = 'grab';
+            });
+            
+            carouselWrapper.addEventListener('mouseup', () => {
+                isDown = false;
+                carouselWrapper.style.cursor = 'grab';
+            });
+            
+            carouselWrapper.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - carouselWrapper.offsetLeft;
+                const walk = (x - startX) * 2; // Scroll speed multiplier
+                carouselWrapper.scrollLeft = scrollLeft - walk;
+            });
+            
+            // Touch events for mobile
+            carouselWrapper.addEventListener('touchstart', (e) => {
+                isDown = true;
+                startX = e.touches[0].pageX - carouselWrapper.offsetLeft;
+                scrollLeft = carouselWrapper.scrollLeft;
+            });
+            
+            carouselWrapper.addEventListener('touchend', () => {
+                isDown = false;
+            });
+            
+            carouselWrapper.addEventListener('touchcancel', () => {
+                isDown = false;
+            });
+            
+            carouselWrapper.addEventListener('touchmove', (e) => {
+                if (!isDown) return;
+                const x = e.touches[0].pageX - carouselWrapper.offsetLeft;
+                const walk = (x - startX) * 2;
+                carouselWrapper.scrollLeft = scrollLeft - walk;
+                e.preventDefault(); // Prevent page scroll
+            });
+            
             // Update button states on scroll
             carouselWrapper.addEventListener('scroll', () => {
                 const scrollPosition = carouselWrapper.scrollLeft;
@@ -574,33 +774,6 @@ $featured_images = [
                 rightBtn.style.opacity = scrollPosition >= maxScroll ? '0.5' : '0.9';
             });
         }
-        
-        // File viewer functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add event listeners to the "View Project" buttons
-            document.querySelectorAll('.view-project-btn').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const fileUrl = this.getAttribute('data-file-url');
-                    const fileName = this.getAttribute('data-file-name');
-                    const projectId = this.getAttribute('data-project-id');
-                    
-                    if (fileUrl) {
-                        // Show file directly in modal
-                        showFileInModal(fileUrl, fileName);
-                    } else {
-                        // Fallback to the portfolios page if no file is available
-                        window.location.href = `portfolios.php?project=${projectId}`;
-                    }
-                });
-            });
-            
-            // Initialize file viewer
-            initFileViewer();
-        });
-        
-        // These functions are from the original HTML but are needed for basic functionality
-        // The file modal window functionality is kept as JavaScript
     </script>
 </body>
 </html> 

@@ -15,7 +15,7 @@
         const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
         window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Supabase initialized in project-form.html');
+        console.log('Supabase initialized in project-form.php');
     </script>
     <!-- Then load other scripts -->
     <script src="auth.js" defer></script>
@@ -29,7 +29,7 @@
                 ADMIN DASHBOARD
             </div>
             <ul class="nav-links">
-                <li><a href="admin.html"><i class="fas fa-arrow-left"></i> Back to Dashboard</a></li>
+                <li><a href="admin.php"><i class="fas fa-arrow-left"></i> Back to Dashboard</a></li>
                 <li><span id="admin-name"></span></li>
                 <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
@@ -93,7 +93,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="cancel-button" onclick="window.location.href='admin.html'">
+                        <button type="button" class="cancel-button" onclick="window.location.href='admin.php'">
                             <i class="fas fa-times"></i> Cancel
                         </button>
                         <button type="submit" class="submit-button" id="save-button">

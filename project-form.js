@@ -11,7 +11,7 @@ async function checkAdminAccess() {
     console.log('Current user from localStorage:', currentUser);
     
     if (!currentUser) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
 
@@ -24,7 +24,7 @@ async function checkAdminAccess() {
     console.log('Admin check result:', { data, error });
 
     if (error || !data || !data.is_admin) {
-        window.location.href = 'index.html';
+        window.location.href = 'index.php';
         return;
     }
 
@@ -53,7 +53,7 @@ async function loadProjectData(projectId) {
     if (error) {
         console.error('Error loading project:', error);
         alert('Error loading project. Redirecting to dashboard.');
-        window.location.href = 'admin.html';
+        window.location.href = 'admin.php';
         return;
     }
 
@@ -225,7 +225,7 @@ async function saveProject(event) {
         console.log('Project saved successfully!');
         alert(`Project ${isEdit ? 'updated' : 'added'} successfully!`);
         // Redirect to admin dashboard
-        window.location.href = 'admin.html';
+        window.location.href = 'admin.php';
     } catch (err) {
         console.error('Exception occurred while saving project:', err);
         alert(`An unexpected error occurred: ${err.message}`);

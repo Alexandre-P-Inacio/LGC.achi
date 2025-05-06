@@ -27,7 +27,7 @@ async function logout() {
         }
         
         // Redirect to home page
-        window.location.href = 'index.html';
+        window.location.href = 'index.php';
     } catch (e) {
         console.error('Error in logout function:', e);
         alert('An error occurred during logout. Please try again.');
@@ -86,7 +86,7 @@ async function createTestProject() {
 async function checkAdminAccess() {
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
         return;
     }
 
@@ -97,7 +97,7 @@ async function checkAdminAccess() {
         .single();
 
     if (error || !data || !data.is_admin) {
-        window.location.href = 'index.html';
+        window.location.href = 'index.php';
         return;
     }
 
@@ -428,7 +428,7 @@ function updateProjectsTable(projects) {
                 <td>${fileInfo.type}</td>
                 <td>
                     <div class="action-buttons">
-                        <a href="project-form.html?id=${project.id}" class="action-button edit-button" title="Edit">
+                        <a href="project-form.php?id=${project.id}" class="action-button edit-button" title="Edit">
                             <i class="fas fa-edit" style="font-size: 16px; color: white;"></i>
                         </a>
                         <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete">

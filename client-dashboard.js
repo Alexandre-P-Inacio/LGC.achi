@@ -76,7 +76,7 @@ function showDashboard() {
     // Check if user is logged in
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
-        window.location.href = 'login.html?redirect=index.html%23client-dashboard';
+        window.location.href = 'login.php?redirect=index.php%23client-dashboard';
         return;
     }
     
@@ -124,7 +124,7 @@ function navigateToCategory(category) {
     closeDashboard();
     
     // Navigate to the projects page filtered by category
-    window.location.href = `portfolios.html?category=${category}`;
+    window.location.href = `portfolios.php?category=${category}`;
 }
 
 // Load projects shared with the current user

@@ -17,7 +17,7 @@
         const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
         window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        console.log('Supabase initialized in index.html');
+        console.log('Supabase initialized in index.php');
     </script>
     
     <!-- Then load other scripts -->
@@ -547,7 +547,7 @@
     </div>
 
     <!-- Fixed Chat Button -->
-    <a href="chat.html" class="fixed-chat-button">
+    <a href="chat.php" class="fixed-chat-button">
         <i class="fas fa-comments"></i>
         <span class="chat-notification-indicator" id="fixed-chat-notification"></span>
     </a>
@@ -719,7 +719,7 @@
                         <div class="project-image" style="background-image: url('${imageUrl}')"></div>
                         <h3>${project.name || 'Unnamed Project'}</h3>
                         <p>${categoryDisplay}</p>
-                        <a href="portfolios.html?project=${project.id}" class="view-project-btn">View Project</a>
+                        <a href="portfolios.php?project=${project.id}" class="view-project-btn">View Project</a>
                     `;
                     
                     // Add the project card to the container
