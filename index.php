@@ -174,9 +174,7 @@ $featured_images = [
     </style>
 </head>
 <body>
-    <header>
-        <?php include 'navigation.php'; ?>
-    </header>
+    <?php include_once 'navigation.php'; ?>
     
     <main>
         <section id="hero">
