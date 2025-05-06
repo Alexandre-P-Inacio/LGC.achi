@@ -44,11 +44,6 @@ function require_admin() {
         header("Location: login.php");
         exit();
     }
-    
-    if (!is_admin()) {
-        header("Location: index.php");
-        exit();
-    }
 }
 
 // Get count of projects

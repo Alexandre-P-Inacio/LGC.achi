@@ -84,7 +84,7 @@ if (isset($_POST['toggle_featured']) && isset($_POST['project_id'])) {
                     <li class="active"><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li><a href="admin-users.php"><i class="fas fa-users"></i> Manage Users</a></li>
                     <li><a href="admin-add-project.php"><i class="fas fa-plus-circle"></i> Add Project</a></li>
-                    <li><a href="index.php"><i class="fas fa-home"></i> View Site</a></li>
+                    <li><a href="index.php" target="_blank"><i class="fas fa-home"></i> View Site</a></li>
                     <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </nav>

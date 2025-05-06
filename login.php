@@ -3,10 +3,8 @@
 require_once 'config.php';
 require_once 'functions.php';
 
-// Start the session if not already active
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// Start the session
+session_start();
 
 // Check if already logged in
 if (isset($_SESSION['username'])) {
@@ -14,7 +12,7 @@ if (isset($_SESSION['username'])) {
     if (is_admin()) {
         header("Location: admin.php");
     } else {
-    header("Location: index.php");
+        header("Location: index.php");
     }
     exit();
 }
@@ -41,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Set session variables
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['is_admin'] = ($user['is_admin'] == 1); // Store admin status in session
                 
                 // Redirect to appropriate page
                 if ($user['is_admin'] == 1) {
@@ -58,9 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
-// Check for redirect parameter
-$redirectUrl = isset($_GET['redirect']) ? $_GET['redirect'] : '';
 ?>
 
 <!DOCTYPE html>
@@ -68,71 +62,30 @@ $redirectUrl = isset($_GET['redirect']) ? $_GET['redirect'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Architecture Portfolio</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Login - LGC Architecture</title>
+    <link rel="stylesheet" href="css/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        .error-message {
-            color: #e74c3c;
-            margin-top: 10px;
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: rgba(231, 76, 60, 0.1);
-            border-radius: 4px;
-            text-align: center;
-        }
-        
-        .button-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        
-        .back-button {
-            background-color: #7f8c8d;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .back-button:hover {
-            background-color: #95a5a6;
-        }
-        
-        .password-field {
-            position: relative;
-        }
-        
-        .password-toggle {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #999;
-        }
-    </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-box">
-            <h2>Login</h2>
-            <div id="error-message" class="error-message" style="<?php echo isset($error) ? 'display: block;' : 'display: none;'; ?>">
-                <?php echo isset($error) ? $error : ''; ?>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <h1>LGC.achi</h1>
+                <p>Architecture Project Management</p>
             </div>
-            <form id="loginForm" class="auth-form" method="POST" action="login.php<?php echo !empty($redirectUrl) ? '?redirect='.htmlspecialchars($redirectUrl) : ''; ?>">
+            
+            <?php if (isset($error)): ?>
+                <div class="alert error">
+                    <?php echo $error; ?>
+                </div>
+            <?php endif; ?>
+            
+            <form class="login-form" method="POST" action="login.php">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-field">
@@ -144,8 +97,13 @@ $redirectUrl = isset($_GET['redirect']) ? $_GET['redirect'] : '';
                     <a href="index.php" class="back-button">Back</a>
                     <button type="submit" class="submit-button">Login</button>
                 </div>
+                
+                <button type="submit" class="btn-login">Log In</button>
             </form>
-            <p class="auth-link">Don't have an account? <a href="register.php">Register here</a></p>
+            
+            <div class="login-footer">
+                <p>Don't have an account? Contact the administrator.</p>
+            </div>
         </div>
     </div>
 

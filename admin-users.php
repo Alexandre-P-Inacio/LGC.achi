@@ -7,19 +7,8 @@ require_once 'functions.php';
 require_login();
 require_admin();
 
-// Check if search query exists
-$search_query = '';
-if (isset($_GET['search']) && !empty($_GET['search'])) {
-    $search_query = sanitize_input($conn, $_GET['search']);
-}
-
-// Get users with search filter if provided
-if (!empty($search_query)) {
-    $query = "SELECT * FROM users WHERE username LIKE '%$search_query%' ORDER BY id";
-} else {
-    $query = "SELECT * FROM users ORDER BY id";
-}
-
+// Get all users
+$query = "SELECT * FROM users ORDER BY id";
 $result = $conn->query($query);
 $users = array();
 
@@ -209,7 +198,7 @@ if (isset($_POST['update_user']) && isset($_POST['user_id'])) {
                     <li><a href="admin.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li class="active"><a href="admin-users.php"><i class="fas fa-users"></i> Manage Users</a></li>
                     <li><a href="admin-add-project.php"><i class="fas fa-plus-circle"></i> Add Project</a></li>
-                    <li><a href="index.php"><i class="fas fa-home"></i> View Site</a></li>
+                    <li><a href="index.php" target="_blank"><i class="fas fa-home"></i> View Site</a></li>
                     <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </nav>

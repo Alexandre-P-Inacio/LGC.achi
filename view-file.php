@@ -29,39 +29,16 @@ $file_type = null;
 
 // Try to detect file type
 if (!empty($file_data)) {
-    // First check for PDF signature in the first few bytes
-    // PDF files start with "%PDF-" signature
-    $pdf_signature = "%PDF-";
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime_type = $finfo->buffer($file_data);
     
-    if (strlen($file_data) > 5 && substr($file_data, 0, 5) === $pdf_signature) {
+    if (strpos($mime_type, 'pdf') !== false) {
         $file_type = 'pdf';
-        $mime_type = 'application/pdf';
+    } else if (strpos($mime_type, 'video') !== false) {
+        $file_type = 'video';
     } else {
-        // Use finfo as a secondary method
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime_type = $finfo->buffer($file_data);
-        
-        if (strpos($mime_type, 'pdf') !== false) {
-            $file_type = 'pdf';
-            $mime_type = 'application/pdf';
-        } else if (strpos($mime_type, 'video') !== false) {
-            $file_type = 'video';
-        } else {
-            // Fallback to file name extension as last resort
-            $file_name = $project['file_name'] ?? '';
-            $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-            
-            if ($ext === 'pdf') {
-                $file_type = 'pdf';
-                $mime_type = 'application/pdf';
-            } else if (in_array($ext, ['mp4','webm','ogg','mov'])) {
-                $file_type = 'video';
-            } else {
-                // Force PDF type for now to ensure flipbook display
-                $file_type = 'pdf';
-                $mime_type = 'application/pdf';
-            }
-        }
+        // Default to binary download if not pdf or video
+        $file_type = 'other';
     }
 }
 ?>
@@ -76,8 +53,6 @@ if (!empty($file_data)) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- PDF.js for PDF handling -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <!-- jQuery required for Turn.js and inline scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Turn.js for flipbook effect -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
     <style>
@@ -186,7 +161,7 @@ if (!empty($file_data)) {
         .pdf-viewer {
             background-color: #444;
             border-radius: 5px;
-            height: 500px;
+            height: 650px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 30px 50px rgba(0,0,0,0.3);
@@ -210,41 +185,6 @@ if (!empty($file_data)) {
         }
         
         .flipbook .page.odd {
-            background: -webkit-gradient(linear, right top, left top, color-stop(0.95, #FFF), color-stop(1, #DADADA));
-            background-image: linear-gradient(right, #FFF 95%, #C4C4C4 100%);
-            box-shadow: inset -10px 0 20px -10px rgba(0,0,0,0.2);
-        }
-        
-        .flipbook .page.even {
-            background: -webkit-gradient(linear, left top, right top, color-stop(0.95, #FFF), color-stop(1, #DADADA));
-            background-image: linear-gradient(left, #FFF 95%, #C4C4C4 100%);
-            box-shadow: inset 10px 0 20px -10px rgba(0,0,0,0.2);
-        }
-        
-        .flipbook-nav {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            gap: 20px;
-        }
-        
-        .flipbook-nav button {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .flipbook-nav button:hover {
-            background-color: #2980b9;
-        }
     </style>
 </head>
 <body>
@@ -270,14 +210,11 @@ if (!empty($file_data)) {
         <main class="main-content">
             <header class="top-header">
                 <div class="search-container">
-                    <form action="admin-users.php" method="GET">
-                        <input type="text" name="search" placeholder="Search users..." 
-                            value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                        <button type="submit"><i class="fas fa-search"></i></button>
-                    </form>
+                    <!-- No search needed on this page -->
                 </div>
                 <div class="user-profile">
                     <span><?php echo htmlspecialchars($_SESSION['username']); ?></span>
+                    <img src="images/admin-avatar.png" alt="Admin">
                 </div>
             </header>
 
@@ -305,6 +242,121 @@ if (!empty($file_data)) {
                             <h3>No file available</h3>
                             <p>This project does not have an associated file.</p>
                         </div>
+                    <?php elseif ($file_type === 'pdf'): ?>
+                        <!-- PDF Viewer (Flipbook) -->
+                        <div class="controls">
+                            <button id="prev-btn"><i class="fas fa-chevron-left"></i> Previous</button>
+                            <button id="next-btn">Next <i class="fas fa-chevron-right"></i></button>
+                            <button id="download-btn"><i class="fas fa-download"></i> Download PDF</button>
+                        </div>
+                        <div class="pdf-viewer">
+                            <div class="flipbook" id="flipbook">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                                    <p>Loading PDF...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden download link -->
+                        <a id="download-link" style="display: none;" download="<?php echo htmlspecialchars($project['name']); ?>.pdf"></a>
+                        
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                // Create a blob from the PDF data and set it as the download link
+                                const pdfData = new Uint8Array([<?php 
+                                    $bytes = unpack('C*', $file_data);
+                                    echo implode(',', $bytes);
+                                ?>]);
+                                
+                                const pdfBlob = new Blob([pdfData], { type: 'application/pdf' });
+                                const pdfUrl = URL.createObjectURL(pdfBlob);
+                                
+                                // Set download link
+                                const downloadLink = document.getElementById('download-link');
+                                downloadLink.href = pdfUrl;
+                                
+                                // Handle download button click
+                                document.getElementById('download-btn').addEventListener('click', function() {
+                                    downloadLink.click();
+                                });
+                                
+                                // Initialize PDF.js
+                                const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                                
+                                // Load the PDF
+                                const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                                loadingTask.promise.then(function(pdf) {
+                                    console.log('PDF loaded');
+                                    
+                                    // Clear the loading indicator
+                                    document.querySelector('#flipbook').innerHTML = '';
+                                    
+                                    // Load all pages
+                                    const numPages = pdf.numPages;
+                                    let pagesLoaded = 0;
+                                    
+                                    for (let i = 1; i <= numPages; i++) {
+                                        pdf.getPage(i).then(function(page) {
+                                            const scale = 1.5;
+                                            const viewport = page.getViewport({ scale });
+                                            
+                                            // Create a div for this page
+                                            const pageDiv = document.createElement('div');
+                                            pageDiv.className = 'page';
+                                            document.getElementById('flipbook').appendChild(pageDiv);
+                                            
+                                            // Create canvas for rendering
+                                            const canvas = document.createElement('canvas');
+                                            const context = canvas.getContext('2d');
+                                            canvas.height = viewport.height;
+                                            canvas.width = viewport.width;
+                                            
+                                            // Render the page
+                                            const renderContext = {
+                                                canvasContext: context,
+                                                viewport: viewport
+                                            };
+                                            
+                                            page.render(renderContext).promise.then(function() {
+                                                pageDiv.appendChild(canvas);
+                                                pagesLoaded++;
+                                                
+                                                if (pagesLoaded === numPages) {
+                                                    // Initialize turn.js flipbook after all pages are loaded
+                                                    $('#flipbook').turn({
+                                                        width: $('.pdf-viewer').width(),
+                                                        height: $('.pdf-viewer').height(),
+                                                        autoCenter: true,
+                                                        gradients: true,
+                                                        acceleration: true
+                                                    });
+                                                    
+                                                    // Add navigation controls
+                                                    document.getElementById('prev-btn').addEventListener('click', function() {
+                                                        $('#flipbook').turn('previous');
+                                                    });
+                                                    
+                                                    document.getElementById('next-btn').addEventListener('click', function() {
+                                                        $('#flipbook').turn('next');
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                }).catch(function(error) {
+                                    console.error('Error loading PDF:', error);
+                                    document.querySelector('#flipbook').innerHTML = `
+                                        <div class="no-file">
+                                            <i class="fas fa-exclamation-circle fa-3x"></i>
+                                            <h3>Error loading PDF</h3>
+                                            <p>${error.message}</p>
+                                        </div>
+                                    `;
+                                });
+                            });
+                        </script>
                     <?php elseif ($file_type === 'video'): ?>
                         <!-- Video Player -->
                         <div class="video-viewer">
@@ -342,113 +394,47 @@ if (!empty($file_data)) {
                             });
                         </script>
                     <?php else: ?>
-                        <!-- PDF Flipbook Viewer (used for any non-video file) -->
-                        <div id="flipbook-wrapper" class="flipbook-container">
-                            <div class="pdf-viewer">
-                                <div id="flipbook"></div>
-                            </div>
-                            <div class="flipbook-nav">
-                                <button id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
-                                <button id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
-                            </div>
+                        <!-- Other file types (download only) -->
+                        <div class="no-file">
+                            <i class="fas fa-file fa-3x"></i>
+                            <h3>File available for download only</h3>
+                            <p>This file type cannot be previewed in the browser.</p>
+                            <button id="download-btn" class="btn btn-primary" style="margin-top: 15px;">
+                                <i class="fas fa-download"></i> Download File
+                            </button>
                         </div>
-                        <div class="controls">
-                            <button id="download-btn"><i class="fas fa-download"></i> Download File</button>
-                        </div>
+                        
                         <!-- Hidden download link -->
-                        <a id="download-link" style="display: none;" download="<?php echo htmlspecialchars($project['name']); ?>.pdf"></a>
+                        <a id="download-link" style="display: none;" download="<?php echo htmlspecialchars($project['name']); ?>_file"></a>
                         
                         <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const fileData = new Uint8Array([<?php echo implode(',', unpack('C*', $file_data)); ?>]);
-                            const fileBlob = new Blob([fileData], { type: '<?php echo $mime_type ?? 'application/pdf'; ?>' });
-                            const pdfjsLib = window['pdfjs-dist/build/pdf'];
-                            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
-                            
-                            pdfjsLib.getDocument({ data: fileData }).promise.then(function(pdf) {
-                                console.log("PDF loaded successfully with " + pdf.numPages + " pages");
-                                const pagePromises = [];
+                            document.addEventListener('DOMContentLoaded', function() {
+                                // Create a blob from the file data and set it as the download link
+                                const fileData = new Uint8Array([<?php 
+                                    $bytes = unpack('C*', $file_data);
+                                    echo implode(',', $bytes);
+                                ?>]);
                                 
-                                for (let i = 1; i <= pdf.numPages; i++) {
-                                    pagePromises.push(
-                                        pdf.getPage(i).then(function(page) {
-                                            const viewport = page.getViewport({ scale: 1.5 });
-                                            const canvas = document.createElement('canvas');
-                                            const context = canvas.getContext('2d');
-                                            canvas.width = viewport.width;
-                                            canvas.height = viewport.height;
-                                            
-                                            return page.render({ canvasContext: context, viewport: viewport }).promise.then(() => {
-                                                return new Promise((resolve) => {
-                                                    canvas.toBlob((blob) => {
-                                                        const url = URL.createObjectURL(blob);
-                                                        const pageDiv = document.createElement('div');
-                                                        pageDiv.className = i % 2 === 0 ? 'page even' : 'page odd';
-                                                        
-                                                        const img = document.createElement('img');
-                                                        img.src = url;
-                                                        img.style.width = '100%';
-                                                        img.style.height = '100%';
-                                                        
-                                                        pageDiv.appendChild(img);
-                                                        resolve(pageDiv);
-                                                    });
-                                                });
-                                            });
-                                        })
-                                    );
-                                }
+                                const fileBlob = new Blob([fileData], { type: 'application/octet-stream' });
+                                const fileUrl = URL.createObjectURL(fileBlob);
                                 
-                                Promise.all(pagePromises).then(function(pages) {
-                                    const flipbook = document.getElementById('flipbook');
-                                    flipbook.innerHTML = '';
-                                    pages.forEach((pageDiv) => flipbook.appendChild(pageDiv));
-                                    
-                                    console.log("Initializing turn.js with " + pages.length + " pages");
-                                    
-                                    $(flipbook).turn({
-                                        width: $('.pdf-viewer').width(),
-                                        height: $('.pdf-viewer').height(),
-                                        autoCenter: true,
-                                        elevation: 50,
-                                        gradients: true,
-                                        display: 'double',
-                                        acceleration: true,
-                                        when: {
-                                            turning: function(e, page, view) {
-                                                console.log("Turning to page: " + page);
-                                            }
-                                        }
-                                    });
-                                    
-                                    document.getElementById('prev-page-btn').addEventListener('click', () => {
-                                        $(flipbook).turn('previous');
-                                    });
-                                    
-                                    document.getElementById('next-page-btn').addEventListener('click', () => {
-                                        $(flipbook).turn('next');
-                                    });
-                                    
-                                    document.getElementById('download-btn').addEventListener('click', () => {
-                                        const dl = document.getElementById('download-link');
-                                        dl.href = URL.createObjectURL(fileBlob);
-                                        dl.click();
-                                    });
-                                }).catch(function(error) {
-                                    console.error("Error rendering pages:", error);
+                                // Set download link
+                                const downloadLink = document.getElementById('download-link');
+                                downloadLink.href = fileUrl;
+                                
+                                // Handle download button click
+                                document.getElementById('download-btn').addEventListener('click', function() {
+                                    downloadLink.click();
                                 });
-                            }).catch(function(error) {
-                                console.error("Error loading PDF:", error);
-                                // Fallback for non-PDF files
-                                const downloadBtn = document.getElementById('download-btn');
-                                downloadBtn.click();
                             });
-                        });
                         </script>
                     <?php endif; ?>
                 </div>
             </section>
         </main>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/admin.js"></script>
 </body>
 </html> 
