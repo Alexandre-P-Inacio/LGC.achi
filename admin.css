@@ -615,14 +615,14 @@ nav {
 /* Action buttons styling */
 .projects-table .action-buttons {
     display: flex;
-    gap: 0.9rem;
-    justify-content: center;
+    gap: 0.5rem;
+    justify-content: flex-end;
     align-items: center;
 }
 
 .projects-table .action-button {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
@@ -630,7 +630,7 @@ nav {
     cursor: pointer;
     border: none;
     transition: all 0.25s ease;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     text-decoration: none;
     position: relative;
     background: linear-gradient(135deg, #1a1a1a, #444444);
@@ -638,7 +638,7 @@ nav {
 }
 
 .projects-table .action-button i {
-    font-size: 16px;
+    font-size: 14px;
     color: white;
     margin: 0;
     padding: 0;
@@ -649,9 +649,9 @@ nav {
 
 /* Action button hover animation */
 @keyframes buttonPulse {
-    0% { box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2); }
-    50% { box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35); }
-    100% { box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2); }
+    0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+    50% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
+    100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
 }
 
 /* Star glow animation */
@@ -663,8 +663,8 @@ nav {
 
 .projects-table .action-button:hover {
     background: linear-gradient(135deg, #000000, #333333);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .projects-table .action-button:active {
@@ -673,49 +673,40 @@ nav {
 }
 
 .projects-table .edit-button {
-    /* Specific styling for edit button */
     background: linear-gradient(135deg, #1a1a1a, #444444);
 }
 
 .projects-table .edit-button:hover {
-    /* Specific hover styling for edit button */
     background: linear-gradient(135deg, #000000, #333333);
 }
 
 .projects-table .delete-button {
-    /* Specific styling for delete button */
     background: linear-gradient(135deg, #1a1a1a, #444444);
 }
 
 .projects-table .delete-button:hover {
-    /* Specific hover styling for delete button */
     background: linear-gradient(135deg, #000000, #333333);
 }
 
 .projects-table .share-button {
-    /* Specific styling for share button */
     background: linear-gradient(135deg, #1a1a1a, #444444);
 }
 
 .projects-table .share-button:hover {
-    /* Specific hover styling for share button */
     background: linear-gradient(135deg, #000000, #333333);
 }
 
 .projects-table .feature-button {
-    /* Specific styling for feature button */
     background: linear-gradient(135deg, #1a1a1a, #444444);
 }
 
 .projects-table .feature-button:hover {
-    /* Specific hover styling for feature button */
     background: linear-gradient(135deg, #000000, #333333);
 }
 
 .projects-table .feature-button.featured {
     background: linear-gradient(135deg, #1a1a1a, #444444);
     border: 2px solid #333333;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .projects-table .feature-button.featured i {
@@ -1056,9 +1047,18 @@ label[for="project-gallery"]:after {
         font-size: 0.85em;
     }
     .projects-table .action-buttons {
+        display: flex;
         justify-content: flex-start;
         gap: 0.5rem;
         margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .projects-table .action-button {
+        width: 34px;
+        height: 34px;
+    }
+    .projects-table .action-button i {
+        font-size: 13px;
     }
     .pagination-container {
         flex-direction: column;
@@ -1793,137 +1793,269 @@ html, body {
 }
 
 @media (min-width: 769px) and (max-width: 1023px) {
-    /* Estilo para modo tablet */
-    
-    /* Esconder os botões de ação individuais em modo tablet */
     .projects-table .action-buttons {
-        position: relative;
-        width: 40px;
-        height: 40px;
         display: flex;
         justify-content: center;
-        align-items: center;
+        gap: 0.7rem;
+        padding: 0.5rem 0;
     }
     
-    /* Esconder todos os botões originais em tablets */
     .projects-table .action-button {
-        display: none;
-    }
-    
-    /* Adicionar botão de menu de três pontinhos */
-    .projects-table .action-buttons:before {
-        content: '\f142'; /* Código do ícone de três pontinhos verticais (ellipsis-v) */
-        font-family: 'Font Awesome 5 Free';
-        font-weight: 900;
-        position: absolute;
-        top: 0;
-        left: 0;
+        display: inline-flex;
         width: 40px;
         height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #1a1a1a, #444444);
-        border-radius: 8px;
-        font-size: 18px;
-        color: white;
-        cursor: pointer;
-        z-index: 5;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-        transition: all 0.2s ease;
-    }
-    
-    /* Efeito hover para o botão de menu */
-    .projects-table .action-buttons:hover:before {
-        background: linear-gradient(135deg, #000000, #333333);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
-    }
-    
-    /* Indicação visual quando o menu está aberto */
-    .projects-table .action-buttons.menu-open:before {
-        background: linear-gradient(135deg, #000000, #222222);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
-        color: #ffdd00; /* Cor dourada para indicar que está ativo */
-    }
-    
-    /* Estilo para o menu dropdown em tablets */
-    .projects-table .action-buttons .menu-dropdown {
-        display: none;
-        position: absolute;
-        top: -10px; /* Posicionado um pouco acima do botão */
-        right: 45px;
-        background: #222;
-        border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        z-index: 10;
-        width: auto;
-        padding: 12px;
-        flex-direction: column;
-        gap: 12px;
-        animation: menuFadeIn 0.2s ease;
-    }
-    
-    /* Animação de entrada do menu */
-    @keyframes menuFadeIn {
-        from {
-            opacity: 0;
-            transform: translateX(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-    
-    /* Seta apontando para o botão de menu */
-    .projects-table .action-buttons .menu-dropdown:after {
-        content: '';
-        position: absolute;
-        top: 15px;
-        right: -10px;
-        width: 0;
-        height: 0;
-        border-top: 10px solid transparent;
-        border-bottom: 10px solid transparent;
-        border-left: 10px solid #222;
-    }
-    
-    /* Quando o menu está aberto */
-    .projects-table .action-buttons.menu-open .menu-dropdown {
-        display: flex;
-    }
-    
-    /* Estilo para os botões dentro do menu */
-    .projects-table .action-buttons .menu-dropdown .action-button {
-        display: flex;
-        width: 48px;
-        height: 48px;
-        margin: 0;
         border-radius: 10px;
-        background: linear-gradient(135deg, #1a1a1a, #444444);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
     }
     
-    /* Efeito hover para os botões do menu */
-    .projects-table .action-buttons .menu-dropdown .action-button:hover {
-        background: linear-gradient(135deg, #000000, #333333);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.25);
+    .projects-table .action-button i {
+        font-size: 15px;
     }
     
-    /* Cor de destaque para o botão de estrela quando ativado */
-    .projects-table .action-buttons .menu-dropdown .action-button.feature-button.featured i {
-        color: #FFD700; /* Cor dourada para a estrela quando ativada */
+    /* Ensure buttons have proper spacing on landscape mode */
+    .projects-table td:last-child {
+        padding-right: 1.5rem;
     }
     
-    /* Ícones dentro dos botões do menu */
-    .projects-table .action-buttons .menu-dropdown .action-button i {
-        font-size: 18px;
+    /* Add more touch padding on vertical tablet mode */
+    @media (orientation: portrait) {
+        .projects-table .action-buttons {
+            gap: 1rem;
+        }
+        
+        .projects-table .action-button {
+            width: 44px;
+            height: 44px;
+        }
+        
+        .projects-table .action-button i {
+            font-size: 16px;
+        }
+    }
+}
+
+@media (min-width: 601px) and (max-width: 1024px) {
+    /* Hide the regular navigation menu on tablets */
+    .nav-links {
+        display: none !important;
     }
     
-    /* Esconder texto, mostrar apenas ícones nos botões do menu */
-    .projects-table .action-buttons .menu-dropdown .action-button span {
-        display: none;
+    /* Add back button styling next to the dashboard heading */
+    .admin-header {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    .admin-header h1 {
+        display: inline-flex !important;
+        align-items: center !important;
+        margin-right: 1rem !important;
+    }
+    
+    /* Add tablet back button */
+    .admin-header:before {
+        content: "Voltar" !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-weight: 500 !important;
+        background-color: #1a1a1a !important;
+        color: white !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 6px !important;
+        margin-right: 1rem !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .admin-header:before:hover {
+        background-color: #000 !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    /* Re-adjust main content area since nav is removed */
+    .admin-main {
+        margin-top: 100px !important;
+    }
+    
+    /* Tablet-specific action buttons styling with stronger specificity */
+    .projects-table .action-buttons,
+    .projects-table td:last-child .action-buttons {
+        display: flex !important;
+        justify-content: center !important;
+        gap: 0.7rem !important;
+        flex-wrap: nowrap !important;
+        padding: 0.5rem !important;
+        min-width: 180px !important;
+    }
+    
+    .projects-table .action-button,
+    .projects-table td:last-child .action-button {
+        display: inline-flex !important;
+        width: 42px !important;
+        height: 42px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
+        margin: 0 2px !important;
+    }
+    
+    .projects-table .action-button i,
+    .projects-table td:last-child .action-button i {
+        font-size: 16px !important;
+    }
+    
+    /* Force the last column to be wide enough for all buttons */
+    .projects-table th:last-child,
+    .projects-table td:last-child {
+        min-width: 200px !important;
+        width: auto !important;
+        text-align: center !important;
+    }
+    
+    /* Ensure table fits in viewport */
+    .projects-table {
+        table-layout: auto !important;
+        width: 100% !important;
+    }
+    
+    /* Hide less important columns on smaller tablets */
+    @media (max-width: 850px) {
+        .projects-table th:nth-child(4),
+        .projects-table td:nth-child(4),
+        .projects-table th:nth-child(6),
+        .projects-table td:nth-child(6) {
+            display: none !important;
+        }
+    }
+}
+
+/* Tablet Back Button */
+#tablet-back-button {
+    display: none; /* Hidden by default */
+    background-color: #1a1a1a;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    z-index: 1001;
+}
+
+#tablet-back-button:hover {
+    background-color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Only show the back button in tablet mode */
+@media (min-width: 601px) and (max-width: 1024px) {
+    #tablet-back-button {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Hide the regular navigation menu on tablets */
+    .nav-links {
+        display: none !important;
+    }
+    
+    /* Re-adjust main content area since nav is removed */
+    .admin-main {
+        margin-top: 100px !important;
+    }
+    
+    /* Remove the previous pseudo-element back button */
+    .admin-header:before {
+        content: none !important;
+    }
+}
+
+/* User action buttons styling */
+#users-container .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+#users-container .action-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a, #444444);
+    overflow: hidden;
+}
+
+#users-container .action-button i {
+    font-size: 14px;
+    color: white;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 2;
+    transition: all 0.25s ease;
+}
+
+#users-container .action-button:hover {
+    background: linear-gradient(135deg, #000000, #333333);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#users-container .action-button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+#users-container .edit-button {
+    background: linear-gradient(135deg, #1a1a1a, #444444);
+}
+
+#users-container .edit-button:hover {
+    background: linear-gradient(135deg, #000000, #333333);
+}
+
+#users-container .delete-button {
+    background: linear-gradient(135deg, #1a1a1a, #444444);
+}
+
+#users-container .delete-button:hover {
+    background: linear-gradient(135deg, #000000, #333333);
+}
+
+/* Ensure user table action buttons are consistent in tablet mode */
+@media (min-width: 601px) and (max-width: 1024px) {
+    #users-container .action-buttons {
+        display: flex !important;
+        justify-content: center !important;
+        gap: 0.7rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    #users-container .action-button {
+        width: 42px !important;
+        height: 42px !important;
+    }
+    
+    #users-container .action-button i {
+        font-size: 16px !important;
     }
 }

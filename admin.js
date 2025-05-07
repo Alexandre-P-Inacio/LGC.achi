@@ -3415,3 +3415,36 @@ if (fileViewerModal) {
     if (e.target === fileViewerModal) showFileViewerHamburger();
   });
 }
+
+// Add back button for tablet mode
+document.addEventListener('DOMContentLoaded', function() {
+    // Create the back button element
+    const backButton = document.createElement('a');
+    backButton.id = 'tablet-back-button';
+    backButton.href = 'index.html';
+    backButton.textContent = 'Voltar';
+    
+    // Add an icon if Font Awesome is available
+    if (typeof FontAwesome !== 'undefined' || document.querySelector('link[href*="font-awesome"]')) {
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-arrow-left';
+        icon.style.marginRight = '8px';
+        backButton.prepend(icon);
+    }
+    
+    // Append the button to the body
+    document.body.appendChild(backButton);
+    
+    // Check tablet mode and show/hide button accordingly
+    function checkTabletMode() {
+        if (window.matchMedia('(min-width: 601px) and (max-width: 1024px)').matches) {
+            backButton.style.display = 'inline-flex';
+        } else {
+            backButton.style.display = 'none';
+        }
+    }
+    
+    // Check on load and when window is resized
+    checkTabletMode();
+    window.addEventListener('resize', checkTabletMode);
+});
