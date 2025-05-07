@@ -287,12 +287,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 languageSelector.classList.toggle('active');
             });
             
-            // Insert language selector next to logout button
+            // Insert language selector based on logged in status
             const logoutButton = document.getElementById('logout-button') || document.getElementById('logout-link');
             const navLinks = document.querySelector('.nav-links');
+            const authButtons = document.querySelector('.auth-buttons');
             
             if (logoutButton) {
-                // Create a wrapper element for the language selector
+                // User is logged in, place language selector after logout button
                 const langSelectorWrapper = document.createElement('li');
                 langSelectorWrapper.className = 'lang-selector-wrapper';
                 langSelectorWrapper.appendChild(languageSelector);
@@ -305,45 +306,48 @@ document.addEventListener('DOMContentLoaded', function() {
                     // If we can't find logout button's parent, append to nav-links
                     navLinks.appendChild(langSelectorWrapper);
                 }
-            } else {
-                // Fallback to old positioning if logout button not found
-                const logo = nav.querySelector('.logo');
-                const hamburger = nav.querySelector('.hamburger-menu');
+            } else if (authButtons) {
+                // User is logged out, place language selector at far right while keeping auth buttons
+                const langSelectorWrapper = document.createElement('li');
+                langSelectorWrapper.className = 'lang-selector-wrapper';
+                langSelectorWrapper.appendChild(languageSelector);
                 
-                if (logo && hamburger) {
-                    nav.insertBefore(languageSelector, hamburger);
-                } else if (logo) {
-                    logo.after(languageSelector);
+                // Add language selector after auth buttons
+                authButtons.parentNode.insertBefore(langSelectorWrapper, authButtons.nextSibling);
+            } else {
+                // Fallback if no auth buttons found
+                if (navLinks) {
+                    const langSelectorWrapper = document.createElement('li');
+                    langSelectorWrapper.className = 'lang-selector-wrapper';
+                    langSelectorWrapper.appendChild(languageSelector);
+                    navLinks.appendChild(langSelectorWrapper);
+                } else {
+                    // Last resort fallback
+                    const hamburger = nav.querySelector('.hamburger-menu');
+                    if (hamburger) {
+                        nav.insertBefore(languageSelector, hamburger);
+                    } else {
+                        nav.appendChild(languageSelector);
+                    }
                 }
             }
             
-            // Close dropdown when clicking anywhere else on the page
-            document.addEventListener('click', function(e) {
-                if (!languageSelector.contains(e.target)) {
-                    languageSelector.classList.remove('active');
-                }
-            });
-            
-            // Close dropdown when pressing Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    languageSelector.classList.remove('active');
-                }
-            });
-            
-            // Apply initial translations
-            applyTranslations(currentLangCode);
+            // Initialize with stored language or default
+            const savedLanguage = localStorage.getItem('selectedLanguage');
+            if (savedLanguage) {
+                changeLanguage(savedLanguage);
+            }
         }
-    }, 300); // Short delay to ensure navigation is loaded
-
-    // Function to change the language
+    }, 300);
+    
+    // Function to change language
     function changeLanguage(langCode) {
-        console.log(`Changing language to: ${langCode}`);
-        
-        // Store the selected language in localStorage
+        // Store selected language
         localStorage.setItem('selectedLanguage', langCode);
         
-        // Apply translations for the selected language
+        // Apply translations
         applyTranslations(langCode);
+        
+        console.log(`Language changed to: ${langCode}`);
     }
 }); 

@@ -208,6 +208,23 @@ nav {
     margin-left: 2rem;
 }
 
+/* Language selector positioning */
+.lang-selector-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+/* When language selector is the last item, position it at the far right */
+.nav-links > li:last-child.lang-selector-wrapper {
+    margin-left: auto;
+}
+
+/* Keep auth buttons and language selector together */
+.auth-buttons + .lang-selector-wrapper {
+    margin-left: 1rem;
+}
+
 .login-button,
 .register-button {
     padding: 0.5rem 1rem;
@@ -842,23 +859,47 @@ footer {
     .nav-links {
         position: fixed;
         top: 0;
-        right: -300px;
-        width: 300px;
-        height: 100%;
-        background-color: white;
+        right: -100%;
+        background: white;
+        height: 100vh;
+        width: 270px;
         flex-direction: column;
-        padding: 6rem 2rem 2rem;
+        align-items: flex-start;
+        padding: 100px 30px 30px;
+        gap: 1.5rem;
         z-index: 1000;
         box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-        transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-        align-items: flex-start;
-        justify-content: flex-start;
-        gap: 1.5rem;
+        transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
         overflow-y: auto;
     }
     
+    /* Language selector mobile positioning */
+    .lang-selector-wrapper {
+        margin: 1rem 0;
+        width: 100%;
+    }
+    
+    /* Keep language selector at bottom in mobile menu */
+    .nav-links > li:last-child.lang-selector-wrapper {
+        margin-top: auto;
+        margin-bottom: 2rem;
+    }
+    
+    /* Handle auth buttons in mobile view */
+    .auth-buttons {
+        flex-direction: column;
+        margin-left: 0;
+        width: 100%;
+        gap: 1rem;
+    }
+    
+    .auth-buttons + .lang-selector-wrapper {
+        margin-top: 1.5rem;
+        margin-left: 0;
+    }
+
     .nav-links.active {
-        transform: translateX(-300px);
+        right: 0;
     }
     
     .nav-links li {

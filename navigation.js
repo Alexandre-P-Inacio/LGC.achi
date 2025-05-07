@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <a href="login.html" class="login-button">Sign In</a>
                     <a href="register.html" class="register-button">Register</a>
                 </li>
+                <!-- Language selector will be inserted dynamically -->
             </ul>
         </nav>
     </header>
@@ -204,6 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Add a CSS rule to make nav-links display as flex
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+    `;
+    document.head.appendChild(styleElement);
 });
 
 // Debug helper function to set admin status

@@ -9,6 +9,11 @@
     align-items: center;
 }
 
+/* Position the language selector after the auth buttons */
+.nav-links > li:last-child.lang-selector-wrapper {
+    margin-left: auto;
+}
+
 .language-button {
     display: flex;
     align-items: center;
@@ -144,14 +149,29 @@ html[dir="rtl"] .footer-content {
     .language-selector {
         margin-left: 0;
         margin-right: 0;
+        width: 100%;
+    }
+    
+    .language-button {
+        margin-left: 0;
+    }
+    
+    .language-dropdown {
+        width: 100%;
+        position: relative;
+        top: 10px;
+        left: 0;
+        right: auto;
+        margin-top: 0.5rem;
     }
     
     .lang-selector-wrapper {
-        margin-left: 10px;
+        margin-left: 0;
+        width: 100%;
     }
 
     html[dir="rtl"] .lang-selector-wrapper {
         margin-left: 0;
-        margin-right: 10px;
+        margin-right: 0;
     }
 } 
