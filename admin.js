@@ -460,6 +460,9 @@ function updateProjectsTable(projects) {
                    </a>` 
                 : 'No file';
             
+            // Add data attributes to the share button to make it easier to handle
+            const safeProjectName = (project.name || 'Unnamed Project').replace(/'/g, '&#39;');
+            
             if (isMobile) {
                 // MOBILE: collapsible row with menu button
                 row.innerHTML = `
@@ -472,7 +475,10 @@ function updateProjectsTable(projects) {
                             <div class=\"menu-dropdown\" style=\"display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;\">
                                 <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\"><i class=\"fas fa-edit\"></i></button>
                                 <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\"><i class=\"fas fa-trash-alt\"></i></button>
-                                <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\"><i class=\"fas fa-share-alt\"></i></button>
+                                <button class=\"action-button share-button\" 
+                                    data-project-id=\"${project.id}\" 
+                                    data-project-name=\"${safeProjectName}\"
+                                    title=\"Share\"><i class=\"fas fa-share-alt\"></i></button>
                                 <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i></button>
                             </div>
                         </div>
@@ -509,7 +515,10 @@ function updateProjectsTable(projects) {
                             <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
                                 <i class=\"fas fa-trash-alt\"></i>
                             </button>
-                            <button class=\"action-button share-button\" onclick=\"showShareModal('${project.id}', '${project.name || 'Unnamed Project'}')\" title=\"Share\">
+                            <button class=\"action-button share-button\" 
+                                data-project-id=\"${project.id}\" 
+                                data-project-name=\"${safeProjectName}\"
+                                title=\"Share\">
                                 <i class=\"fas fa-share-alt\"></i>
                             </button>
                             <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
@@ -547,6 +556,9 @@ function updateProjectsTable(projects) {
             dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
         }
     }
+    
+    // Initialize event listeners for share buttons
+    initializeEventListeners();
 }
 
 // Update pagination controls
@@ -1526,6 +1538,8 @@ async function loadUsers() {
 // Function to get users with whom a project is shared
 async function getProjectShares(projectId) {
     try {
+        console.log(`Getting shares for project ID: ${projectId}`);
+        
         const { data, error } = await supabase
             .from('project_shares')
             .select(`
@@ -1536,15 +1550,21 @@ async function getProjectShares(projectId) {
                 Users:user_id (id, username),
                 sharer:shared_by (username)
             `)
-            .eq('project_id', projectId)
-            .order('shared_at', { ascending: false });
+            .eq('project_id', projectId);
             
         if (error) {
             console.error('Error getting project shares:', error);
             return [];
         }
         
-        return data || [];
+        console.log('Project shares data:', data);
+        
+        if (!data || data.length === 0) {
+            console.log('No shares found for this project');
+            return [];
+        }
+        
+        return data;
     } catch (e) {
         console.error('Exception in getProjectShares:', e);
         return [];
@@ -1573,6 +1593,8 @@ async function removeShareAccess(shareId) {
 
 // Function to show the share modal
 function showShareModal(projectId, projectName) {
+    console.log('Opening share modal for project:', projectId, projectName);
+    
     // Create share modal if it doesn't exist
     let modal = document.getElementById('share-modal');
     
@@ -1640,38 +1662,22 @@ function showShareModal(projectId, projectName) {
     document.getElementById('share-error').style.display = 'none';
     document.getElementById('share-success').style.display = 'none';
     
-    // Load list of non-admin users who don't already have access
-    const userSelect = document.getElementById('share-user-select');
-    userSelect.innerHTML = '<option value="">Choose a user...</option>';
-    
-    // First, get users who already have access to this project
-    getProjectShares(projectId).then(shares => {
-        // Extract user IDs that already have access
-        const userIdsWithAccess = shares.map(share => share.user_id);
-        
-        // Then load all potential users
-        loadUsers().then(users => {
-            // Filter only non-admin users who don't already have access
-            const availableUsers = users.filter(user => 
-                !user.is_admin && !userIdsWithAccess.includes(user.id)
-            );
+    // Validate that users exist before trying to load them
+    validateUsersExist().then(usersExist => {
+        if (!usersExist) {
+            const userSelect = document.getElementById('share-user-select');
+            userSelect.innerHTML = '<option value="">No users available to share with</option>';
+            userSelect.disabled = true;
+            document.getElementById('share-button').disabled = true;
             
-            if (availableUsers.length === 0) {
-                userSelect.innerHTML = '<option value="">No users available to share with</option>';
-                userSelect.disabled = true;
-                document.getElementById('share-button').disabled = true;
-            } else {
-                userSelect.disabled = false;
-                document.getElementById('share-button').disabled = false;
-                
-                availableUsers.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = user.username;
-                    userSelect.appendChild(option);
-                });
-            }
-        });
+            // Show message about no users
+            const errorDiv = document.getElementById('share-error');
+            errorDiv.textContent = 'No regular users found in the system. Please create a non-admin user first.';
+            errorDiv.style.display = 'block';
+        } else {
+            // Load users for sharing
+            loadUsersForSharing(projectId);
+        }
     });
     
     // Load current shares
@@ -1680,72 +1686,217 @@ function showShareModal(projectId, projectName) {
     // Configure share button
     const shareButton = document.getElementById('share-button');
     shareButton.onclick = async function() {
-        const selectedUserId = document.getElementById('share-user-select').value;
-        const errorDiv = document.getElementById('share-error');
-        const successDiv = document.getElementById('share-success');
-        
-        // Validate user selection
-        if (!selectedUserId) {
-            errorDiv.textContent = 'Please select a user.';
-            errorDiv.style.display = 'block';
-            successDiv.style.display = 'none';
-            return;
-        }
-        
-        // Get current username
-        const currentUsername = localStorage.getItem('currentUser');
-        
-        // Share the project
-        const result = await shareProject(projectId, selectedUserId, currentUsername);
-        
-        if (result.success) {
-            successDiv.textContent = result.message;
-            successDiv.style.display = 'block';
-            errorDiv.style.display = 'none';
+        try {
+            const selectedUserId = document.getElementById('share-user-select').value;
+            const errorDiv = document.getElementById('share-error');
+            const successDiv = document.getElementById('share-success');
             
-            // Reset select
-            document.getElementById('share-user-select').value = '';
+            // Validate user selection
+            if (!selectedUserId) {
+                errorDiv.textContent = 'Please select a user.';
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                return;
+            }
             
-            // Reload the current shares list and update available users
-            loadCurrentShares(projectId);
+            // Show loading indicator
+            showLoadingIndicator('Sharing project...');
             
-            // Refresh the user selection dropdown
-            getProjectShares(projectId).then(shares => {
-                const userIdsWithAccess = shares.map(share => share.user_id);
-                
-                loadUsers().then(users => {
-                    const availableUsers = users.filter(user => 
-                        !user.is_admin && !userIdsWithAccess.includes(user.id)
-                    );
-                    
-                    userSelect.innerHTML = '<option value="">Choose a user...</option>';
-                    
-                    if (availableUsers.length === 0) {
-                        userSelect.innerHTML = '<option value="">No users available to share with</option>';
-                        userSelect.disabled = true;
-                        document.getElementById('share-button').disabled = true;
-                    } else {
-                        userSelect.disabled = false;
-                        document.getElementById('share-button').disabled = false;
-                        
-                        availableUsers.forEach(user => {
-                            const option = document.createElement('option');
-                            option.value = user.id;
-                            option.textContent = user.username;
-                            userSelect.appendChild(option);
-                        });
-                    }
-                });
+            // Get current username
+            const currentUsername = localStorage.getItem('currentUser');
+            
+            // Share the project (with timeout)
+            const sharePromise = shareProject(projectId, selectedUserId, currentUsername);
+            
+            // Add a timeout to prevent infinite loading
+            const timeoutPromise = new Promise((resolve) => {
+                setTimeout(() => resolve({ 
+                    success: false, 
+                    message: 'Operation timed out. Check console for errors.' 
+                }), 15000);
             });
-        } else {
-            errorDiv.textContent = result.message;
+            
+            // Race the share operation against the timeout
+            const result = await Promise.race([sharePromise, timeoutPromise]);
+            
+            // Hide loading indicator
+            hideLoadingIndicator();
+            
+            if (result.success) {
+                successDiv.textContent = result.message;
+                successDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+                
+                // Reset select
+                document.getElementById('share-user-select').value = '';
+                
+                // Reload the current shares list and available users
+                loadCurrentShares(projectId);
+                loadUsersForSharing(projectId);
+            } else {
+                errorDiv.textContent = result.message;
+                errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                console.error('Share operation failed:', result.message);
+            }
+        } catch (error) {
+            // Always hide loading indicator in case of error
+            hideLoadingIndicator();
+            
+            // Show error message
+            const errorDiv = document.getElementById('share-error');
+            errorDiv.textContent = `An unexpected error occurred: ${error.message}`;
             errorDiv.style.display = 'block';
+            
+            // Hide success message
+            const successDiv = document.getElementById('share-success');
             successDiv.style.display = 'none';
+            
+            console.error('Exception in share button handler:', error);
         }
     };
     
     // Display modal
     modal.style.display = 'block';
+}
+
+// Function to load users available for sharing
+async function loadUsersForSharing(projectId) {
+    try {
+        const userSelect = document.getElementById('share-user-select');
+        userSelect.innerHTML = '<option value="">Choose a user...</option>';
+        userSelect.disabled = true;
+        
+        // Show loading in the dropdown
+        const loadingOption = document.createElement('option');
+        loadingOption.disabled = true;
+        loadingOption.textContent = 'Loading users...';
+        userSelect.appendChild(loadingOption);
+        
+        // Get users who already have access to this project
+        const { data: shares, error: sharesError } = await supabase
+            .from('project_shares')
+            .select('user_id')
+            .eq('project_id', projectId);
+            
+        if (sharesError) {
+            console.error('Error getting project shares:', sharesError);
+            throw sharesError;
+        }
+        
+        console.log('Current shares:', shares);
+        const userIdsWithAccess = shares ? shares.map(share => share.user_id) : [];
+        
+        // Get all users directly from the database
+        const { data: users, error: usersError } = await supabase
+            .from('Users')
+            .select('id, username, is_admin');
+            
+        if (usersError) {
+            console.error('Error fetching users from database:', usersError);
+            throw usersError;
+        }
+        
+        console.log('All users from database:', users);
+        
+        // Filter out admins and users who already have access
+        const availableUsers = users ? users.filter(user => {
+            const isAdmin = user.is_admin === true;
+            const alreadyHasAccess = userIdsWithAccess.includes(user.id);
+            return !isAdmin && !alreadyHasAccess;
+        }) : [];
+        
+        console.log('Available users after filtering:', availableUsers);
+        
+        // Remove loading option
+        try {
+            userSelect.removeChild(loadingOption);
+        } catch (e) {
+            console.warn('Could not remove loading option:', e);
+            userSelect.innerHTML = '<option value="">Choose a user...</option>';
+        }
+        
+        if (!availableUsers || availableUsers.length === 0) {
+            userSelect.innerHTML = '<option value="">No users available to share with</option>';
+            userSelect.disabled = true;
+            document.getElementById('share-button').disabled = true;
+        } else {
+            userSelect.innerHTML = '<option value="">Choose a user...</option>';
+            userSelect.disabled = false;
+            document.getElementById('share-button').disabled = false;
+            
+            availableUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = user.username;
+                userSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading users for sharing:', error);
+        const userSelect = document.getElementById('share-user-select');
+        userSelect.innerHTML = '<option value="">Error loading users</option>';
+    }
+}
+
+// Function to check for users who can be added to projects
+async function validateUsersExist() {
+    try {
+        // Get all non-admin users
+        const { data: users, error } = await supabase
+            .from('Users')
+            .select('id, username, is_admin')
+            .eq('is_admin', false);
+            
+        if (error) {
+            console.error('Error checking for users:', error);
+            return false;
+        }
+        
+        console.log('Available non-admin users in system:', users);
+        
+        // If there are no regular users, create one for testing
+        if (!users || users.length === 0) {
+            console.warn('No non-admin users found. Creating a test user...');
+            await createTestUser();
+            return true;
+        }
+        
+        return users.length > 0;
+    } catch (e) {
+        console.error('Error validating users exist:', e);
+        return false;
+    }
+}
+
+// Function to create a test user if none exist
+async function createTestUser() {
+    try {
+        // Create unique test user
+        const timestamp = new Date().getTime();
+        const testUser = {
+            username: `test_user_${timestamp}`,
+            password: 'TestUser123!',
+            is_admin: false,
+            added_by_admin: true
+        };
+        
+        const { data, error } = await supabase
+            .from('Users')
+            .insert([testUser])
+            .select();
+            
+        if (error) {
+            console.error('Error creating test user:', error);
+            return false;
+        }
+        
+        console.log('Created test user successfully:', data);
+        return true;
+    } catch (e) {
+        console.error('Error creating test user:', e);
+        return false;
+    }
 }
 
 // Function to load and display current shares
@@ -1804,35 +1955,7 @@ window.removeShare = async function(shareId, projectId) {
         loadCurrentShares(projectId);
         
         // Update available users in dropdown after removal
-        const userSelect = document.getElementById('share-user-select');
-        
-        getProjectShares(projectId).then(shares => {
-            const userIdsWithAccess = shares.map(share => share.user_id);
-            
-            loadUsers().then(users => {
-                const availableUsers = users.filter(user => 
-                    !user.is_admin && !userIdsWithAccess.includes(user.id)
-                );
-                
-                userSelect.innerHTML = '<option value="">Choose a user...</option>';
-                
-                if (availableUsers.length === 0) {
-                    userSelect.innerHTML = '<option value="">No users available to share with</option>';
-                    userSelect.disabled = true;
-                    document.getElementById('share-button').disabled = true;
-                } else {
-                    userSelect.disabled = false;
-                    document.getElementById('share-button').disabled = false;
-                    
-                    availableUsers.forEach(user => {
-                        const option = document.createElement('option');
-                        option.value = user.id;
-                        option.textContent = user.username;
-                        userSelect.appendChild(option);
-                    });
-                }
-            });
-        });
+        loadUsersForSharing(projectId);
     } else {
         // Show error message
         const errorDiv = document.getElementById('share-error');
@@ -1844,465 +1967,6 @@ window.removeShare = async function(shareId, projectId) {
         successDiv.style.display = 'none';
     }
 };
-
-// Debug logging function
-function logDebug(message, data = null) {
-    const timestamp = new Date().toISOString();
-    console.log(`[DEBUG ${timestamp}] ${message}`);
-    if (data) {
-        console.log(JSON.stringify(data, null, 2));
-    }
-}
-
-// Function to insert a system notification directly into the database
-// This avoids any potential issues with missing fields or incorrect formatting
-async function insertSystemNotification(receiverUsername, content, projectId = null) {
-    try {
-        logDebug('Creating system notification', { receiver: receiverUsername, content, projectId });
-        
-        // Create the notification object with all required fields explicitly defined
-        const notificationData = {
-            sender: 'system',
-            receiver: receiverUsername,
-            content: content,
-            read: false,
-            is_edited: false,
-            is_deleted: false
-        };
-        
-        // Only add project_id if it's provided and valid
-        if (projectId !== null && projectId !== undefined) {
-            notificationData.project_id = parseInt(projectId, 10);
-        }
-        
-        logDebug('Notification data to insert', notificationData);
-        
-        // Insert directly into the chat_messages table
-        const { data, error } = await supabase
-            .from('chat_messages')
-            .insert([notificationData]);
-            
-        if (error) {
-            logDebug('ERROR: Failed to insert notification', error);
-            return { success: false, error };
-        }
-        
-        logDebug('SUCCESS: Notification inserted successfully');
-        return { success: true, data };
-    } catch (e) {
-        logDebug('EXCEPTION: in insertSystemNotification', e);
-        return { success: false, error: e };
-    }
-}
-
-async function shareProject(projectId, userId, currentUsername) {
-    logDebug(`SHARE_START: Project ${projectId} with user ${userId} by ${currentUsername}`);
-    
-    try {
-        // Obter ID do usuário atual (quem está compartilhando)
-        const { data: currentUser, error: userError } = await supabase
-            .from('Users')
-            .select('id')
-            .eq('username', currentUsername)
-            .single();
-            
-        if (userError || !currentUser) {
-            logDebug('ERROR: Getting current user', userError);
-            return { success: false, message: 'Error getting current user information.' };
-        }
-        
-        logDebug('Current user found', currentUser);
-        
-        // Criar o compartilhamento
-        const { data, error } = await supabase
-            .from('project_shares')
-            .insert([{ 
-                project_id: projectId, 
-                user_id: userId, 
-                shared_by: currentUser.id 
-            }]);
-            
-        if (error) {
-            logDebug('ERROR: Creating project share', error);
-            return { success: false, message: `Error sharing: ${error.message}` };
-        }
-
-        logDebug('Project share created successfully', data);
-
-        // Get the username of the user who will receive access
-        const { data: userData, error: userDataError } = await supabase
-            .from('Users')
-            .select('username')
-            .eq('id', userId)
-            .single();
-            
-        if (userDataError || !userData) {
-            logDebug('ERROR: Getting receiver username', userDataError);
-            return { success: true, message: 'Project shared successfully, but notification could not be sent.' };
-        }
-        
-        logDebug('Receiver user found', userData);
-        
-        // Get the project name
-        const { data: projectData, error: projectError } = await supabase
-            .from('projects')
-            .select('name')
-            .eq('id', projectId)
-            .single();
-            
-        const projectName = projectError || !projectData ? 'um projeto' : projectData.name;
-        
-        if (projectError) {
-            logDebug('WARNING: Could not get project name', projectError);
-        } else {
-            logDebug('Project name found', projectData);
-        }
-        
-        // Create notification content
-        const notificationContent = `${currentUsername} compartilhou o projeto "${projectName}" com você.`;
-        
-        // Insert notification using the dedicated function
-        const notificationResult = await insertSystemNotification(
-            userData.username,
-            notificationContent,
-            projectId
-        );
-        
-        if (!notificationResult.success) {
-            logDebug('WARNING: Notification could not be sent, but project was shared');
-            return { 
-                success: true, 
-                message: 'Project shared successfully, but notification could not be sent.' 
-            };
-        }
-        
-        logDebug('Project shared and notification sent successfully!');
-        return { 
-            success: true, 
-            message: 'Project shared successfully with notification!' 
-        };
-    } catch (e) {
-        logDebug('EXCEPTION: in shareProject', e);
-        return { success: false, message: `Error sharing: ${e.message}` };
-    }
-}
-
-// Update the test function to use the new notification function
-async function testNotificationSystem() {
-    logDebug('TESTING: Notification System');
-    
-    try {
-        // Get current user
-        const currentUsername = localStorage.getItem('currentUser');
-        if (!currentUsername) {
-            logDebug('ERROR: No user logged in');
-            alert('Error: No user is logged in.');
-            return;
-        }
-        
-        // Insert test notification using our dedicated function
-        const result = await insertSystemNotification(
-            currentUsername,
-            'This is a test notification. If you see this, notifications are working!',
-            null
-        );
-        
-        if (!result.success) {
-            logDebug('ERROR: Failed to insert test notification', result.error);
-            alert('Error: Failed to insert test notification. See console for details.');
-            return;
-        }
-        
-        logDebug('SUCCESS: Test notification inserted', result.data);
-        alert('Success! Test notification inserted. Check your notifications in chat.');
-        
-    } catch (e) {
-        logDebug('EXCEPTION: in testNotificationSystem', e);
-        alert('Error: An exception occurred during testing. See console for details.');
-    }
-}
-
-// Add test button to the page when admin loads
-document.addEventListener('DOMContentLoaded', function() {
-    const adminControls = document.querySelector('.admin-controls');
-    if (adminControls) {
-        const testButton = document.createElement('button');
-        testButton.id = 'test-notification-button';
-        testButton.className = 'admin-button';
-        testButton.innerHTML = '<i class="fas fa-bell"></i> Test Notifications';
-        testButton.addEventListener('click', testNotificationSystem);
-        
-        adminControls.appendChild(testButton);
-        logDebug('Test notification button added to admin controls');
-    }
-});
-
-// Add these utility functions that are missing
-function showLoadingIndicator(message = 'Loading...') {
-    // Create loading overlay if it doesn't exist
-    let loadingOverlay = document.getElementById('loading-overlay');
-    if (!loadingOverlay) {
-        loadingOverlay = document.createElement('div');
-        loadingOverlay.id = 'loading-overlay';
-        loadingOverlay.className = 'loading-overlay';
-        
-        const spinnerContainer = document.createElement('div');
-        spinnerContainer.className = 'loading-spinner-container';
-        
-        const spinner = document.createElement('div');
-        spinner.className = 'loading-spinner';
-        
-        const messageElement = document.createElement('div');
-        messageElement.id = 'loading-message';
-        messageElement.className = 'loading-message';
-        
-        spinnerContainer.appendChild(spinner);
-        spinnerContainer.appendChild(messageElement);
-        loadingOverlay.appendChild(spinnerContainer);
-        
-        document.body.appendChild(loadingOverlay);
-    }
-    
-    // Update the message
-    const messageElement = document.getElementById('loading-message');
-    if (messageElement) {
-        messageElement.textContent = message;
-    }
-    
-    // Show the overlay
-    loadingOverlay.style.display = 'flex';
-}
-
-function hideLoadingIndicator() {
-    const loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-    }
-}
-
-function showNotification(message, type = 'info') {
-    // Create notification container if it doesn't exist
-    let notificationContainer = document.getElementById('notification-container');
-    if (!notificationContainer) {
-        notificationContainer = document.createElement('div');
-        notificationContainer.id = 'notification-container';
-        document.body.appendChild(notificationContainer);
-    }
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    
-    // Add appropriate icon based on type
-    let icon = 'info-circle';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'error') icon = 'exclamation-circle';
-    if (type === 'warning') icon = 'exclamation-triangle';
-    
-    notification.innerHTML = `
-        <i class="fas fa-${icon}"></i>
-        <span>${message}</span>
-    `;
-    
-    // Add to container
-    notificationContainer.appendChild(notification);
-    
-    // Show with animation
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 5000);
-}
-
-// Add CSS for the loading indicator and notifications
-document.addEventListener('DOMContentLoaded', function() {
-    // Add CSS if not already present
-    if (!document.getElementById('utility-styles')) {
-        const styleElement = document.createElement('style');
-        styleElement.id = 'utility-styles';
-        styleElement.textContent = `
-            /* Loading Overlay */
-            .loading-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                display: none;
-                justify-content: center;
-                align-items: center;
-                z-index: 9999;
-            }
-            
-            .loading-spinner-container {
-                background-color: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .loading-spinner {
-                border: 4px solid #f3f3f3;
-                border-top: 4px solid var(--primary-color, #3a7bd5);
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                animation: spin 1s linear infinite;
-                margin-bottom: 15px;
-            }
-            
-            .loading-message {
-                font-size: 14px;
-                color: #333;
-            }
-            
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            
-            /* Notification Container */
-            #notification-container {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .notification {
-                background-color: white;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                border-radius: 6px;
-                padding: 12px 16px;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                transform: translateX(120%);
-                transition: transform 0.3s ease;
-                max-width: 350px;
-            }
-            
-            .notification.show {
-                transform: translateX(0);
-            }
-            
-            .notification i {
-                font-size: 20px;
-            }
-            
-            .notification-info i {
-                color: #3a7bd5;
-            }
-            
-            .notification-success i {
-                color: #28a745;
-            }
-            
-            .notification-error i {
-                color: #dc3545;
-            }
-            
-            .notification-warning i {
-                color: #ffc107;
-            }
-        `;
-        document.head.appendChild(styleElement);
-    }
-});
-
-// Fix the toggleFeaturedStatus function to update button correctly
-async function toggleFeaturedStatus(projectId, isFeatured) {
-    try {
-        // Show loading indicator
-        showLoadingIndicator('Updating project...');
-        
-        console.log('Toggling featured status:', { projectId, isFeatured });
-        
-        // If trying to feature a project, check the current number of featured projects
-        if (isFeatured) {
-            const { data: featuredProjects, error: countError } = await supabase
-                .from('projects')
-                .select('id')
-                .eq('is_featured', true);
-
-            if (countError) {
-                console.error('Error counting featured projects:', countError);
-                throw countError;
-            }
-
-            // Check if we've reached the maximum (6) featured projects
-            if (featuredProjects.length >= 6) {
-                hideLoadingIndicator();
-                showNotification('Maximum number of featured projects (6) reached. Please unfeature another project first.', 'error');
-                return;
-            }
-        }
-        
-        // Update the project in the database
-        const { data, error } = await supabase
-            .from('projects')
-            .update({ 
-                is_featured: isFeatured,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', projectId)
-            .select();
-
-        if (error) {
-            console.error('Error updating project:', error);
-            throw error;
-        }
-
-        console.log('Project updated successfully:', data);
-
-        // Find the project row
-        const projectRow = document.querySelector(`tr[data-project-id="${projectId}"]`);
-        if (projectRow) {
-            const featureButton = projectRow.querySelector('.feature-button');
-            
-            if (featureButton) {
-                // Update button appearance
-                if (isFeatured) {
-                    featureButton.classList.add('featured');
-                    featureButton.querySelector('i').className = 'fas fa-star';
-                    featureButton.title = 'Remove from featured';
-                } else {
-                    featureButton.classList.remove('featured');
-                    featureButton.querySelector('i').className = 'far fa-star';
-                    featureButton.title = 'Add to featured';
-                }
-                
-                // Update the onclick handler
-                featureButton.setAttribute('onclick', `toggleFeaturedStatus('${projectId}', ${!isFeatured})`);
-            }
-        }
-        
-        // Hide loading indicator
-        hideLoadingIndicator();
-        
-        // Show success notification
-        showNotification(`Project ${isFeatured ? 'added to' : 'removed from'} featured list successfully`, 'success');
-        
-    } catch (error) {
-        console.error('Error toggling featured status:', error);
-        hideLoadingIndicator();
-        showNotification('Error updating featured status. Please try again.', 'error');
-    }
-}
 
 // Get current filters for user section
 function getUserFilters() {
@@ -3448,3 +3112,189 @@ document.addEventListener('DOMContentLoaded', function() {
     checkTabletMode();
     window.addEventListener('resize', checkTabletMode);
 });
+
+// Function to initialize event listeners
+function initializeEventListeners() {
+    console.log('Initializing event listeners');
+    
+    // Initialize share buttons if they exist
+    const shareButtons = document.querySelectorAll('.share-button');
+    if (shareButtons.length > 0) {
+        console.log(`Found ${shareButtons.length} share buttons, attaching event listeners`);
+        shareButtons.forEach(button => {
+            // Remove any existing event listeners to prevent duplicates
+            button.removeEventListener('click', handleShareButtonClick);
+            
+            // Add the event listener
+            button.addEventListener('click', handleShareButtonClick);
+        });
+    } else {
+        console.log('No share buttons found in the DOM');
+    }
+}
+
+// Function to handle share button click
+function handleShareButtonClick(event) {
+    event.preventDefault();
+    event.stopPropagation(); // Prevent event bubbling
+    
+    const projectId = this.getAttribute('data-project-id');
+    const projectName = this.getAttribute('data-project-name');
+    
+    console.log(`Share button clicked for project: ${projectId} - ${projectName}`);
+    
+    if (projectId && projectName) {
+        showShareModal(projectId, projectName);
+    } else {
+        console.error('Share button clicked but missing data attributes', this);
+    }
+}
+
+// Add DOMContentLoaded event listener to initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM content loaded');
+    
+    // Check if user is admin
+    checkAdminAccess();
+    
+    // Load projects data
+    loadAdminInfo();
+    
+    // Initialize event listeners
+    initializeEventListeners();
+});
+
+// Function to share a project with a user
+async function shareProject(projectId, userId, currentUsername) {
+    console.log(`Sharing project ${projectId} with user ${userId} by ${currentUsername}`);
+    
+    try {
+        // Get ID of current user (who is sharing)
+        const { data: currentUser, error: userError } = await supabase
+            .from('Users')
+            .select('id')
+            .eq('username', currentUsername)
+            .single();
+            
+        if (userError) {
+            console.error('Error getting current user:', userError);
+            return { success: false, message: 'Error getting current user information.' };
+        }
+        
+        console.log('Current user found:', currentUser);
+        
+        if (!currentUser || !currentUser.id) {
+            console.error('Current user not found or has no ID');
+            return { success: false, message: 'Current user not found.' };
+        }
+        
+        // Create the share record
+        const { data, error } = await supabase
+            .from('project_shares')
+            .insert([{ 
+                project_id: projectId, 
+                user_id: userId, 
+                shared_by: currentUser.id,
+                shared_at: new Date().toISOString()
+            }]);
+            
+        if (error) {
+            console.error('Error creating project share:', error);
+            return { success: false, message: `Error sharing: ${error.message}` };
+        }
+
+        console.log('Project share created successfully!');
+
+        // Try to send a notification, but don't block on success
+        try {
+            // Get the username of the user who will receive access
+            const { data: userData, error: userDataError } = await supabase
+                .from('Users')
+                .select('username')
+                .eq('id', userId)
+                .single();
+                
+            if (!userDataError && userData && userData.username) {
+                console.log('Recipient user found:', userData);
+                
+                // Get the project name
+                const { data: projectData, error: projectError } = await supabase
+                    .from('projects')
+                    .select('name')
+                    .eq('id', projectId)
+                    .single();
+                    
+                const projectName = projectError || !projectData ? 'a project' : projectData.name;
+                
+                // Create notification content
+                const notificationContent = `${currentUsername} shared the project "${projectName}" with you.`;
+                
+                // Insert notification using the notification system if available
+                if (typeof insertSystemNotification === 'function') {
+                    const result = await insertSystemNotification(
+                        userData.username,
+                        notificationContent,
+                        projectId
+                    );
+                    
+                    if (!result.success) {
+                        console.warn('Notification could not be sent, but project was shared');
+                    } else {
+                        console.log('Notification sent successfully');
+                    }
+                } else {
+                    console.log('Notification system not available, skipping notification');
+                }
+            }
+        } catch (notificationError) {
+            // Log but don't fail if notification fails
+            console.error('Error sending notification:', notificationError);
+        }
+        
+        return { 
+            success: true, 
+            message: 'Project shared successfully!' 
+        };
+    } catch (e) {
+        console.error('Exception in shareProject:', e);
+        return { success: false, message: `Error sharing: ${e.message}` };
+    }
+}
+
+// Function to insert a system notification (simplified version)
+async function insertSystemNotification(receiverUsername, content, projectId = null) {
+    try {
+        console.log('Creating system notification', { receiver: receiverUsername, content, projectId });
+        
+        // Create the notification data
+        const notificationData = {
+            sender: 'system',
+            receiver: receiverUsername,
+            content: content,
+            read: false,
+            is_edited: false,
+            is_deleted: false
+        };
+        
+        // Only add project_id if it's provided and valid
+        if (projectId !== null && projectId !== undefined) {
+            notificationData.project_id = projectId;
+        }
+        
+        // Insert directly into the chat_messages table
+        const { data, error } = await supabase
+            .from('chat_messages')
+            .insert([notificationData]);
+            
+        if (error) {
+            console.error('Failed to insert notification:', error);
+            return { success: false, error };
+        }
+        
+        console.log('Notification inserted successfully');
+        return { success: true, data };
+    } catch (e) {
+        console.error('Exception in insertSystemNotification:', e);
+        return { success: false, error: e };
+    }
+}
