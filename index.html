@@ -468,6 +468,86 @@
             }
         }
         
+        /* iPad mini specific styles */
+        @media only screen and (min-width: 768px) and (max-width: 834px) {
+            .projects-container {
+                max-width: 100%;
+                padding: 0 1rem;
+                overflow: visible;
+            }
+            
+            .project-carousel-wrapper {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                mask-image: none;
+                -webkit-mask-image: none;
+            }
+            
+            .project-carousel {
+                padding: 1rem 0;
+                gap: 1.5rem;
+                min-width: max-content;
+            }
+            
+            .project-card {
+                width: 320px;
+                min-width: 320px;
+            }
+            
+            .scroll-btn {
+                display: flex;
+            }
+            
+            .scroll-left {
+                left: 5px;
+            }
+            
+            .scroll-right {
+                right: 5px;
+            }
+        }
+        
+        /* iPad mini landscape orientation */
+        @media only screen and (min-width: 835px) and (max-width: 1024px) {
+            .projects-container {
+                max-width: 100%;
+                padding: 0 1rem;
+                overflow: visible;
+            }
+            
+            .project-carousel-wrapper {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                mask-image: none;
+                -webkit-mask-image: none;
+            }
+            
+            .project-carousel {
+                padding: 1rem 0;
+                gap: 1.5rem;
+                min-width: max-content;
+            }
+            
+            .project-card {
+                width: 340px;
+                min-width: 340px;
+            }
+            
+            .scroll-btn {
+                display: flex;
+            }
+            
+            .scroll-left {
+                left: 10px;
+            }
+            
+            .scroll-right {
+                right: 10px;
+            }
+        }
+        
         /* Hide navigation arrows on smaller screens like iPhone */
         @media (max-width: 480px) {
             .scroll-btn {
