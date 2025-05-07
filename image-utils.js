@@ -47,11 +47,25 @@ function decodeImageData(imageData, fallbackImage = null) {
 function getCategoryImage(category) {
     // Default category images mapping
     const categoryImageMap = {
+        'rf-telecommunications': 'assets/images/categories/rf-telecommunications.jpg',
+        'energy': 'assets/images/categories/energy.jpg',
+        'construction': 'assets/images/categories/construction.jpg',
+        'banking': 'assets/images/categories/banking.jpg',
+        'sand': 'assets/images/categories/sand.jpg',
+        'oil-gas': 'assets/images/categories/oil-gas.jpg',
+        'real-estate': 'assets/images/categories/real-estate.jpg',
+        'nuclear': 'assets/images/categories/nuclear.jpg',
+        'industrial': 'assets/images/categories/industrial.jpg',
+        'naval': 'assets/images/categories/naval.jpg',
+        'bpo': 'assets/images/categories/bpo.jpg',
+        'automotive': 'assets/images/categories/automotive.jpg',
+        'aerospace': 'assets/images/categories/aerospace.jpg',
+        'chemistry-pharmaceutical': 'assets/images/categories/chemistry-pharmaceutical.jpg',
+        // Legacy categories
         'public': 'assets/images/categories/public.jpg',
         'residential': 'assets/images/categories/residential.jpg',
         'commercial': 'assets/images/categories/commercial.jpg',
         'infrastructure': 'assets/images/categories/infrastructure.jpg',
-        'industrial': 'assets/images/categories/industrial.jpg',
         'institutional': 'assets/images/categories/institutional.jpg',
         // Default fallback image for any other category
         'default': 'assets/images/categories/default.jpg'

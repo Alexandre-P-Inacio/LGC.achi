@@ -3,12 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleapis.com https://*.gstatic.com; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co; frame-src https://www.google.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleapis.com https://*.gstatic.com; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co; frame-src https://www.google.com/ https://www.google.com/maps/;">
     <title>Contact - Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="client-dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Global Presence Section Styles */
+        .global-presence {
+            padding: 80px 0;
+            background-color: #f9f9f9;
+        }
+        
+        .global-presence h2 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2rem;
+            color: #333;
+        }
+        
+        .world-map-container {
+            margin-bottom: 40px;
+        }
+        
+        .world-map {
+            width: 100%;
+            height: 500px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            background-color: #f5f5f5;
+            pointer-events: none; /* Disable all mouse interactions */
+            touch-action: none; /* Disable touch interactions */
+        }
+        
+        .world-map iframe {
+            width: 100%;
+            height: calc(100% + 60px);
+            border: none;
+            margin-top: -60px;
+            pointer-events: none; /* Disable all mouse interactions */
+        }
+        
+        .static-world-map {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .map-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            box-shadow: 0 0 0 rgba(231, 76, 60, 0.4);
+            animation: pulse 2s infinite;
+            z-index: 2;
+        }
+        
+        .map-marker::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background-color: #c0392b;
+            border-radius: 50%;
+        }
+        
+        .map-marker:hover::before {
+            content: attr(data-city) ", " attr(data-country);
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            z-index: 3;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+        
+        /* Location marker positions */
+        .italy-turin { top: 33%; left: 49%; }
+        .italy-milan { top: 32%; left: 48%; }
+        .italy-rome { top: 34%; left: 50%; }
+        .france-paris { top: 31%; left: 45%; }
+        .france-lyon { top: 33%; left: 47%; }
+        .spain-madrid { top: 36%; left: 42%; }
+        .spain-barcelona { top: 35%; left: 44%; }
+        .germany-berlin { top: 29%; left: 50%; }
+        .germany-munich { top: 31%; left: 49%; }
+        .uk-london { top: 28%; left: 44%; }
+        .usa-newyork { top: 33%; left: 26%; }
+        .usa-la { top: 36%; left: 15%; }
+        
+        .locations-list {
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            border-radius: 0;
+            margin-top: 20px;
+            box-shadow: none;
+        }
+        
+        .locations-list h3 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2rem;
+            color: #333;
+            position: relative;
+            padding-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .locations-list h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: #3C3C3C;
+        }
+        
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .location-item {
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            border: none;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .location-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .country-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        
+        .flag {
+            width: 30px;
+            height: 20px;
+            margin-right: 12px;
+            display: inline-block;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .location-item h4 {
+            color: #333;
+            margin: 0;
+            font-size: 1.2rem;
+            border: none;
+            padding: 0;
+            font-weight: 600;
+        }
+        
+        .location-item ul {
+            padding-left: 0;
+            list-style-type: none;
+            margin: 0;
+            flex: 1;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .location-item ul::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .location-item ul::-webkit-scrollbar-thumb {
+            background-color: #ddd;
+            border-radius: 10px;
+        }
+        
+        .location-item ul::-webkit-scrollbar-track {
+            background-color: #f5f5f5;
+        }
+        
+        .location-item li {
+            margin-bottom: 5px;
+            color: #555;
+            position: relative;
+            padding: 3px 0;
+            font-size: 0.9rem;
+        }
+        
+        .location-item li:first-child {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .map-info-window {
+            padding: 8px;
+            min-width: 120px;
+        }
+        
+        .map-info-window h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        
+        .map-info-window p {
+            margin: 0;
+            color: #666;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .world-map {
+                height: 350px;
+            }
+            
+            .locations-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 15px;
+            }
+            
+            .location-item {
+                padding: 15px;
+            }
+            
+            .flag {
+                width: 24px;
+                height: 16px;
+                margin-right: 10px;
+            }
+            
+            .location-item h4 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         window.supabase = supabase;
@@ -55,6 +318,111 @@
                         </div>
                         <h3>Our website</h3>
                         <p><a href="https://lgc.archi">lgc.archi</a></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="global-presence" class="global-presence">
+            <div class="container">
+                <h2>Our Global Presence</h2>
+                <div class="world-map-container">
+                    <div id="worldMap" class="world-map">
+                        <iframe src="https://www.google.com/maps/d/u/0/embed?mid=1442Npvl4ZH0vHXgN9WW86kX-TvQoKAs&ehbc=2E312F&noprof=1&ui=false&z=2&zm=2&zoomControl=0" width="100%" height="500" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+                <div class="locations-list">
+                    <h3>Our Offices</h3>
+                    <div class="locations-grid">
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/italy.png" alt="Italy Flag" class="flag">
+                            <h4>Italy</h4>
+                            </div>
+                            <ul>
+                                <li>Turin (Headquarters)</li>
+                                <li>Milan</li>
+                                <li>Genoa</li>
+                                <li>Mantu</li>
+                                <li>Verona</li>
+                                <li>Venice</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/france.png" alt="France Flag" class="flag">
+                            <h4>France</h4>
+                            </div>
+                            <ul>
+                                <li>Paris</li>
+                                <li>Briancon</li>
+                                <li>Nice</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/spain.png" alt="Spain Flag" class="flag">
+                            <h4>Spain</h4>
+                            </div>
+                            <ul>
+                                <li>Lanzarote</li>
+                                <li>Barcelona</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/switzerland.png" alt="Switzerland Flag" class="flag">
+                                <h4>Switzerland</h4>
+                            </div>
+                            <ul>
+                                <li>Lugano</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/monaco.png" alt="Monaco Flag" class="flag">
+                                <h4>Monaco</h4>
+                            </div>
+                            <ul>
+                                <li>Monte-Carlo</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/uk.png" alt="UK Flag" class="flag">
+                            <h4>United Kingdom</h4>
+                            </div>
+                            <ul>
+                                <li>London</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/usa.png" alt="USA Flag" class="flag">
+                            <h4>United States</h4>
+                            </div>
+                            <ul>
+                                <li>Dallas</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/china.png" alt="China Flag" class="flag">
+                                <h4>China</h4>
+                            </div>
+                            <ul>
+                                <li>Shanghai</li>
+                            </ul>
+                        </div>
+                        <div class="location-item">
+                            <div class="country-header">
+                                <img src="assets/flags/indonesia.png" alt="Indonesia Flag" class="flag">
+                                <h4>Indonesia</h4>
+                            </div>
+                            <ul>
+                                <li>Jakarta</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -263,6 +631,81 @@
             mapViewBtn.classList.remove('active');
             streetView.classList.add('active');
             mapView.classList.remove('active');
+        });
+
+        // World Map functionality
+        function initMaps() {
+            // Initialize the local map and street view
+            
+            // Initialize the world map
+            initWorldMap();
+        }
+        
+        function initWorldMap() {
+            // Company locations - [lat, lng, city, country]
+            const locations = [
+                [45.0703, 7.6869, 'Turin', 'Italy'], // Turin
+                [45.4642, 9.1900, 'Milan', 'Italy'], // Milan
+                [41.9028, 12.4964, 'Rome', 'Italy'], // Rome
+                [48.8566, 2.3522, 'Paris', 'France'], // Paris
+                [45.7640, 4.8357, 'Lyon', 'France'], // Lyon
+                [40.4168, -3.7038, 'Madrid', 'Spain'], // Madrid
+                [41.3851, 2.1734, 'Barcelona', 'Spain'], // Barcelona
+                [52.5200, 13.4050, 'Berlin', 'Germany'], // Berlin
+                [48.1351, 11.5820, 'Munich', 'Germany'], // Munich
+                [51.5074, -0.1278, 'London', 'UK'], // London
+                [40.7128, -74.0060, 'New York', 'USA'], // New York
+                [34.0522, -118.2437, 'Los Angeles', 'USA'] // Los Angeles
+            ];
+            
+            // World map options - centered on Europe
+            const mapOptions = {
+                zoom: 2,
+                center: { lat: 30, lng: 0 },
+                mapTypeId: 'roadmap',
+                styles: [
+                    {
+                        "featureType": "all",
+                        "elementType": "all",
+                        "stylers": [{"saturation": -100}, {"lightness": 30}]
+                    }
+                ]
+            };
+            
+            // Create the map
+            const worldMap = new google.maps.Map(document.getElementById('worldMap'), mapOptions);
+            
+            // Add markers for each location
+            locations.forEach(location => {
+                const marker = new google.maps.Marker({
+                    position: { lat: location[0], lng: location[1] },
+                    map: worldMap,
+                    title: `${location[2]}, ${location[3]}`,
+                    animation: google.maps.Animation.DROP
+                });
+                
+                // Add info window for each marker
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<div class="map-info-window"><h4>${location[2]}</h4><p>${location[3]}</p></div>`
+                });
+                
+                marker.addListener('click', () => {
+                    infoWindow.open(worldMap, marker);
+                });
+            });
+        }
+
+        // World Map marker functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const markers = document.querySelectorAll('.map-marker');
+            markers.forEach(marker => {
+                marker.addEventListener('mouseenter', function() {
+                    // Show tooltip on hover
+                });
+                marker.addEventListener('mouseleave', function() {
+                    // Hide tooltip on mouse leave
+                });
+            });
         });
     </script>
 </body>

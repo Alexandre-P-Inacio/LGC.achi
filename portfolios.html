@@ -34,13 +34,19 @@
     <script>
         // Initialize the Supabase client
         const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
-        
-        // Make Supabase globally accessible
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+    
+        // Initialize Supabase client globally
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Checking supabase:', typeof supabase);
-            if (typeof supabase !== 'undefined') {
-                window.supabase = supabase;
-                console.log('Supabase made globally available');
+            try {
+                if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+                    window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+                    console.log('Supabase client initialized successfully');
+                } else {
+                    console.error('Supabase library loaded but createClient not available');
+                }
+            } catch (error) {
+                console.error('Error initializing Supabase client:', error);
             }
         });
     </script>
@@ -1013,6 +1019,9 @@
             
             // Format category name for display
             function formatCategoryName(category) {
+                if (!category) {
+                    return 'Unknown Category';
+                }
                 return category
                     .split('-')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -1142,6 +1151,10 @@
                             // Create project card
                             const card = document.createElement('div');
                             card.className = 'portfolio-card';
+                            
+                            // Ensure project category is never null
+                            project.category = project.category || 'default';
+                            
                             card.setAttribute('data-category', project.category);
                             card.setAttribute('data-project-id', project.id);
                             
@@ -1276,6 +1289,10 @@
             
             // Function to get category color
             function getCategoryColor(category) {
+                if (!category) {
+                    return '#cccccc'; // Default gray for null/undefined categories
+                }
+                
                 const colors = {
                     'rf-telecommunications': '#3498db',
                     'energy': '#2ecc71',
