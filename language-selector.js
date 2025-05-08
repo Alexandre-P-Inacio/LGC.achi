@@ -30,9 +30,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': 'Show More',
             'show-less': 'Show Less',
             'view-project': 'View Project',
+            'view-details': 'View Details',
             'footer-copyright': '© 2025 Architecture Portfolio. All rights reserved.',
+            'footer-credits': 'Powered by',
             'practices-title': 'Practices',
-            'select-practice': 'Select a practice area below'
+            'select-practice': 'Select a practice area below',
+            'all-categories': 'All Categories',
+            'powered-by': 'Powered by'
         },
         // Spanish translations
         'es': {
@@ -50,9 +54,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': 'Mostrar Más',
             'show-less': 'Mostrar Menos',
             'view-project': 'Ver Proyecto',
+            'view-details': 'Ver Detalles',
             'footer-copyright': '© 2025 Portafolio de Arquitectura. Todos los derechos reservados.',
+            'footer-credits': 'Desarrollado por',
             'practices-title': 'Prácticas',
-            'select-practice': 'Seleccione un área de práctica a continuación'
+            'select-practice': 'Seleccione un área de práctica a continuación',
+            'all-categories': 'Todas las Categorías',
+            'powered-by': 'Desarrollado por'
         },
         // French translations
         'fr': {
@@ -70,14 +78,18 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': 'Voir Plus',
             'show-less': 'Voir Moins',
             'view-project': 'Voir le Projet',
+            'view-details': 'Voir les Détails',
             'footer-copyright': "© 2025 Portfolio d'Architecture. Tous droits réservés.",
+            'footer-credits': 'Propulsé par',
             'practices-title': 'Pratiques',
-            'select-practice': 'Sélectionnez un domaine de pratique ci-dessous'
+            'select-practice': 'Sélectionnez un domaine de pratique ci-dessous',
+            'all-categories': 'Toutes les Catégories',
+            'powered-by': 'Propulsé par'
         },
         // Portuguese translations
         'pt': {
             'nav-home': 'Início',
-            'nav-portfolios': 'Portfólios',
+            'nav-portfolios': 'Portfólios Reservados',
             'nav-about': 'Sobre',
             'nav-contact': 'Contato',
             'login-button': 'Entrar',
@@ -90,9 +102,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': 'Mostrar Mais',
             'show-less': 'Mostrar Menos',
             'view-project': 'Ver Projeto',
+            'view-details': 'Ver Detalhes',
             'footer-copyright': '© 2025 Portfólio de Arquitetura. Todos os direitos reservados.',
+            'footer-credits': 'Desenvolvido por',
             'practices-title': 'Práticas',
-            'select-practice': 'Selecione uma área de prática abaixo'
+            'select-practice': 'Selecione uma área de prática abaixo',
+            'all-categories': 'Todas as Categorias',
+            'powered-by': 'Desenvolvido por'
         },
         // German translations
         'de': {
@@ -110,9 +126,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': 'Mehr anzeigen',
             'show-less': 'Weniger anzeigen',
             'view-project': 'Projekt ansehen',
+            'view-details': 'Details ansehen',
             'footer-copyright': '© 2025 Architektur-Portfolio. Alle Rechte vorbehalten.',
+            'footer-credits': 'Powered by',
             'practices-title': 'Praktiken',
-            'select-practice': 'Wählen Sie unten einen Praxisbereich aus'
+            'select-practice': 'Wählen Sie unten einen Praxisbereich aus',
+            'all-categories': 'Alle Kategorien',
+            'powered-by': 'Bereitgestellt von'
         },
         // Chinese translations
         'zh': {
@@ -130,9 +150,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': '显示更多',
             'show-less': '显示更少',
             'view-project': '查看项目',
+            'view-details': '查看详情',
             'footer-copyright': '© 2025 建筑作品集。保留所有权利。',
+            'footer-credits': '技术支持',
             'practices-title': '业务领域',
-            'select-practice': '请在下方选择业务领域'
+            'select-practice': '请在下方选择业务领域',
+            'all-categories': '所有类别',
+            'powered-by': '技术支持'
         },
         // Italian translations
         'it': {
@@ -150,9 +174,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': 'Mostra di più',
             'show-less': 'Mostra meno',
             'view-project': 'Visualizza Progetto',
+            'view-details': 'Visualizza Dettagli',
             'footer-copyright': '© 2025 Portfolio di Architettura. Tutti i diritti riservati.',
+            'footer-credits': 'Realizzato da',
             'practices-title': 'Pratiche',
-            'select-practice': "Seleziona un'area di pratica qui sotto"
+            'select-practice': "Seleziona un'area di pratica qui sotto",
+            'all-categories': 'Tutte le Categorie',
+            'powered-by': 'Realizzato da'
         },
         // Arabic translations (right-to-left language)
         'ar': {
@@ -170,9 +198,13 @@ document.addEventListener('DOMContentLoaded', function() {
             'show-more': 'عرض المزيد',
             'show-less': 'عرض أقل',
             'view-project': 'عرض المشروع',
+            'view-details': 'عرض التفاصيل',
             'footer-copyright': '© 2025 معرض أعمال الهندسة المعمارية. جميع الحقوق محفوظة.',
+            'footer-credits': 'بواسطة',
             'practices-title': 'مجالات العمل',
-            'select-practice': 'اختر مجال عمل أدناه'
+            'select-practice': 'اختر مجال عمل أدناه',
+            'all-categories': 'جميع الفئات',
+            'powered-by': 'تم التطوير بواسطة'
         }
     };
 
@@ -192,9 +224,12 @@ document.addEventListener('DOMContentLoaded', function() {
         '.show-more-text': 'show-more',
         '.show-less-text': 'show-less',
         '.view-project-btn': 'view-project',
-        '.footer-content p': 'footer-copyright',
+        '.view-button': 'view-details',
+        '.footer-content > p:first-of-type': 'footer-copyright',
+        '.powered-by p': 'footer-credits',
         '.dashboard-popup-header h2': 'practices-title',
-        '.dashboard-popup-content p': 'select-practice'
+        '.dashboard-popup-content p': 'select-practice',
+        '.filter-button[data-filter="all"]': 'all-categories'
     };
 
     // Load translations when the page loads
@@ -209,7 +244,28 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.forEach(element => {
                 // Only translate if we have a translation
                 if (currentTranslations[key]) {
-                    element.innerText = currentTranslations[key];
+                    // Special handling for footer credits to preserve the links
+                    if (key === 'footer-credits') {
+                        // Find all text nodes in the element
+                        const walker = document.createTreeWalker(
+                            element,
+                            NodeFilter.SHOW_TEXT,
+                            null,
+                            false
+                        );
+                        
+                        let textNode;
+                        // Find first non-empty text node (should be "Powered by")
+                        while (textNode = walker.nextNode()) {
+                            if (textNode.nodeValue.trim()) {
+                                // Replace just the "Powered by" text while preserving whitespace
+                                textNode.nodeValue = textNode.nodeValue.replace(/Powered by|Desarrollado por|Propulsé par|Desenvolvido por|Realizzato da|技术支持|بواسطة/, currentTranslations[key]);
+                                break;
+                            }
+                        }
+                    } else {
+                        element.innerText = currentTranslations[key];
+                    }
                 }
             });
         }
@@ -258,14 +314,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add click event for language selection
                 option.addEventListener('click', function() {
+                    // Skip if already the current language
+                    if (lang.code === currentLangCode) {
+                        languageSelector.classList.remove('active');
+                        return;
+                    }
+                    
                     // Update button with selected language
                     languageButton.innerHTML = `<img src="${lang.flag}" alt="${lang.name}">`;
                     
                     // Close dropdown
                     languageSelector.classList.remove('active');
                     
-                    // Handle language change
-                    changeLanguage(lang.code);
+                    // Handle language change - with user interaction flag set to true
+                    changeLanguage(lang.code, true);
                 });
                 
                 dropdown.appendChild(option);
@@ -335,13 +397,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Initialize with stored language or default
             const savedLanguage = localStorage.getItem('selectedLanguage');
             if (savedLanguage) {
-                changeLanguage(savedLanguage);
+                // Apply translations without reloading (false = not user-initiated)
+                changeLanguage(savedLanguage, false);
             }
         }
     }, 300);
     
     // Function to change language
-    function changeLanguage(langCode) {
+    function changeLanguage(langCode, isUserAction) {
         // Store selected language
         localStorage.setItem('selectedLanguage', langCode);
         
@@ -349,5 +412,10 @@ document.addEventListener('DOMContentLoaded', function() {
         applyTranslations(langCode);
         
         console.log(`Language changed to: ${langCode}`);
+        
+        // Reload the page ONLY if this is a user-initiated action, not on page load
+        if (isUserAction === true) {
+            window.location.reload();
+        }
     }
 }); 

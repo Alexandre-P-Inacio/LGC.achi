@@ -69,7 +69,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'edit-permission': 'Edit',
             'shared-with': 'Shared with:',
             'password': 'Password',
-            'keep-current-password': 'Leave blank to keep current password when editing'
+            'keep-current-password': 'Leave blank to keep current password when editing',
+            'powered-by': 'Powered by'
         },
         // Italian translations
         'it': {
@@ -132,7 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'edit-permission': 'Modifica',
             'shared-with': 'Condiviso con:',
             'password': 'Password',
-            'keep-current-password': 'Lascia vuoto per mantenere la password attuale durante la modifica'
+            'keep-current-password': 'Lascia vuoto per mantenere la password attuale durante la modifica',
+            'powered-by': 'Realizzato da'
         }
     };
 
@@ -171,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         'th:contains("ACTIONS")': 'actions',
         '.loading-spinner p': 'loading',
         '.footer-content p': 'footer-copyright',
+        '.powered-by p': 'powered-by',
         '#modal-file-title': 'file-preview',
         '#download-button': 'download',
         '#zoom-in-button': 'zoom-in',

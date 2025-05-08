@@ -756,6 +756,9 @@
                 <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
             </div>
             <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
+            <div class="powered-by" style="opacity: 1 !important; visibility: visible !important;">
+                <p style="opacity: 1 !important; visibility: visible !important;">Powered by <a href="https://www.linkedin.com/in/alexandre-in%C3%A1cio-56ab342a4/" target="_blank" style="opacity: 1 !important; visibility: visible !important;">Alexandre Inácio</a> & <a href="https://www.linkedin.com/in/pedro-jesus-9b3336333/" target="_blank" style="opacity: 1 !important; visibility: visible !important;">Pedro Jesus</a></p>
+            </div>
         </div>
     </footer>
     
@@ -887,11 +890,12 @@
                 
                 console.log('Fetching featured projects from database...');
                 
-                // Fetch featured projects from the database
+                // Fetch featured projects from the database - ordered by featured_order first, then created_at
                 const { data: featuredProjects, error } = await window.supabase
                     .from('projects')
                     .select('*')
                     .eq('is_featured', true)
+                    .order('featured_order', { ascending: true, nullsLast: true })
                     .order('created_at', { ascending: false });
                 
                 if (error) {

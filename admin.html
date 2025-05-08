@@ -7,7 +7,6 @@
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="language-selector.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- jQuery required for Turn.js -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -25,7 +24,6 @@
     </script>
     <script src="auth.js" defer></script>
     <script src="admin.js" defer></script>
-    <script src="language-selector-admin.js" defer></script>
     <style>
         :root {
             --primary-color: #333;
@@ -1380,44 +1378,200 @@
         }
 
         /* Featured star styling */
+        .star-button {
+            position: relative;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .star-button .fa-star {
             color: #ccc;
             transition: color 0.3s;
+            font-size: 28px;  /* Even larger star */
         }
 
         .star-button.featured .fa-star {
             color: #FFD700; /* Gold/yellow color for featured projects */
         }
 
-        /* Language selector styles for admin dashboard */
-        .lang-selector-wrapper {
+        .star-number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -45%);
+            font-size: 13px;
+            font-weight: 900;
+            color: #000;
+            line-height: 1;
+            text-shadow: 
+                0 0 3px white,
+                0 0 3px white,
+                0 0 3px white;
+            z-index: 5;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
             display: flex;
             align-items: center;
-            margin-left: auto; /* Empurra para a direita */
+            justify-content: center;
         }
-        
-        .mobile-language-selector {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 15px;
+
+        /* Order badge styling */
+        .order-badge {
+            background-color: #FFD700;
+            color: #333;
+            border-radius: 12px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 5px;
         }
-        
-        .mobile-language-option {
+
+        /* Featured order dropdown styling */
+        .featured-order-dropdown {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+
+        .order-label {
+            margin-right: 4px;
+            color: #666;
+            font-size: 11px;
+        }
+
+        .featured-order-dropdown select {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 12px;
+            color: #333;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            background-size: 12px;
+            padding-right: 20px;
+            cursor: pointer;
+            width: 45px;
+            text-align: center;
+        }
+
+        .featured-order-dropdown select:hover {
+            border-color: #bbb;
+        }
+
+        .featured-order-dropdown select:focus {
+            outline: none;
+            border-color: #777;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        /* Mobile view optimizations for featured order dropdown */
+        @media (max-width: 768px) {
+            .featured-order-dropdown {
+                margin-top: 5px;
+            }
+            
+            .featured-order-dropdown select {
+                width: 100%;
+                padding: 6px 8px;
+            }
+        }
+
+        /* Table header alignment to match content */
+        .projects-table thead th:nth-child(2) {
+            text-align: center;
+        }
+
+        .projects-table thead th:nth-child(3) {
+            text-align: right;
+        }
+
+        .projects-table td:nth-child(3), .projects-table th:nth-child(3) {
+            text-align: center;
+        }
+
+        /* Featured actions container */
+        .featured-actions {
             display: flex;
             align-items: center;
-            padding: 8px 0;
+            gap: 5px;
+        }
+
+        /* Mobile view optimizations for featured order dropdown */
+        @media (max-width: 768px) {
+            .featured-order-dropdown {
+                margin-top: 5px;
+            }
+            
+            .featured-order-dropdown select {
+                width: 100%;
+                padding: 6px 8px;
+            }
+        }
+
+        /* Position buttons grid styling */
+        .position-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .position-button {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .position-button:hover {
+            background-color: #e9e9e9;
+            border-color: #ccc;
+            transform: scale(1.05);
+        }
+
+        .position-button.selected {
+            background-color: #333;
             color: white;
-            text-decoration: none;
-            font-size: 14px;
+            border-color: #222;
+            transform: scale(1.1);
         }
-        
-        .mobile-language-option img {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            border-radius: 3px;
+
+        .position-button.used {
+            background-color: #f5f5f5;
+            color: #aaa;
+            border-color: #ddd;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .featured-position-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
         }
     </style>
 </head>
@@ -1583,6 +1737,9 @@
     <footer>
         <div class="footer-content">
             <p>&copy; 2025 Architecture Portfolio Admin. All rights reserved.</p>
+            <div class="powered-by" style="opacity: 1 !important; visibility: visible !important;">
+                <p style="opacity: 1 !important; visibility: visible !important;">Powered by <a href="https://www.linkedin.com/in/alexandre-in%C3%A1cio-56ab342a4/" target="_blank" style="opacity: 1 !important; visibility: visible !important;">Alexandre Inácio</a> & <a href="https://www.linkedin.com/in/pedro-jesus-9b3336333/" target="_blank" style="opacity: 1 !important; visibility: visible !important;">Pedro Jesus</a></p>
+            </div>
         </div>
     </footer>
 
@@ -1743,6 +1900,33 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Featured Position Modal -->
+    <div id="featured-position-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Set Featured Position</h3>
+                <button class="close-modal" onclick="closeFeaturedPositionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="featured-project-id">
+                <p>Select the position for this featured project on the homepage:</p>
+                <div class="position-buttons-grid">
+                    <button class="position-button" data-position="1">1</button>
+                    <button class="position-button" data-position="2">2</button>
+                    <button class="position-button" data-position="3">3</button>
+                    <button class="position-button" data-position="4">4</button>
+                    <button class="position-button" data-position="5">5</button>
+                    <button class="position-button" data-position="6">6</button>
+                </div>
+                <div class="featured-position-footer">
+                    <button class="cancel-button" onclick="closeFeaturedPositionModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
             </div>
         </div>
     </div>
