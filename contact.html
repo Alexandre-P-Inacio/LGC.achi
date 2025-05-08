@@ -620,23 +620,14 @@
             const subject = document.getElementById('subject').value;
             const message = document.getElementById('message').value;
             
-            // Format the email body with better formatting but without line breaks that cause <BR> tags
-            const bodyParts = [
-                `Dear LGC Team,`,
-                ``,
-                `I'm ${name} and I'd like to get in touch regarding:`,
-                `${subject}`,
-                ``,
-                `Message:`,
-                `${message}`,
-                ``,
-                `Best regards,`,
-                `${name}`
-            ];
+            // Create a single line email body
+            const bodyText = "Dear LGC Team, I'm " + encodeURIComponent(name) + 
+                           " and I'd like to get in touch regarding: " + encodeURIComponent(subject) + 
+                           ". Message: " + encodeURIComponent(message) + 
+                           ". Best regards, " + encodeURIComponent(name);
             
-            // Create mailto link with properly encoded line breaks
-            const encodedBody = encodeURIComponent(bodyParts.join('\r\n'));
-            const mailtoLink = `mailto:info@lgcingegneria.com?subject=${encodeURIComponent(`LGC Contact: ${subject}`)}&body=${encodedBody}`;
+            // Create mailto link without line breaks
+            const mailtoLink = `mailto:info@lgcingegneria.com?subject=${encodeURIComponent(`LGC Contact: ${subject}`)}&body=${bodyText}`;
             
             // Open default email client
             window.location.href = mailtoLink;

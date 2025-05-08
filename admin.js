@@ -245,7 +245,7 @@ async function loadProjects(page = 1, filters = {}) {
         // Prepare query
         let query = supabase
             .from('projects')
-            .select('id, name, category, status, file_url, created_at', { count: 'exact' })
+            .select('id, name, category, status, file_url, created_at, is_featured', { count: 'exact' })
             .order('created_at', { ascending: false });
         
         // Apply filters on the server side when possible
@@ -429,6 +429,9 @@ function updateProjectsTable(projects) {
         // Escape project name for safety
         const safeProjectName = (project.name || 'Unnamed Project').replace(/'/g, '&#39;');
         
+        // Check if project is featured
+        const isFeatured = project.is_featured === true;
+        
         if (isMobile) {
             // MOBILE: Build mobile row HTML
             tableHTML += `
@@ -443,22 +446,27 @@ function updateProjectsTable(projects) {
                                 <button class="action-button edit-button" onclick="window.location.href='project-form.html?id=${project.id}'" title="Edit"><i class="fas fa-edit"></i></button>
                                 <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
                                 <button class="action-button share-button" onclick="showShareModal('${project.id}', '${safeProjectName}')" title="Share Access"><i class="fas fa-share-alt"></i></button>
-                                <button class="action-button star-button ${project.is_starred ? 'starred' : ''}" onclick="toggleStarProject('${project.id}')" title="Star Project"><i class="fas fa-star"></i></button>
+                                <button class="action-button star-button ${isFeatured ? 'featured' : ''}" onclick="toggleFeaturedStatus('${project.id}', ${!isFeatured})" title="${isFeatured ? 'Remove from Featured' : 'Add to Featured'}"><i class="fas fa-star"></i></button>
                             </div>
                         </div>
-                        
-                        <div class="project-details-mobile" style="display: none; padding: 15px; background: rgba(0,0,0,0.01); margin-top: 10px; border-radius: 8px;">
-                            <div class="detail-row">
-                                <strong>Category:</strong> <span class="category-badge">${categoryDisplay}</span>
-                            </div>
-                            <div class="detail-row">
-                                <strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText}</span>
-                            </div>
-                            <div class="detail-row">
-                                <strong>File:</strong> ${fileLink}
-                            </div>
-                            <div class="detail-row">
-                                <strong>Created:</strong> ${createdDate}
+                        <div class="project-details" style="display: none; padding-top: 15px; border-top: 1px solid #eee; margin-top: 15px;">
+                            <div class="mobile-grid">
+                                <div class="mobile-details-row">
+                                    <div class="mobile-label">Category</div>
+                                    <div class="mobile-value"><span class="category-badge">${categoryDisplay}</span></div>
+                                </div>
+                                <div class="mobile-details-row">
+                                    <div class="mobile-label">Status</div>
+                                    <div class="mobile-value"><span class="status-badge ${statusClass}">${statusText}</span></div>
+                                </div>
+                                <div class="mobile-details-row">
+                                    <div class="mobile-label">File</div>
+                                    <div class="mobile-value">${fileLink}</div>
+                                </div>
+                                <div class="mobile-details-row">
+                                    <div class="mobile-label">Created</div>
+                                    <div class="mobile-value">${createdDate}</div>
+                                </div>
                             </div>
                         </div>
                     </td>
@@ -479,7 +487,7 @@ function updateProjectsTable(projects) {
                             <button class="action-button edit-button" onclick="window.location.href='project-form.html?id=${project.id}'" title="Edit"><i class="fas fa-edit"></i></button>
                             <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
                             <button class="action-button share-button" onclick="showShareModal('${project.id}', '${safeProjectName}')" title="Share Access"><i class="fas fa-share-alt"></i></button>
-                            <button class="action-button star-button ${project.is_starred ? 'starred' : ''}" onclick="toggleStarProject('${project.id}')" title="Star Project"><i class="fas fa-star"></i></button>
+                            <button class="action-button star-button ${isFeatured ? 'featured' : ''}" onclick="toggleFeaturedStatus('${project.id}', ${!isFeatured})" title="${isFeatured ? 'Remove from Featured' : 'Add to Featured'}"><i class="fas fa-star"></i></button>
                         </div>
                     </td>
                 </tr>
