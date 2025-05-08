@@ -139,9 +139,9 @@
         /* Project Carousel */
         .projects-container {
             position: relative;
-            max-width: 1320px; /* Exact width for 3 cards: 3 x 400px + 2 x 32px gaps + padding */
+            max-width: 1320px; /* Volta para o tamanho original mais largo */
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 60px; /* Mantém padding para os botões de navegação */
             display: flex;
             align-items: center;
             overflow: visible;
@@ -155,8 +155,7 @@
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none; /* IE and Edge */
             cursor: grab;
-            mask-image: linear-gradient(to right, transparent 0%, black 0%, black 100%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 0%, black 100%, transparent 100%);
+            padding: 10px;
         }
         
         /* Hide scrollbar */
@@ -166,18 +165,61 @@
         
         .project-carousel {
             display: flex;
-            gap: 2rem;
-            padding: 1rem 0.5rem;
+            gap: 32px; /* Aumenta o espaçamento entre os cartões */
+            padding: 1rem 0;
             min-width: max-content;
-            justify-content: flex-start;
+            justify-content: center; /* Centraliza os cartões */
             margin: 0 auto;
         }
         
-        /* Add initial padding to center the first 3 cards */
+        /* Project Card */
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            flex: 0 0 auto;
+            width: 380px; /* Aumenta largura para garantir conteúdo completo */
+            min-width: 380px;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            margin-right: 0;
+        }
+        
+        /* Melhorar o posicionamento dos botões */
+        .scroll-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: 1px solid #ddd;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 20; /* Aumentado para garantir que esteja acima de outros elementos */
+            font-size: 1.2rem;
+        }
+        
+        .scroll-left {
+            left: 5px;
+        }
+        
+        .scroll-right {
+            right: 5px;
+        }
+        
+        /* Desktop view optimizations */
         @media (min-width: 1200px) {
-            .project-carousel-wrapper {
-                overflow: hidden;
-                padding: 0;
+            .projects-container {
+                max-width: 1320px; /* Largo o suficiente para 3 cartões de 380px + gaps */
             }
             
             .project-carousel {
@@ -205,44 +247,41 @@
         }
         
         /* Scroll Buttons */
-        .scroll-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: white;
-            color: #333;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            opacity: 0.9;
-        }
-        
         .scroll-btn:hover {
             background-color: #333;
             color: white;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
             opacity: 1;
         }
         
         .scroll-btn:focus {
             outline: none;
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
+        }
+        
+        /* Estilo para botões desabilitados mas ainda visíveis */
+        .scroll-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f5f5f5;
+            color: #999;
+        }
+        
+        /* Garante que os botões permaneçam visíveis em telas menores */
+        @media (max-width: 768px) {
+            .scroll-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
         }
         
         .scroll-left {
-            left: -25px;
+                left: 5px;
         }
         
         .scroll-right {
-            right: -25px;
+                right: 5px;
+            }
         }
         
         /* Hide scroll buttons when not needed */
@@ -258,9 +297,9 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             flex: 0 0 auto;
-            width: 400px; /* Fixed width for all cards */
+            width: 370px; /* Reduzido ligeiramente para garantir que 3 cards caibam */
             min-width: 350px;
-            max-width: 400px;
+            max-width: 370px;
             display: flex;
             flex-direction: column;
             margin-right: 0;
@@ -843,8 +882,13 @@
             
             // Load featured projects
             loadFeaturedProjects();
+            initCarousel(); // Inicializar o carrossel logo no carregamento da página
+            initSlideshow();
+        });
             
-            
+        document.addEventListener('projectsLoaded', function() {
+            console.log('Projects loaded event detected, reinitializing carousel');
+            setTimeout(initCarousel, 300); // Aumento do delay para garantir que os elementos estejam renderizados
         });
         
         // Function to check for unread notifications and show the indicator
@@ -1077,523 +1121,144 @@
                 document.querySelectorAll('.view-project-btn').forEach(button => {
                     button.addEventListener('click', function(e) {
                         e.preventDefault();
+                        
                         const fileUrl = this.getAttribute('data-file-url');
                         const fileName = this.getAttribute('data-file-name');
-                        const projectId = this.getAttribute('data-project-id');
                         
                         if (fileUrl) {
-                            // Show file directly in modal
                             showFileInModal(fileUrl, fileName);
                         } else {
-                            // Fallback to the portfolios page if no file is available
-                            window.location.href = `portfolios.html?project=${projectId}`;
+                            alert('No file available for this project');
                         }
                     });
                 });
-                
-                // Hide right button if 3 or fewer projects
-                if (featuredProjects.length <= 3) {
-                    document.getElementById('scroll-right').classList.add('hidden');
-                }
-                
-                // Initialize carousel functionality
-                initCarousel();
                 
                 // Force reset scroll position to start
                 if (carouselWrapper) {
                     carouselWrapper.scrollLeft = 0;
                 }
                 
+                // Dispatch event for translation system
+                document.dispatchEvent(new CustomEvent('projectsLoaded'));
+                
+                // Inicializar o carrossel com delay para garantir que todos os elementos estejam renderizados
+                setTimeout(function() {
+                    console.log('Reinicializando carrossel após carregamento dos projetos');
+                    // Chamar a função de inicialização do carrossel
+                    initCarousel();
+                }, 300);
+                
+                console.log('Featured projects fully loaded and event handlers attached');
             } catch (error) {
-                console.error('Error in loadFeaturedProjects:', error);
+                console.error('Error loading featured projects:', error);
                 const projectsContainer = document.getElementById('featured-projects-container');
                 projectsContainer.innerHTML = `
-                    <p class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Failed to load featured projects. Please try again later.<br>
-                        <small>Error: ${error.message}</small>
-                    </p>
+                    <div class="error-message">
+                        <h3>Error Loading Projects</h3>
+                        <p>${error.message || 'An unexpected error occurred'}</p>
+                    </div>
                 `;
-                
-                // Hide scroll buttons if error
-                document.getElementById('scroll-left').classList.add('hidden');
-                document.getElementById('scroll-right').classList.add('hidden');
             }
         }
         
         // Initialize carousel functionality
         function initCarousel() {
-            const carouselWrapper = document.querySelector('.project-carousel-wrapper');
-            const carousel = document.getElementById('featured-projects-container');
-            const leftBtn = document.getElementById('scroll-left');
-            const rightBtn = document.getElementById('scroll-right');
+            console.log('Initializing carousel with jQuery...');
             
-            if (!carousel || !carouselWrapper || !leftBtn || !rightBtn) return;
+            // Elementos do carrossel
+            const $wrapper = $('.project-carousel-wrapper');
+            const $carousel = $('#featured-projects-container');
+            const $leftBtn = $('#scroll-left');
+            const $rightBtn = $('#scroll-right');
+            const $cards = $('.project-card');
             
-            const cards = carousel.querySelectorAll('.project-card');
-            
-            // If we have 3 or fewer cards, hide navigation buttons
-            if (cards.length <= 3) {
-                leftBtn.classList.add('hidden');
-                rightBtn.classList.add('hidden');
+            if ($cards.length === 0) {
+                console.log('Nenhum cartão de projeto encontrado, saindo...');
                 return;
             }
             
-            // Show navigation buttons
-            leftBtn.classList.remove('hidden');
-            rightBtn.classList.remove('hidden');
+            console.log(`Carrossel inicializado com ${$cards.length} projetos`);
             
-            // Center the carousel to show exactly 3 cards
-            const containerWidth = carouselWrapper.clientWidth;
-            const cardWidth = cards[0].offsetWidth;
-            const gap = 32; // 2rem gap
-            const scrollAmount = cardWidth + gap;
-            
-            // Ensure scroll snapping to cards
-            carouselWrapper.style.scrollSnapType = 'x mandatory';
-            cards.forEach(card => {
-                card.style.scrollSnapAlign = 'center';
-            });
-            
-            // Disable left button initially (we're showing the first 3 cards)
-            leftBtn.disabled = true;
-            leftBtn.style.opacity = '0.5';
-            
-            // Scroll left/right with buttons - scroll exactly one card
-            leftBtn.addEventListener('click', () => {
-                carouselWrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            });
-            
-            rightBtn.addEventListener('click', () => {
-                carouselWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-            });
-            
-            // Only implement drag-to-scroll on larger screens
-            // On mobile, use native scrolling
-            if (window.innerWidth > 768) {
-                let isDown = false;
-                let startX;
-                let scrollLeft;
-                
-                // Mouse events for desktop
-                carouselWrapper.addEventListener('mousedown', (e) => {
-                    isDown = true;
-                    carouselWrapper.style.cursor = 'grabbing';
-                    startX = e.pageX - carouselWrapper.offsetLeft;
-                    scrollLeft = carouselWrapper.scrollLeft;
-                    e.preventDefault();
+            // Se temos 3 ou menos cards, centralizar e esconder botões de navegação
+            if ($cards.length <= 3) {
+                $leftBtn.hide();
+                $rightBtn.hide();
+                $carousel.css({
+                    'justify-content': 'center',
+                    'margin': '0 auto'
                 });
-                
-                carouselWrapper.addEventListener('mouseleave', () => {
-                    isDown = false;
-                    carouselWrapper.style.cursor = 'grab';
-                });
-                
-                carouselWrapper.addEventListener('mouseup', () => {
-                    isDown = false;
-                    carouselWrapper.style.cursor = 'grab';
-                });
-                
-                carouselWrapper.addEventListener('mousemove', (e) => {
-                    if (!isDown) return;
-                    e.preventDefault();
-                    const x = e.pageX - carouselWrapper.offsetLeft;
-                    const walk = (x - startX) * 2; // Scroll speed multiplier
-                    carouselWrapper.scrollLeft = scrollLeft - walk;
-                });
-                
-                // Touch events for tablets
-                carouselWrapper.addEventListener('touchstart', (e) => {
-                    isDown = true;
-                    startX = e.touches[0].pageX - carouselWrapper.offsetLeft;
-                    scrollLeft = carouselWrapper.scrollLeft;
-                });
-                
-                carouselWrapper.addEventListener('touchend', () => {
-                    isDown = false;
-                });
-                
-                carouselWrapper.addEventListener('touchcancel', () => {
-                    isDown = false;
-                });
-                
-                carouselWrapper.addEventListener('touchmove', (e) => {
-                    if (!isDown) return;
-                    const x = e.touches[0].pageX - carouselWrapper.offsetLeft;
-                    const walk = (x - startX) * 2;
-                    carouselWrapper.scrollLeft = scrollLeft - walk;
-                    
-                    // Don't prevent default on smaller screens to allow natural scrolling
-                    if (window.innerWidth > 768) {
-                        e.preventDefault(); // Prevent page scroll only on larger screens
-                    }
-                });
+                return;
             }
             
-            // Update button states on scroll
-            carouselWrapper.addEventListener('scroll', () => {
-                const scrollPosition = carouselWrapper.scrollLeft;
-                const maxScroll = carouselWrapper.scrollWidth - carouselWrapper.clientWidth;
+            // Mostrar os botões
+            $leftBtn.show();
+            $rightBtn.show();
+            
+            // Calcular o tamanho de um card individual com seu gap
+            const cardWidth = $cards.first().outerWidth(true);
+            const gap = 32; // Valor atualizado do gap entre os cards
+            const singleCardWidth = cardWidth + gap; // Largura de um único card com seu espaço
+            
+            // Certificar que o layout inicial mostra exatamente 3 cartões
+            $wrapper.scrollLeft(0);
+            
+            // Configurar índice atual
+            let currentIndex = 0;
+            const maxIndex = $cards.length - 3; // Número máximo de movimentos (cards totais menos os 3 visíveis)
+            
+            // Função para atualizar a navegação
+            function updateNavigation() {
+                // Desativar botão esquerdo no início
+                if (currentIndex <= 0) {
+                    $leftBtn.prop('disabled', true).css('opacity', 0.5);
+                } else {
+                    $leftBtn.prop('disabled', false).css('opacity', 1);
+                }
                 
-                // Enable/disable buttons based on scroll position
-                leftBtn.disabled = scrollPosition <= 0;
-                leftBtn.style.opacity = scrollPosition <= 0 ? '0.5' : '0.9';
-                
-                rightBtn.disabled = scrollPosition >= maxScroll;
-                rightBtn.style.opacity = scrollPosition >= maxScroll ? '0.5' : '0.9';
+                // Desativar botão direito no final
+                if (currentIndex >= maxIndex) {
+                    $rightBtn.prop('disabled', true).css('opacity', 0.5);
+                } else {
+                    $rightBtn.prop('disabled', false).css('opacity', 1);
+                }
+            }
+            
+            // Remover manipuladores de eventos anteriores
+            $leftBtn.off('click');
+            $rightBtn.off('click');
+            $wrapper.off('scroll');
+            
+            // Adicionar novos manipuladores de eventos
+            $leftBtn.on('click', function() {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    $wrapper.animate({
+                        scrollLeft: currentIndex * singleCardWidth
+                    }, 300);
+                    updateNavigation();
+                }
+                return false;
             });
+            
+            $rightBtn.on('click', function() {
+                if (currentIndex < maxIndex) {
+                    currentIndex++;
+                    $wrapper.animate({
+                        scrollLeft: currentIndex * singleCardWidth
+                    }, 300);
+                    updateNavigation();
+                }
+                return false;
+            });
+            
+            // Atualizar navegação inicialmente
+            updateNavigation();
+            
+            console.log('Carrossel jQuery inicializado com sucesso!');
         }
     </script>
     
     <!-- Novo script para substituir o slideshow -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Função para substituir completamente as bolinhas
-            function corrigirBolinhas() {
-                console.log("Substituindo bolinhas para forçar cor branca...");
-                
-                // Remover container de bolinhas existente
-                const dotsContainer = document.querySelector('.slideshow-dots');
-                if (dotsContainer) {
-                    dotsContainer.remove();
-                }
-                
-                // Criar um novo container de bolinhas
-                const novoContainer = document.createElement('div');
-                novoContainer.className = 'slideshow-dots';
-                novoContainer.style.cssText = `
-                    position: absolute;
-                    bottom: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    display: flex;
-                    gap: 10px;
-                    z-index: 999;
-                `;
-                
-                // Obter o número de slides
-                const slides = document.querySelectorAll('.hero-slide');
-                
-                // Criar as novas bolinhas
-                for (let i = 0; i < slides.length; i++) {
-                    const novaBolinha = document.createElement('div');
-                    novaBolinha.setAttribute('data-slide', i);
-                    
-                    // Estilo base - bolinhas cinzas
-                    novaBolinha.style.cssText = `
-                        width: 12px;
-                        height: 12px;
-                        border-radius: 50%;
-                        background-color: rgba(255, 255, 255, 0.5);
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                    `;
-                    
-                    // A primeira bolinha começa branca
-                    if (i === 0) {
-                        novaBolinha.classList.add('active');
-                        novaBolinha.style.backgroundColor = '#ffffff';
-                        novaBolinha.style.transform = 'scale(1.2)';
-                    }
-                    
-                    // Adicionar evento de clique que ativa o slideshow nessa posição
-                    novaBolinha.addEventListener('click', function() {
-                        const dots = document.querySelectorAll('.slideshow-dots > div');
-                        const index = parseInt(this.getAttribute('data-slide'));
-                        
-                        // Atualizar todas as bolinhas
-                        dots.forEach((dot, idx) => {
-                            if (idx === index) {
-                                dot.classList.add('active');
-                                dot.style.backgroundColor = '#ffffff';
-                                dot.style.transform = 'scale(1.2)';
-                            } else {
-                                dot.classList.remove('active');
-                                dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-                                dot.style.transform = 'scale(1)';
-                            }
-                        });
-                        
-                        // Usando o slidesFunction para mudar o slide (será definido depois)
-                        if (window.goToSlide) {
-                            window.goToSlide(index);
-                        }
-                    });
-                    
-                    novoContainer.appendChild(novaBolinha);
-                }
-                
-                // Adicionar o container ao hero
-                const heroSection = document.getElementById('hero');
-                heroSection.appendChild(novoContainer);
-                
-                return novoContainer.querySelectorAll('div');
-            }
-            
-            // Criar função global para atualizar as bolinhas - será chamada pelo slideshow
-            window.atualizarBolinhas = function(index) {
-                const dots = document.querySelectorAll('.slideshow-dots > div');
-                
-                dots.forEach((dot, i) => {
-                    if (i === index) {
-                        dot.classList.add('active');
-                        dot.style.backgroundColor = '#ffffff';
-                        dot.style.transform = 'scale(1.2)';
-                    } else {
-                        dot.classList.remove('active');
-                        dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-                        dot.style.transform = 'scale(1)';
-                    }
-                });
-            };
-            
-            // SLIDESHOW COM EFEITO DE SLIDE HORIZONTAL - SEM AUTOROTAÇÃO
-            // Desativar a função initSlideshow original que está causando problemas
-            if (window.initSlideshow) {
-                window.originalInitSlideshow = window.initSlideshow;
-                window.initSlideshow = function() { 
-                    console.log('Função original desativada');
-                };
-            }
-            
-            // Implementação simplificada com suporte a drag e efeito slide
-            function novoSlideshow() {
-                console.log('Inicializando slideshow com bolinhas forçadamente brancas');
-                const slideContainer = document.querySelector('.hero-slideshow');
-                const slides = document.querySelectorAll('.hero-slide');
-                
-                if (!slides.length) return;
-                
-                // Criar novas bolinhas no DOM
-                const dots = corrigirBolinhas();
-                
-                // Configuração inicial
-                let currentIndex = 0;
-                let isDragging = false;
-                let startX = 0;
-                let currentTranslate = 0;
-                let prevTranslate = 0;
-                let animationID = 0;
-                let isChanging = false;
-                
-                // Inicializar estado
-                slides.forEach((slide, index) => {
-                    // Limpar classes existentes
-                    slide.classList.remove('active');
-                    
-                    // Resetar estilos
-                    slide.style.position = 'absolute';
-                    slide.style.left = '0';
-                    slide.style.top = '0';
-                    slide.style.width = '100%';
-                    slide.style.height = '100%';
-                    slide.style.transform = `translateX(${100 * index}%)`;
-                    slide.style.transition = 'none';
-                    slide.style.opacity = '1';
-                    slide.style.zIndex = '1';
-                });
-                
-                // Configurar container
-                slideContainer.style.position = 'absolute';
-                slideContainer.style.top = '0';
-                slideContainer.style.left = '0';
-                slideContainer.style.width = '100%';
-                slideContainer.style.height = '100%';
-                slideContainer.style.overflow = 'hidden';
-                slideContainer.style.touchAction = 'none';
-                slideContainer.style.cursor = 'grab';
-                
-                // Criar elemento wrapper para manipular todos os slides juntos
-                const slidesWrapper = document.createElement('div');
-                slidesWrapper.className = 'slides-wrapper';
-                slidesWrapper.style.position = 'absolute';
-                slidesWrapper.style.width = '100%';
-                slidesWrapper.style.height = '100%';
-                slidesWrapper.style.display = 'flex';
-                slidesWrapper.style.transform = 'translateX(0)';
-                slidesWrapper.style.transition = 'transform 0.3s ease-out';
-                
-                // Reorganizar os slides dentro do wrapper
-                while (slideContainer.firstChild) {
-                    slidesWrapper.appendChild(slideContainer.firstChild);
-                }
-                slideContainer.appendChild(slidesWrapper);
-                
-                // Recapturar slides após reorganização
-                const allSlides = slidesWrapper.querySelectorAll('.hero-slide');
-                
-                // Configurar slides no wrapper
-                allSlides.forEach((slide, index) => {
-                    slide.style.position = 'relative';
-                    slide.style.minWidth = '100%';
-                    slide.style.minHeight = '100%';
-                    slide.style.transform = 'none';
-                    slide.style.left = '0';
-                    // Adicionar atributo de índice para referência
-                    slide.setAttribute('data-index', index);
-                });
-                
-                // Monitoramento ativo das bolinhas com requestAnimationFrame
-                function animate() {
-                    if (!isDragging) {
-                        cancelAnimationFrame(animationID);
-                        return;
-                    }
-                    
-                    // Atualizar posição do slider
-                    slidesWrapper.style.transform = `translateX(${currentTranslate}%)`;
-                    
-                    // Calcular o índice do slide visível
-                    const visibleIndex = Math.round(Math.abs(currentTranslate / 100));
-                    if (visibleIndex >= 0 && visibleIndex < slides.length) {
-                        // Atualizar as bolinhas
-                        window.atualizarBolinhas(visibleIndex);
-                    }
-                    
-                    animationID = requestAnimationFrame(animate);
-                }
-                
-                // Funções principais
-                function setPositionByIndex() {
-                    currentTranslate = currentIndex * -100;
-                    prevTranslate = currentTranslate;
-                    slidesWrapper.style.transform = `translateX(${currentTranslate}%)`;
-                }
-                
-                // Função global para ir para um slide específico (será chamada pelas bolinhas)
-                window.goToSlide = function(index) {
-                    if (index < 0 || index >= slides.length || isChanging) return;
-                    
-                    isChanging = true;
-                    
-                    // Atualizar índice
-                    currentIndex = index;
-                    
-                    // Animar a transição
-                    slidesWrapper.style.transition = 'transform 0.3s ease-out';
-                    setPositionByIndex();
-                    
-                    // Atualizar bolinhas
-                    window.atualizarBolinhas(index);
-                    
-                    // Permitir nova transição após um tempo
-                    setTimeout(() => {
-                        isChanging = false;
-                    }, 300);
-                };
-                
-                // Função para determinar qual slide está visível
-                function getVisibleSlideIndex() {
-                    const position = Math.abs(currentTranslate);
-                    return Math.round(position / 100);
-                }
-                
-                // Eventos de interação
-                function touchStart(event) {
-                    if (isChanging) return;
-                    
-                    event.preventDefault();
-                    
-                    const touch = event.type.includes('mouse') 
-                        ? event 
-                        : event.touches[0];
-                    
-                    startX = touch.clientX;
-                    isDragging = true;
-                    
-                    slideContainer.style.cursor = 'grabbing';
-                    
-                    // Pausar transição durante o arrasto
-                    slidesWrapper.style.transition = 'none';
-                    
-                    // Iniciar animação para acompanhar as bolinhas
-                    cancelAnimationFrame(animationID);
-                    animationID = requestAnimationFrame(animate);
-                }
-                
-                function touchMove(event) {
-                    if (!isDragging) return;
-                    
-                    event.preventDefault();
-                    
-                    const touch = event.type.includes('mouse') 
-                        ? event 
-                        : event.touches[0];
-                    
-                    const currentX = touch.clientX;
-                    const diff = currentX - startX;
-                    
-                    // Converter pixels para porcentagem baseado na largura do container
-                    const percentMove = (diff / window.innerWidth) * 100;
-                    
-                    // Atualizar posição com movimento atual
-                    currentTranslate = prevTranslate + percentMove;
-                    
-                    // Limitar arrasto além dos limites
-                    const maxTranslate = 0;
-                    const minTranslate = (slides.length - 1) * -100;
-                    
-                    if (currentTranslate > maxTranslate) {
-                        currentTranslate = maxTranslate + (currentTranslate - maxTranslate) * 0.3;
-                    } else if (currentTranslate < minTranslate) {
-                        currentTranslate = minTranslate + (currentTranslate - minTranslate) * 0.3;
-                    }
-                }
-                
-                function touchEnd(event) {
-                    if (!isDragging) return;
-                    
-                    isDragging = false;
-                    slideContainer.style.cursor = 'grab';
-                    
-                    // Parar animação
-                    cancelAnimationFrame(animationID);
-                    
-                    // Reativar transição
-                    slidesWrapper.style.transition = 'transform 0.3s ease-out';
-                    
-                    // Determinar o índice mais próximo baseado na posição atual
-                    let newIndex = getVisibleSlideIndex();
-                    
-                    // Garantir que o índice esteja dentro dos limites
-                    newIndex = Math.max(0, Math.min(newIndex, slides.length - 1));
-                    
-                    // Atualizar para o slide mais próximo
-                    window.goToSlide(newIndex);
-                }
-                
-                // Adicionar eventos
-                slideContainer.addEventListener('mousedown', touchStart, { passive: false });
-                slideContainer.addEventListener('touchstart', touchStart, { passive: false });
-                
-                window.addEventListener('mousemove', touchMove, { passive: false });
-                window.addEventListener('touchmove', touchMove, { passive: false });
-                
-                window.addEventListener('mouseup', touchEnd);
-                window.addEventListener('touchend', touchEnd);
-                
-                window.addEventListener('mouseleave', () => {
-                    if (isDragging) touchEnd();
-                });
-                
-                // Navegação por teclado
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'ArrowLeft') window.goToSlide(Math.max(0, currentIndex - 1));
-                    if (e.key === 'ArrowRight') window.goToSlide(Math.min(slides.length - 1, currentIndex + 1));
-                });
-                
-                // Inicializar posição
-                setPositionByIndex();
-                window.atualizarBolinhas(0);
-                
-                console.log('Slideshow com bolinhas forçadamente brancas inicializado!');
-            }
-            
-            // Executar a nova implementação
-            setTimeout(novoSlideshow, 100);
-        });
-    </script>
-    
     <script>
         // Initialize file viewer when the page loads
         document.addEventListener('DOMContentLoaded', function() {
