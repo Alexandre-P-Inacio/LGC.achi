@@ -32,7 +32,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'View Project',
             'footer-copyright': '© 2025 Architecture Portfolio. All rights reserved.',
             'practices-title': 'Practices',
-            'select-practice': 'Select a practice area below'
+            'select-practice': 'Select a practice area below',
+            // Project categories
+            'rf-telecommunications': 'RF & Telecommunications',
+            'energy': 'Energy',
+            'construction': 'Construction',
+            'banking': 'Banking & Finance',
+            'sand': 'Stand',
+            'oil-gas': 'Oil & Gas',
+            'real-estate': 'Real Estate',
+            'nuclear': 'Nuclear',
+            'industrial': 'Industrial',
+            'naval': 'Naval',
+            'bpo': 'GDO',
+            'automotive': 'Automotive',
+            'aerospace': 'Aerospace',
+            'chemistry-pharmaceutical': 'Chemistry & Pharmaceutical',
+            // Contact page translations
+            'contact-title': 'Contact Us',
+            'contact-form-title': 'Get in Touch',
+            'your-name': 'Your Name',
+            'your-email': 'Your Email',
+            'subject': 'Subject',
+            'message': 'Message',
+            'send-message': 'Send Message',
+            'global-presence': 'Our Global Presence',
+            'our-locations': 'Our Locations',
+            'our-location': 'Our Location',
+            'map-view': 'Map View',
+            'street-view': 'Street View',
+            'headquarters': 'Headquarters',
+            'email': 'Email',
+            'our-website': 'Our website'
         },
         // Spanish translations
         'es': {
@@ -52,7 +83,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Ver Proyecto',
             'footer-copyright': '© 2025 Portafolio de Arquitectura. Todos los derechos reservados.',
             'practices-title': 'Prácticas',
-            'select-practice': 'Seleccione un área de práctica a continuación'
+            'select-practice': 'Seleccione un área de práctica a continuación',
+            // Project categories
+            'rf-telecommunications': 'RF y Telecomunicaciones',
+            'energy': 'Energía',
+            'construction': 'Construcción',
+            'banking': 'Banca y Finanzas',
+            'sand': 'Stand',
+            'oil-gas': 'Petróleo y Gas',
+            'real-estate': 'Bienes Raíces',
+            'nuclear': 'Nuclear',
+            'industrial': 'Industrial',
+            'naval': 'Naval',
+            'bpo': 'GDO',
+            'automotive': 'Automotriz',
+            'aerospace': 'Aeroespacial',
+            'chemistry-pharmaceutical': 'Química y Farmacéutica',
+            // Contact page translations
+            'contact-title': 'Contáctenos',
+            'contact-form-title': 'Póngase en Contacto',
+            'your-name': 'Su Nombre',
+            'your-email': 'Su Correo Electrónico',
+            'subject': 'Asunto',
+            'message': 'Mensaje',
+            'send-message': 'Enviar Mensaje',
+            'global-presence': 'Nuestra Presencia Global',
+            'our-locations': 'Nuestras Ubicaciones',
+            'our-location': 'Nuestra Ubicación',
+            'map-view': 'Vista del Mapa',
+            'street-view': 'Vista de Calle',
+            'headquarters': 'Sede Central',
+            'email': 'Correo Electrónico',
+            'our-website': 'Nuestro sitio web'
         },
         // French translations
         'fr': {
@@ -72,7 +134,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Voir le Projet',
             'footer-copyright': "© 2025 Portfolio d'Architecture. Tous droits réservés.",
             'practices-title': 'Pratiques',
-            'select-practice': 'Sélectionnez un domaine de pratique ci-dessous'
+            'select-practice': 'Sélectionnez un domaine de pratique ci-dessous',
+            // Project categories
+            'rf-telecommunications': 'RF et Télécommunications',
+            'energy': 'Énergie',
+            'construction': 'Construction',
+            'banking': 'Banque et Finance',
+            'sand': 'Stand',
+            'oil-gas': 'Pétrole et Gaz',
+            'real-estate': 'Immobilier',
+            'nuclear': 'Nucléaire',
+            'industrial': 'Industriel',
+            'naval': 'Naval',
+            'bpo': 'GDO',
+            'automotive': 'Automobile',
+            'aerospace': 'Aérospatiale',
+            'chemistry-pharmaceutical': 'Chimie et Pharmaceutique',
+            // Contact page translations
+            'contact-title': 'Contactez-nous',
+            'contact-form-title': 'Prendre Contact',
+            'your-name': 'Votre Nom',
+            'your-email': 'Votre Email',
+            'subject': 'Sujet',
+            'message': 'Message',
+            'send-message': 'Envoyer le Message',
+            'global-presence': 'Notre Présence Mondiale',
+            'our-locations': 'Nos Emplacements',
+            'our-location': 'Notre Emplacement',
+            'map-view': 'Vue de la Carte',
+            'street-view': 'Vue de la Rue',
+            'headquarters': 'Siège Social',
+            'email': 'Email',
+            'our-website': 'Notre site web'
         },
         // Portuguese translations
         'pt': {
@@ -92,7 +185,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Ver Projeto',
             'footer-copyright': '© 2025 Portfólio de Arquitetura. Todos os direitos reservados.',
             'practices-title': 'Práticas',
-            'select-practice': 'Selecione uma área de prática abaixo'
+            'select-practice': 'Selecione uma área de prática abaixo',
+            // Project categories
+            'rf-telecommunications': 'RF e Telecomunicações',
+            'energy': 'Energia',
+            'construction': 'Construção',
+            'banking': 'Banca e Finanças',
+            'sand': 'Stand',
+            'oil-gas': 'Petróleo e Gás',
+            'real-estate': 'Imobiliário',
+            'nuclear': 'Nuclear',
+            'industrial': 'Industrial',
+            'naval': 'Naval',
+            'bpo': 'GDO',
+            'automotive': 'Automotivo',
+            'aerospace': 'Aeroespacial',
+            'chemistry-pharmaceutical': 'Química e Farmacêutica',
+            // Contact page translations
+            'contact-title': 'Contate-nos',
+            'contact-form-title': 'Entre em Contato',
+            'your-name': 'Seu Nome',
+            'your-email': 'Seu Email',
+            'subject': 'Assunto',
+            'message': 'Mensagem',
+            'send-message': 'Enviar Mensagem',
+            'global-presence': 'Nossa Presença Global',
+            'our-locations': 'Nossas Localizações',
+            'our-location': 'Nossa Localização',
+            'map-view': 'Vista do Mapa',
+            'street-view': 'Vista da Rua',
+            'headquarters': 'Sede',
+            'email': 'Email',
+            'our-website': 'Nosso website'
         },
         // German translations
         'de': {
@@ -112,7 +236,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Projekt ansehen',
             'footer-copyright': '© 2025 Architektur-Portfolio. Alle Rechte vorbehalten.',
             'practices-title': 'Praktiken',
-            'select-practice': 'Wählen Sie unten einen Praxisbereich aus'
+            'select-practice': 'Wählen Sie unten einen Praxisbereich aus',
+            // Project categories
+            'rf-telecommunications': 'RF & Telekommunikation',
+            'energy': 'Energie',
+            'construction': 'Bau',
+            'banking': 'Bank- und Finanzwesen',
+            'sand': 'Stand',
+            'oil-gas': 'Öl und Gas',
+            'real-estate': 'Immobilien',
+            'nuclear': 'Nuklear',
+            'industrial': 'Industrie',
+            'naval': 'Marine',
+            'bpo': 'GDO',
+            'automotive': 'Automobil',
+            'aerospace': 'Luft- und Raumfahrt',
+            'chemistry-pharmaceutical': 'Chemie und Pharma',
+            // Contact page translations
+            'contact-title': 'Kontaktieren Sie uns',
+            'contact-form-title': 'Kontakt aufnehmen',
+            'your-name': 'Ihr Name',
+            'your-email': 'Ihre E-Mail',
+            'subject': 'Betreff',
+            'message': 'Nachricht',
+            'send-message': 'Nachricht senden',
+            'global-presence': 'Unsere globale Präsenz',
+            'our-locations': 'Unsere Standorte',
+            'our-location': 'Unser Standort',
+            'map-view': 'Kartenansicht',
+            'street-view': 'Straßenansicht',
+            'headquarters': 'Hauptsitz',
+            'email': 'E-mail',
+            'our-website': 'Unsere Website'
         },
         // Chinese translations
         'zh': {
@@ -132,7 +287,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': '查看项目',
             'footer-copyright': '© 2025 建筑作品集。保留所有权利。',
             'practices-title': '业务领域',
-            'select-practice': '请在下方选择业务领域'
+            'select-practice': '请在下方选择业务领域',
+            // Project categories
+            'rf-telecommunications': '射频和电信',
+            'energy': '能源',
+            'construction': '建筑',
+            'banking': '银行和金融',
+            'sand': '展台',
+            'oil-gas': '石油和天然气',
+            'real-estate': '房地产',
+            'nuclear': '核能',
+            'industrial': '工业',
+            'naval': '海军',
+            'bpo': 'GDO',
+            'automotive': '汽车',
+            'aerospace': '航空航天',
+            'chemistry-pharmaceutical': '化学和制药',
+            // Contact page translations
+            'contact-title': '联系我们',
+            'contact-form-title': '取得联系',
+            'your-name': '您的姓名',
+            'your-email': '您的电子邮件',
+            'subject': '主题',
+            'message': '信息',
+            'send-message': '发送信息',
+            'global-presence': '我们的全球存在',
+            'our-locations': '我们的位置',
+            'our-location': '我们的位置',
+            'map-view': '地图视图',
+            'street-view': '街景视图',
+            'headquarters': '总部',
+            'email': '电子邮件',
+            'our-website': '我们的网站'
         },
         // Italian translations
         'it': {
@@ -152,7 +338,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Visualizza Progetto',
             'footer-copyright': '© 2025 Portfolio di Architettura. Tutti i diritti riservati.',
             'practices-title': 'Pratiche',
-            'select-practice': "Seleziona un'area di pratica qui sotto"
+            'select-practice': "Seleziona un'area di pratica qui sotto",
+            // Project categories
+            'rf-telecommunications': 'RF e Telecomunicazioni',
+            'energy': 'Energia',
+            'construction': 'Costruzione',
+            'banking': 'Banca e Finanza',
+            'sand': 'Stand',
+            'oil-gas': 'Petrolio e Gas',
+            'real-estate': 'Immobiliare',
+            'nuclear': 'Nucleare',
+            'industrial': 'Industriale',
+            'naval': 'Navale',
+            'bpo': 'GDO',
+            'automotive': 'Automobilistico',
+            'aerospace': 'Aerospaziale',
+            'chemistry-pharmaceutical': 'Chimica e Farmaceutica',
+            // Contact page translations
+            'contact-title': 'Contattaci',
+            'contact-form-title': 'Mettiti in Contatto',
+            'your-name': 'Il tuo Nome',
+            'your-email': 'La tua Email',
+            'subject': 'Oggetto',
+            'message': 'Messaggio',
+            'send-message': 'Invia Messaggio',
+            'global-presence': 'La Nostra Presenza Globale',
+            'our-locations': 'Le Nostre Sedi',
+            'our-location': 'La Nostra Sede',
+            'map-view': 'Vista Mappa',
+            'street-view': 'Vista Strada',
+            'headquarters': 'Sede Centrale',
+            'email': 'Email',
+            'our-website': 'Il nostro sito web'
         },
         // Arabic translations (right-to-left language)
         'ar': {
@@ -172,7 +389,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'عرض المشروع',
             'footer-copyright': '© 2025 معرض أعمال الهندسة المعمارية. جميع الحقوق محفوظة.',
             'practices-title': 'مجالات العمل',
-            'select-practice': 'اختر مجال عمل أدناه'
+            'select-practice': 'اختر مجال عمل أدناه',
+            // Project categories
+            'rf-telecommunications': 'الترددات الراديوية والاتصالات',
+            'energy': 'الطاقة',
+            'construction': 'البناء',
+            'banking': 'البنوك والتمويل',
+            'sand': 'منصات العرض',
+            'oil-gas': 'النفط والغاز',
+            'real-estate': 'العقارات',
+            'nuclear': 'الطاقة النووية',
+            'industrial': 'الصناعي',
+            'naval': 'البحري',
+            'bpo': 'جي دي أو',
+            'automotive': 'السيارات',
+            'aerospace': 'الفضاء الجوي',
+            'chemistry-pharmaceutical': 'الكيمياء والصيدلة',
+            // Contact page translations
+            'contact-title': 'اتصل بنا',
+            'contact-form-title': 'تواصل معنا',
+            'your-name': 'الاسم',
+            'your-email': 'البريد الإلكتروني',
+            'subject': 'الموضوع',
+            'message': 'الرسالة',
+            'send-message': 'إرسال الرسالة',
+            'global-presence': 'تواجدنا العالمي',
+            'our-locations': 'مواقعنا',
+            'our-location': 'موقعنا',
+            'map-view': 'عرض الخريطة',
+            'street-view': 'عرض الشارع',
+            'headquarters': 'المقر الرئيسي',
+            'email': 'البريد الإلكتروني',
+            'our-website': 'موقعنا الإلكتروني'
         }
     };
 
@@ -194,7 +442,23 @@ document.addEventListener('DOMContentLoaded', function() {
         '.view-project-btn': 'view-project',
         '.footer-content p': 'footer-copyright',
         '.dashboard-popup-header h2': 'practices-title',
-        '.dashboard-popup-content p': 'select-practice'
+        '.dashboard-popup-content p': 'select-practice',
+        // Contact page elements
+        '.contact-section h1, .header-content h1': 'contact-title',
+        '.form-container h2': 'contact-form-title',
+        'label[for="name"]': 'your-name',
+        'label[for="email"]': 'your-email',
+        'label[for="subject"]': 'subject',
+        'label[for="message"]': 'message',
+        '.submit-button': 'send-message',
+        '.global-presence h2': 'global-presence',
+        '.locations-list h3': 'our-locations',
+        '.map-container h2': 'our-location',
+        '#mapViewBtn': 'map-view',
+        '#streetViewBtn': 'street-view',
+        '.contact-card:nth-child(1) h3': 'headquarters',
+        '.contact-card:nth-child(2) h3': 'email',
+        '.contact-card:nth-child(3) h3': 'our-website'
     };
 
     // Load translations when the page loads
@@ -213,6 +477,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+        
+        // Translate project categories
+        document.querySelectorAll('.category-overlay h3').forEach(element => {
+            const category = element.closest('.category-card').dataset.category;
+            if (category && currentTranslations[category]) {
+                element.innerText = currentTranslations[category];
+            }
+        });
+        
+        // Translate view project buttons
+        document.querySelectorAll('.view-project-btn').forEach(element => {
+            if (currentTranslations['view-project']) {
+                element.innerText = currentTranslations['view-project'];
+            }
+        });
         
         // Handle RTL languages (like Arabic)
         if (langCode === 'ar') {
