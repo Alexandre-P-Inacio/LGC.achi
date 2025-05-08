@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleapis.com https://*.gstatic.com; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co; frame-src https://www.google.com/ https://www.google.com/maps/;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://*.azureedge.net https://*.supabase.co https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://*.googleapis.com https://*.gstatic.com; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https://*.supabase.co https://api.mailjet.com; frame-src https://www.google.com/ https://www.google.com/maps/;">
     <title>Contact - Architecture Portfolio</title>
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
@@ -14,7 +14,6 @@
         /* Custom styles for navbar in contact page */
         .nav-links a {
             font-size: 1.2rem; /* Increased font size for navbar links */
-            font-weight: 600; /* Making the font slightly bolder */
         }
         
         /* Adjust spacing between navbar items */
@@ -338,6 +337,8 @@
                         </div>
                         <h3>Our website</h3>
                         <p><a href="https://lgc.archi">lgc.archi</a></p>
+                        <p><a href="https://lgcstudio.com">lgcstudio</a></p>
+                        <p><a href="https://lgcingeneria">lgcingeneria</a></p>
                     </div>
                 </div>
             </div>
@@ -363,7 +364,7 @@
                                 <li>Turin (Headquarters)</li>
                                 <li>Milan</li>
                                 <li>Genoa</li>
-                                <li>Mantu</li>
+                                <li>Mantua</li>
                                 <li>Verona</li>
                                 <li>Venice</li>
                             </ul>
@@ -620,7 +621,7 @@
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Form submit logic
+            // Get form data
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const subject = document.getElementById('subject').value;
@@ -634,11 +635,22 @@
                                  window.translations[currentLang] : 
                                  {'form-success': 'Thank you! Your message has been sent successfully. We will get back to you soon.'};
             
-            // Success message with translation
-            alert(translations['form-success']);
+            // Create a single line email body
+            const bodyText = "Dear LGC Team, I'm " + encodeURIComponent(name) + 
+                           " and I'd like to get in touch regarding: " + encodeURIComponent(subject) + 
+                           ". Message: " + encodeURIComponent(message) + 
+                           ". Best regards, " + encodeURIComponent(name);
             
-            // Reset form
-            this.reset();
+            // Create mailto link without line breaks
+            const mailtoLink = `mailto:info@lgcingegneria.com?subject=${encodeURIComponent(`LGC Contact: ${subject}`)}&body=${bodyText}`;
+            
+            // Open default email client
+            window.location.href = mailtoLink;
+            
+            // Success message with translation
+            setTimeout(() => {
+                alert(translations['form-success']);
+            }, 500);
         });
         
         // Map view toggle functionality

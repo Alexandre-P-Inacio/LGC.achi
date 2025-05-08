@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // English translations (default)
         'en': {
             'nav-home': 'Home',
-            'nav-portfolios': 'Portfolios',
+            'nav-portfolios': 'Reserved Portfolios',
             'nav-about': 'About',
             'nav-contact': 'Contact',
             'login-button': 'Sign In',
