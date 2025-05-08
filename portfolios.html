@@ -1660,8 +1660,8 @@
             background-size: cover;
             background-position: center;
             position: relative;
-            overflow: hidden; /* Hide overflow initially */
-            transition: overflow 0.3s ease;
+            overflow: hidden; /* Hide overflow always */
+            transition: transform 0.3s ease; /* Changed from overflow to transform */
         }
         
         .portfolio-image img, .portfolio-image canvas {
@@ -1671,6 +1671,11 @@
             image-rendering: -webkit-optimize-contrast; /* Improves image sharpness on Webkit browsers */
             image-rendering: crisp-edges; /* Modern browsers */
             backface-visibility: hidden; /* Fix for some blurring on transform */
+        }
+        
+        /* Remove the hover effect that enables scrolling */
+        .portfolio-image:hover {
+            overflow: hidden; /* Keep overflow hidden on hover too */
         }
         
         .portfolio-content {
@@ -1857,7 +1862,7 @@
         
         /* Expand height on hover to allow scrolling */
         .portfolio-image:hover {
-            overflow-y: auto; /* Enable vertical scrolling on hover */
+            overflow: hidden; /* Keep overflow hidden on hover too */
         }
         
         /* Make PDF thumbnails fill the entire space */

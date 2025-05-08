@@ -229,6 +229,9 @@ function getCurrentFilters() {
 // Load projects
 async function loadProjects(page = 1, filters = {}) {
     try {
+        // Show loading indicator
+        showLoadingIndicator('Loading projects...');
+        
         // Update timestamp
         updateTimestamp();
         
@@ -239,74 +242,15 @@ async function loadProjects(page = 1, filters = {}) {
         const currentFilters = {...getCurrentFilters(), ...filters};
         console.log('Loading projects with filters:', currentFilters);
         
-        // If status filter is set, use filterProjects instead
-        if (currentFilters.statusFilter && currentFilters.statusFilter !== 'all') {
-            // Set the select to match the filter if not already set
-            const statusFilter = document.getElementById('status-filter');
-            if (statusFilter.value !== currentFilters.statusFilter) {
-                statusFilter.value = currentFilters.statusFilter;
-            }
-            return filterProjects(page);
-        }
-        
-        // Normal loading without status filter
-        // Ensure the projects table exists
-        try {
-            const { error: tableError } = await supabase.rpc('create_projects_table_if_not_exists');
-            if (tableError) {
-                console.error('Error ensuring projects table exists:', tableError);
-            }
-        } catch (e) {
-            console.warn('Could not create table if not exists, may already exist:', e);
-        }
-        
-        // Get all projects first (for filtering client-side)
-        const { data, error } = await supabase
+        // Prepare query
+        let query = supabase
             .from('projects')
-            .select('*')
+            .select('id, name, category, status, file_url, created_at', { count: 'exact' })
             .order('created_at', { ascending: false });
-
-        console.log('Projects loaded:', { data, error, count: data?.length || 0 });
-
-        if (error) {
-            console.error('Error loading projects:', error);
-            
-            // Check if this is the common "invalid input syntax for type uuid: id" error
-            if (error.message && error.message.includes('invalid input syntax for type uuid: "id"')) {
-                console.warn('Encountered common UUID format error. This typically happens on first admin login.');
-                // Try again after a short delay (this often resolves the issue)
-                setTimeout(() => {
-                    loadProjects(page, filters);
-                }, 500);
-                return;
-            }
-            
-            // Try a basic query as admin
-            const { data: adminData, error: adminError } = await supabase.auth.getSession();
-            console.log('Current session:', adminData, adminError);
-            
-            return;
-        }
         
-        // If no data or empty array, show message in table
-        if (!data || data.length === 0) {
-            console.log('No projects found - displaying empty state');
-            updateProjectsTable([]);
-            return;
-        }
-
-        // Store all projects for filtering
-        allProjects = data || [];
-        
-        // Apply filters if any
-        let filteredProjects = allProjects;
-        
-        // Filter by search term
+        // Apply filters on the server side when possible
         if (currentFilters.searchTerm) {
-            const searchTerm = currentFilters.searchTerm.toLowerCase();
-            filteredProjects = filteredProjects.filter(project => 
-                project.name?.toLowerCase().includes(searchTerm)
-            );
+            query = query.ilike('name', `%${currentFilters.searchTerm}%`);
             
             // Update search input if needed
             const searchInput = document.getElementById('search-projects');
@@ -315,50 +259,90 @@ async function loadProjects(page = 1, filters = {}) {
             }
         }
         
-        // Calculate pagination
-        const startIndex = (page - 1) * projectsPerPage;
-        const endIndex = startIndex + projectsPerPage;
-        const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
-        
-        // Update the projects table
-        updateProjectsTable(paginatedProjects);
-        
-        // Update pagination controls
-        updatePagination(page, totalPages);
-
-    } catch (err) {
-        console.error('Error in loadProjects:', err);
-    }
-}
-
-// Format file name from URL
-function getFileNameFromUrl(url) {
-    if (!url) return '';
-    try {
-        // Extract filename from URL
-        const pathParts = new URL(url).pathname.split('/');
-        let fileName = pathParts[pathParts.length - 1];
-        
-        // Decode URI components
-        fileName = decodeURIComponent(fileName);
-        
-        // Remove any timestamp or random part (after the last dash)
-        if (fileName.includes('-')) {
-            const parts = fileName.split('-');
-            if (parts.length > 1 && parts[parts.length-1].includes('.')) {
-                // Keep the extension
-                const extension = parts[parts.length-1].split('.')[1];
-                fileName = parts.slice(0, -1).join('-') + '.' + extension;
+        if (currentFilters.statusFilter && currentFilters.statusFilter !== 'all') {
+            // Set the select to match the filter if not already set
+            const statusFilter = document.getElementById('status-filter');
+            if (statusFilter.value !== currentFilters.statusFilter) {
+                statusFilter.value = currentFilters.statusFilter;
+            }
+            
+            // Map status filter values to database values
+            if (currentFilters.statusFilter === 'completed') {
+                query = query.eq('status', 'completed');
+            } else if (currentFilters.statusFilter === 'incompleted') {
+                query = query.eq('status', 'incompleted');
+            } else if (currentFilters.statusFilter === 'in_progress') {
+                query = query.eq('status', 'in_progress');
             }
         }
         
-        // Truncate long filenames to keep UI clean
+        // Add pagination
+        const rangeStart = (page - 1) * projectsPerPage;
+        const rangeEnd = rangeStart + projectsPerPage - 1;
+        query = query.range(rangeStart, rangeEnd);
+        
+        // Execute query
+        const { data, error, count } = await query;
+
+        console.log('Projects loaded:', { data, error, count: data?.length || 0, totalCount: count });
+
+        if (error) {
+            console.error('Error loading projects:', error);
+            hideLoadingIndicator();
+            return;
+        }
+        
+        // If no data or empty array, show message in table
+        if (!data || data.length === 0) {
+            console.log('No projects found - displaying empty state');
+            updateProjectsTable([]);
+            
+            // Calculate total pages (0 if no results)
+            const totalPages = count ? Math.ceil(count / projectsPerPage) : 0;
+            updatePagination(page, totalPages);
+            
+            hideLoadingIndicator();
+            return;
+        }
+
+        // Update the projects table
+        updateProjectsTable(data);
+        
+        // Calculate total pages
+        const totalPages = Math.ceil(count / projectsPerPage);
+        
+        // Update pagination controls
+        updatePagination(page, totalPages);
+        
+        hideLoadingIndicator();
+
+    } catch (err) {
+        console.error('Error in loadProjects:', err);
+        hideLoadingIndicator();
+    }
+}
+
+// Format file name from URL - simplified for performance
+function getFileNameFromUrl(url) {
+    if (!url) return '';
+    try {
+        // Extract filename from URL - simplified approach
+        const pathParts = url.split('/');
+        let fileName = pathParts[pathParts.length - 1];
+        
+        // Simple decode
+        try {
+            fileName = decodeURIComponent(fileName);
+        } catch (e) {
+            // If decoding fails, use the raw filename
+        }
+        
+        // Truncate long filenames
         if (fileName.length > 15) {
-            const extension = fileName.split('.').pop();
-            const name = fileName.substring(0, fileName.lastIndexOf('.'));
-            const truncatedName = name.substring(0, 10) + '...';
-            fileName = truncatedName + '.' + extension;
+            const parts = fileName.split('.');
+            const extension = parts.length > 1 ? parts.pop() : '';
+            const name = parts.join('.');
+            fileName = name.substring(0, 10) + '...' + (extension ? '.' + extension : '');
         }
         
         return fileName;
@@ -391,174 +375,120 @@ function updateProjectsTable(projects) {
         return;
     }
 
-    const firstProject = projects[0];
-    const possibleStatusColumns = ['status', 'project_status', 'estado', 'state'];
-    const statusColumn = possibleStatusColumns.find(col => firstProject[col] !== undefined) || 'status';
-
     const isMobile = window.innerWidth <= 700;
 
+    // Build HTML in memory to minimize DOM operations
+    let tableHTML = '';
+
     projects.forEach(project => {
-        const row = document.createElement('tr');
-        row.setAttribute('data-project-id', project.id);
+        const createdDate = project.created_at 
+            ? new Date(project.created_at).toLocaleDateString() 
+            : 'Unknown date';
         
-        try {
-            const createdDate = project.created_at 
-                ? new Date(project.created_at).toLocaleDateString() 
-                : 'Unknown date';
-            
-            let fileInfo = { name: 'No file', type: 'Document' };
-            if (project.file_url) {
-                try {
-                    const url = new URL(project.file_url);
-                    const pathParts = url.pathname.split('/');
-                    fileInfo.name = decodeURIComponent(pathParts[pathParts.length - 1]);
-                    
-                    // Determine file type based on file extension or name pattern
-                    const isVideo = fileInfo.name.includes('video-') || 
-                                    /\.(mp4|webm|mov|avi|wmv|mpeg|mpg)$/i.test(fileInfo.name);
-                    
-                    if (isVideo) {
-                        fileInfo.type = 'Video';
-                    } else if (fileInfo.name.includes('.')) {
-                        fileInfo.type = fileInfo.name.split('.').pop().toUpperCase();
-                    }
-                } catch (e) {
-                    console.warn('Error parsing file URL:', e);
-                }
-            }
-            
-            const statusValue = project[statusColumn];
-            let statusText, statusClass;
-            
-            if (statusValue === 'completed' || statusValue === true || statusValue === 'Completed') {
-                statusText = 'COMPLETED';
-                statusClass = 'status-completed';
-            } else if (statusValue === 'incompleted' || statusValue === false || statusValue === 'Incompleted') {
-                statusText = 'INCOMPLETED';
-                statusClass = 'status-incompleted';
-            } else if (statusValue === 'in_progress' || statusValue === null || statusValue === 'In Progress') {
-                statusText = 'IN PROGRESS';
-                statusClass = 'status-in-progress';
-            } else {
-                statusText = statusValue || 'UNKNOWN';
-                statusClass = `status-${(statusValue || 'unknown').toLowerCase().replace(/\s+/g, '-')}`;
-            }
-            
-            let categoryDisplay = 'Uncategorized';
-            if (project.category) {
-                categoryDisplay = project.category
-                    .split('-')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
-            }
-            
-            // Create a nice file link with an appropriate icon
-            const fileLink = project.file_url 
-                ? `<a href="javascript:void(0)" class="file-link" onclick="showFileInModal('${project.file_url}', '${fileInfo.name}')">
-                      ${fileInfo.type === 'Video' ? '<i class="fas fa-video" style="margin-right: 5px; color: #e83e8c;"></i>' : ''}
-                      ${fileInfo.name}
-                   </a>` 
-                : 'No file';
-            
-            // Add data attributes to the share button to make it easier to handle
-            const safeProjectName = (project.name || 'Unnamed Project').replace(/'/g, '&#39;');
-            
-            if (isMobile) {
-                // MOBILE: collapsible row with menu button
-                row.innerHTML = `
-                    <td colspan=\"7\" class=\"project-mobile-cell\">
-                        <div class=\"project-title-mobile\" style=\"display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-weight: 500;\" onclick=\"toggleProjectDetails(this)\">
+        // Simplified file handling
+        const fileUrl = project.file_url || '';
+        const fileName = fileUrl ? getFileNameFromUrl(fileUrl) : 'No file';
+        const fileType = fileName.includes('.') ? fileName.split('.').pop().toUpperCase() : 'Document';
+        const isVideo = /\.(mp4|webm|mov|avi|wmv|mpeg|mpg)$/i.test(fileName);
+        
+        // Get status display info
+        const statusValue = project.status;
+        let statusText, statusClass;
+        
+        if (statusValue === 'completed' || statusValue === true || statusValue === 'Completed') {
+            statusText = 'COMPLETED';
+            statusClass = 'status-completed';
+        } else if (statusValue === 'incompleted' || statusValue === false || statusValue === 'Incompleted') {
+            statusText = 'INCOMPLETED';
+            statusClass = 'status-incompleted';
+        } else if (statusValue === 'in_progress' || statusValue === null || statusValue === 'In Progress') {
+            statusText = 'IN PROGRESS';
+            statusClass = 'status-in-progress';
+        } else {
+            statusText = statusValue || 'UNKNOWN';
+            statusClass = `status-${(statusValue || 'unknown').toLowerCase().replace(/\s+/g, '-')}`;
+        }
+        
+        // Get category display
+        let categoryDisplay = 'Uncategorized';
+        if (project.category) {
+            categoryDisplay = project.category
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+        
+        // Create file link HTML
+        const fileLink = fileUrl 
+            ? `<a href="javascript:void(0)" class="file-link" onclick="showFileInModal('${fileUrl}', '${fileName}')">
+                  ${isVideo ? '<i class="fas fa-video" style="margin-right: 5px; color: #e83e8c;"></i>' : ''}
+                  ${fileName}
+               </a>` 
+            : 'No file';
+        
+        // Escape project name for safety
+        const safeProjectName = (project.name || 'Unnamed Project').replace(/'/g, '&#39;');
+        
+        if (isMobile) {
+            // MOBILE: Build mobile row HTML
+            tableHTML += `
+                <tr data-project-id="${project.id}">
+                    <td colspan="7" class="project-mobile-cell">
+                        <div class="project-title-mobile" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-weight: 500;" onclick="toggleProjectDetails(this)">
                             <span>${project.name || 'Unnamed Project'}</span>
-                            <button class=\"menu-btn\" onclick=\"event.stopPropagation();toggleMenu(this)\" style=\"background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%;\">
-                                <i class=\"fas fa-ellipsis-h\"></i>
+                            <button class="menu-btn" onclick="event.stopPropagation();toggleMenu(this)" style="background: none; border: none; cursor: pointer; font-size: 1.2em; color: #888; padding: 4px 8px; border-radius: 50%;">
+                                <i class="fas fa-ellipsis-h"></i>
                             </button>
-                            <div class=\"menu-dropdown\" style=\"display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;\">
-                                <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\"><i class=\"fas fa-edit\"></i></button>
-                                <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\"><i class=\"fas fa-trash-alt\"></i></button>
-                                <button class=\"action-button share-button\" 
-                                    data-project-id=\"${project.id}\" 
-                                    data-project-name=\"${safeProjectName}\"
-                                    title=\"Share\"><i class=\"fas fa-share-alt\"></i></button>
-                                <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\"><i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i></button>
+                            <div class="menu-dropdown" style="display: none; position: absolute; top: 32px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); min-width: 56px; z-index: 1000; padding: 10px 0; flex-direction: column; gap: 10px; align-items: stretch;">
+                                <button class="action-button edit-button" onclick="window.location.href='project-form.html?id=${project.id}'" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                                <button class="action-button share-button" onclick="showShareModal('${project.id}', '${safeProjectName}')" title="Share Access"><i class="fas fa-share-alt"></i></button>
+                                <button class="action-button star-button ${project.is_starred ? 'starred' : ''}" onclick="toggleStarProject('${project.id}')" title="Star Project"><i class="fas fa-star"></i></button>
                             </div>
                         </div>
-                        <div class=\"project-details-mobile\" style=\"display:none; margin-top:10px;\">
-                            <div><b>Category:</b> <span class=\"category-badge\">${categoryDisplay}</span></div>
-                            <div><b>Status:</b> <span class=\"status-badge ${statusClass}\">${statusText}</span></div>
-                            <div><b>Type:</b> ${fileInfo.type}</div>
-                            <div><b>File:</b> ${fileLink}</div>
-                            <div><b>Created:</b> ${createdDate}</div>
+                        
+                        <div class="project-details-mobile" style="display: none; padding: 15px; background: rgba(0,0,0,0.01); margin-top: 10px; border-radius: 8px;">
+                            <div class="detail-row">
+                                <strong>Category:</strong> <span class="category-badge">${categoryDisplay}</span>
+                            </div>
+                            <div class="detail-row">
+                                <strong>Status:</strong> <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="detail-row">
+                                <strong>File:</strong> ${fileLink}
+                            </div>
+                            <div class="detail-row">
+                                <strong>Created:</strong> ${createdDate}
+                            </div>
                         </div>
                     </td>
-                `;
-            } else {
-                // DESKTOP: tabela tradicional
-                row.innerHTML = `
-                    <td style=\"width: 20%;\">
-                        <div style=\"display: flex; align-items: center; gap: 8px;\">
-                            <span style=\"font-weight: 500;\">${project.name || 'Unnamed Project'}</span>
+                </tr>
+            `;
+        } else {
+            // DESKTOP: Build desktop row HTML
+            tableHTML += `
+                <tr data-project-id="${project.id}">
+                    <td class="project-name">${project.name || 'Unnamed Project'}</td>
+                    <td class="project-category"><span class="category-badge">${categoryDisplay}</span></td>
+                    <td class="project-status"><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td class="project-type">${fileType}</td>
+                    <td class="project-file">${fileLink}</td>
+                    <td class="project-created">${createdDate}</td>
+                    <td class="project-actions">
+                        <div class="action-buttons">
+                            <button class="action-button edit-button" onclick="window.location.href='project-form.html?id=${project.id}'" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                            <button class="action-button share-button" onclick="showShareModal('${project.id}', '${safeProjectName}')" title="Share Access"><i class="fas fa-share-alt"></i></button>
+                            <button class="action-button star-button ${project.is_starred ? 'starred' : ''}" onclick="toggleStarProject('${project.id}')" title="Star Project"><i class="fas fa-star"></i></button>
                         </div>
                     </td>
-                    <td style=\"width: 13%;\"><span class=\"category-badge\">${categoryDisplay}</span></td>
-                    <td style=\"width: 13%;\"><span class=\"status-badge ${statusClass}\">${statusText}</span></td>
-                    <td style=\"width: 8%;\">
-                        ${fileInfo.type === 'Video' ? '<i class="fas fa-video" style="margin-right: 5px; color: #e83e8c;"></i>' : ''}
-                        ${fileInfo.type}
-                    </td>
-                    <td style=\"width: 22%;\">${fileLink}</td>
-                    <td style=\"width: 12%;\">${createdDate}</td>
-                    <td style=\"width: 12%;\">
-                        <div class=\"action-buttons\">
-                            <button class=\"action-button edit-button\" onclick=\"window.location.href='project-form.html?id=${project.id}'\" title=\"Edit\">
-                                <i class=\"fas fa-edit\"></i>
-                            </button>
-                            <button class=\"action-button delete-button\" onclick=\"deleteProject('${project.id}')\" title=\"Delete\">
-                                <i class=\"fas fa-trash-alt\"></i>
-                            </button>
-                            <button class=\"action-button share-button\" 
-                                data-project-id=\"${project.id}\" 
-                                data-project-name=\"${safeProjectName}\"
-                                title=\"Share\">
-                                <i class=\"fas fa-share-alt\"></i>
-                            </button>
-                            <button class=\"action-button feature-button${project.is_featured ? ' featured' : ''}\" onclick=\"toggleFeaturedStatus('${project.id}', ${!project.is_featured})\" title=\"Favorite\">
-                                <i class=\"${project.is_featured ? 'fas' : 'far'} fa-star\"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-            }
-        } catch (e) {
-            console.error('Error creating row for project:', e, project);
-            row.innerHTML = `
-                <td colspan=\"7\">Error displaying project: ${e.message}</td>
+                </tr>
             `;
         }
-        
-        projectsContainer.appendChild(row);
     });
-
-    // Dropdown menu logic (mobile)
-    if (!window.__menuDropdownInjected) {
-        window.__menuDropdownInjected = true;
-        document.addEventListener('click', function(e) {
-            document.querySelectorAll('.card-menu, .project-title-mobile').forEach(menu => {
-                const dropdown = menu.querySelector('.menu-dropdown');
-                if (dropdown && !menu.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
-        });
-        window.toggleMenu = function(btn) {
-            const menu = btn.parentElement;
-            const dropdown = menu.querySelector('.menu-dropdown');
-            document.querySelectorAll('.card-menu .menu-dropdown, .project-title-mobile .menu-dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
-            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
-        }
-    }
     
-    // Initialize event listeners for share buttons
-    initializeEventListeners();
+    // Set innerHTML once
+    projectsContainer.innerHTML = tableHTML;
 }
 
 // Update pagination controls
@@ -727,13 +657,9 @@ async function deleteProject(projectId) {
     }
 }
 
-// Search projects
+// Search projects - optimized to use server-side search
 function searchProjects() {
-    const searchTerm = document.getElementById('search-projects').value.trim();
-    console.log('Searching for:', searchTerm);
-    
-    // Reset to first page when searching
-    loadProjects(1, {searchTerm: searchTerm});
+    loadProjects(1);
 }
 
 // Filter projects
@@ -899,7 +825,6 @@ async function loadAdminInfo() {
         console.error('User not found:', error);
     }
 }
-
 
 // Call this function when the page loads and never reset it during filtering
 document.addEventListener('DOMContentLoaded', function() {
