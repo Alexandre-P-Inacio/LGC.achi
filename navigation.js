@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <ul class="nav-links">
                 <li><a href="index.html" id="nav-home">Home</a></li>
-                <li><a href="portfolios.html" id="nav-portfolios">Portfolios</a></li>
+                <li><a href="portfolios.html" id="nav-portfolios">Reserved Portfolios</a></li>
                 <li><a href="index.html#about" id="nav-about">About</a></li>
                 <li><a href="contact.html" id="nav-contact">Contact</a></li>
                 <li class="auth-buttons">
