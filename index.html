@@ -1803,12 +1803,12 @@
                 'doc': { type: 'Document', icon: 'DOC', color: '#007bff' },
                 'docx': { type: 'Document', icon: 'DOCX', color: '#007bff' },
                 'mp4': { type: 'Video', icon: 'VID', color: '#e83e8c' },
-                'webm': { type: 'Video', icon: 'VID', color: '#e83e8c' },
-                'mov': { type: 'Video', icon: 'VID', color: '#e83e8c' },
-                'avi': { type: 'Video', icon: 'VID', color: '#e83e8c' },
-                'wmv': { type: 'Video', icon: 'VID', color: '#e83e8c' },
-                'mpeg': { type: 'Video', icon: 'VID', color: '#e83e8c' },
-                'mpg': { type: 'Video', icon: 'VID', color: '#e83e8c' }
+                'webm': { type: 'Video', icon: 'VID', color: '#20c997' },
+                'mov': { type: 'Video', icon: 'VID', color: '#fd7e14' },
+                'avi': { type: 'Video', icon: 'VID', color: '#6610f2' },
+                'wmv': { type: 'Video', icon: 'VID', color: '#007bff' },
+                'mpeg': { type: 'Video', icon: 'VID', color: '#dc3545' },
+                'mpg': { type: 'Video', icon: 'VID', color: '#dc3545' }
             };
             
             // Check if the filename contains video prefix
@@ -1970,9 +1970,10 @@
                                 
                                 const isMobile = window.innerWidth <= 768;
                                 
+                                // Use full-screen dimensions for the flipbook
                                 $(flipContainer).turn({
-                                    width: isMobile ? containerWidth : 820,
-                                    height: isMobile ? containerHeight : 650,
+                                    width: isMobile ? containerWidth * 0.95 : Math.min(1200, containerWidth * 0.95),
+                                    height: isMobile ? containerHeight * 0.9 : Math.min(900, containerHeight * 0.9),
                                     autoCenter: true,
                                     display: 'single',
                                     duration: 600,
@@ -2026,13 +2027,14 @@
                                     try {
                                         if ($(flipContainer).data().turn) {
                                             const container = document.getElementById('file-viewer-container');
-                                            const containerWidth = container.clientWidth * 0.95;
-                                            const containerHeight = Math.min(700, container.clientHeight * 0.95);
+                                            const containerWidth = container.clientWidth;
+                                            const containerHeight = container.clientHeight;
                                             const isMobile = window.innerWidth <= 768;
                                             
+                                            // Update size for fullscreen display
                                             $(flipContainer).turn('size', 
-                                                isMobile ? containerWidth : 820, 
-                                                isMobile ? containerHeight : 650);
+                                                isMobile ? containerWidth * 0.95 : Math.min(1200, containerWidth * 0.95),
+                                                isMobile ? containerHeight * 0.9 : Math.min(900, containerHeight * 0.9));
                                         }
                                     } catch (e) {
                                         console.error('Error resizing flipbook:', e);
@@ -2068,9 +2070,9 @@
                                 const viewport = page.getViewport({scale: 1.0});
                                 const isMobile = window.innerWidth <= 768;
                                 
-                                // Adjust container dimensions for mobile
-                                const containerWidth = isMobile ? 400 : 800;
-                                const containerHeight = isMobile ? 550 : 700;
+                                // Adjust container dimensions for larger fullscreen view
+                                const containerWidth = isMobile ? window.innerWidth * 0.9 : Math.min(1200, window.innerWidth * 0.9);
+                                const containerHeight = isMobile ? window.innerHeight * 0.7 : Math.min(900, window.innerHeight * 0.8);
                                 
                                 // Calculate scale to fit entirely within container
                                 const scaleX = (containerWidth - 2) / viewport.width;
@@ -2151,7 +2153,7 @@
                 }
             }
             else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(fileExtension)) {
-                // Use Google Docs Viewer for Office files
+                // Use Office Online Viewer for Office files instead of Google Docs
                 iframe.onload = function() {
                     fileLoading.style.display = 'none';
                     iframe.style.display = 'block';
@@ -2160,7 +2162,67 @@
                     fileLoading.style.display = 'none';
                     unsupportedView.style.display = 'block';
                 };
-                iframe.src = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+                const encodedUrl = encodeURIComponent(fileUrl);
+                iframe.src = `https://view.officeapps.live.com/op/view.aspx?src=${encodedUrl}`;
+            }
+            else if (['txt', 'html', 'htm', 'css', 'js'].includes(fileExtension)) {
+                // Text files in iframe 
+                iframe.onload = function() {
+                    fileLoading.style.display = 'none';
+                    iframe.style.display = 'block';
+                };
+                iframe.onerror = function() {
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
+                };
+                iframe.src = fileUrl;
+            }
+            else if (['mp4', 'webm', 'mov', 'avi', 'wmv', 'mpeg', 'mpg'].includes(fileExtension) || (fileName && fileName.includes('video-'))) {
+                // Video preview
+                videoWrapper.style.display = 'block';
+                videoPlayer.src = fileUrl;
+                
+                // Set download link
+                videoDownloadButton.href = fileUrl;
+                videoDownloadButton.setAttribute('download', fileName || 'video');
+                
+                // Add fullscreen functionality
+                videoFullscreenButton.onclick = function() {
+                    if (videoPlayer.requestFullscreen) {
+                        videoPlayer.requestFullscreen();
+                    } else if (videoPlayer.webkitRequestFullscreen) { /* Safari */
+                        videoPlayer.webkitRequestFullscreen();
+                    } else if (videoPlayer.msRequestFullscreen) { /* IE11 */
+                        videoPlayer.msRequestFullscreen();
+                    }
+                };
+                
+                // Update the file type icon for video
+                fileTypeIcon.textContent = 'VID';
+                fileTypeIcon.style.background = '#e83e8c';
+                
+                // Video events
+                videoPlayer.onloadeddata = function() {
+                    fileLoading.style.display = 'none';
+                    
+                    // Update file info with actual duration
+                    const duration = Math.round(videoPlayer.duration);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const durationText = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                    
+                    const fileSizeText = formatFileSize(1024 * 1024); // Placeholder size
+                    fileInfo.textContent = `Video • ${fileSizeText} • ${durationText}`;
+                };
+                
+                videoPlayer.onerror = function() {
+                    fileLoading.style.display = 'none';
+                    unsupportedView.style.display = 'block';
+                    console.error('Video loading error:', videoPlayer.error);
+                };
+                
+                // Try to load the video
+                videoPlayer.load();
             }
             else {
                 // Unsupported file type
@@ -2231,8 +2293,8 @@
         .modal-content {
             background-color: #fff;
             height: 100vh;
-            width: 65%;
-            max-width: 800px;
+            width: 100%; /* Increased for fullscreen */
+            max-width: 100%; /* Increased for fullscreen */
             position: relative;
             margin: 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
@@ -2242,6 +2304,94 @@
             animation: slideIn 0.4s forwards;
             border-radius: 0;
             overflow: hidden;
+        }
+        
+        /* Enhanced flipbook styles for full screen */
+        #flipbook-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            position: relative;
+            padding: 0; /* Removed padding */
+            min-height: calc(100vh - 120px); /* Full viewport height minus header/footer */
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: visible;
+        }
+        
+        #flipbook {
+            width: 100%;
+            height: 100%;
+            flex: 1;
+            margin: 0 auto;
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .flipbook-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0;
+        }
+        
+        .flipbook-nav button {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            pointer-events: auto;
+            opacity: 0.8;
+            z-index: 200;
+        }
+        
+        .flipbook-nav button:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        #prev-page-btn {
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        #next-page-btn {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Updated file viewer container for fullscreen */
+        #file-viewer-container {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: visible;
+            padding: 0;
+            box-sizing: border-box;
+            min-height: calc(100vh - 120px);
         }
         
         @keyframes slideIn {
@@ -2295,18 +2445,6 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-        }
-        
-        #file-viewer-container {
-            width: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: visible;
-            padding: 10px;
-            box-sizing: border-box;
-            min-height: 650px;
         }
         
         #file-iframe {
@@ -2379,96 +2517,6 @@
         .video-control-button:hover {
             background-color: #e9ecef;
             border-color: #ccc;
-        }
-        
-        #flipbook-wrapper {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            width: 100%;
-            position: relative;
-            padding: 10px 0;
-            min-height: 650px;
-            max-width: 100%;
-            margin: 0 auto;
-            overflow: visible;
-        }
-        
-        #flipbook {
-            width: 100%;
-            height: 100%;
-            flex: 1;
-            margin: 0 auto;
-            display: none;
-            position: relative;
-            z-index: 1;
-        }
-        
-        #flipbook .page {
-            background-color: white;
-            background-size: 100% 100%;
-            border-radius: 0;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 10px;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .flipbook-nav {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-        
-        .flipbook-nav button {
-            position: relative;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            pointer-events: auto;
-            opacity: 0.7;
-            margin: 0 10px;
-        }
-        
-        .flipbook-nav button:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-            opacity: 1;
-        }
-        
-        .flipbook-nav button:disabled {
-            background-color: rgba(0, 0, 0, 0.2);
-            cursor: not-allowed;
-            opacity: 0.3;
-        }
-        
-        #prev-page-btn {
-            left: auto;
-            margin-right: 10px;
-        }
-        
-        #next-page-btn {
-            right: auto;
-            margin-left: 10px;
         }
         
         .file-info-bar {
@@ -2572,24 +2620,35 @@
                 max-height: 100vh;
                 border-radius: 0;
                 margin: 0;
+                transform: translateX(-100%);
+                animation: slideIn 0.4s forwards;
             }
             
             #file-viewer-container {
-                min-height: auto;
-                padding: 10px;
+                min-height: calc(100vh - 120px);
+                padding: 0;
             }
             
             .flipbook-nav button {
-                width: 36px;
-                height: 36px;
+                width: 40px;
+                height: 40px;
+                opacity: 0.9;
+            }
+            
+            #prev-page-btn {
+                left: 10px;
+            }
+            
+            #next-page-btn {
+                right: 10px;
             }
             
             #flipbook-wrapper {
-                min-height: auto;
-                padding: 10px 0;
+                min-height: calc(100vh - 120px);
+                padding: 0;
             }
             
-            #flipbook .page, #flipbook-pages .page {
+            #flipbook .page {
                 padding: 5px;
             }
             
@@ -2670,6 +2729,25 @@
             .flipbook-nav button {
                 transform: scale(0.9);
             }
+        }
+        
+        #flipbook .page {
+            background-color: white;
+            background-size: 100% 100%;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flipbook-nav button:disabled {
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: not-allowed;
+            opacity: 0.3;
         }
     </style>
 </body>

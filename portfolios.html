@@ -752,13 +752,14 @@
                                 try {
                                     // Get container dimensions
                                     const container = document.getElementById('file-viewer-container');
-                                    const containerWidth = container.clientWidth * 0.95;
-                                    const containerHeight = Math.min(700, container.clientHeight * 0.95);
+                                    const containerWidth = container.clientWidth;
+                                    const containerHeight = container.clientHeight;
                                     const isMobile = window.innerWidth <= 768;
                                     
+                                    // Use full-screen dimensions for the flipbook
                                     $(flipContainer).turn({
-                                        width: isMobile ? containerWidth : 820,
-                                        height: isMobile ? containerHeight : 650,
+                                        width: isMobile ? containerWidth * 0.95 : Math.min(1200, containerWidth * 0.95),
+                                        height: isMobile ? containerHeight * 0.9 : Math.min(900, containerHeight * 0.9),
                                         autoCenter: true,
                                         display: 'single',
                                         duration: 600,
@@ -814,13 +815,13 @@
                                         try {
                                             if ($(flipContainer).data().turn) {
                                                 const container = document.getElementById('file-viewer-container');
-                                                const containerWidth = container.clientWidth * 0.95;
-                                                const containerHeight = Math.min(700, container.clientHeight * 0.95);
+                                                const containerWidth = container.clientWidth;
+                                                const containerHeight = container.clientHeight;
                                                 const isMobile = window.innerWidth <= 768;
                                                 
                                                 $(flipContainer).turn('size', 
-                                                    isMobile ? containerWidth : 820, 
-                                                    isMobile ? containerHeight : 650);
+                                                    isMobile ? containerWidth * 0.95 : Math.min(1200, containerWidth * 0.95), 
+                                                    isMobile ? containerHeight * 0.9 : Math.min(900, containerHeight * 0.9));
                                             }
                                         } catch (e) {
                                             console.error('Error resizing flipbook:', e);
@@ -856,9 +857,9 @@
                                     const viewport = page.getViewport({scale: 1.0});
                                     const isMobile = window.innerWidth <= 768;
                                     
-                                    // Adjust container dimensions for mobile
-                                    const containerWidth = isMobile ? 400 : 800;
-                                    const containerHeight = isMobile ? 550 : 700;
+                                    // Adjust container dimensions for larger fullscreen view
+                                    const containerWidth = isMobile ? window.innerWidth * 0.9 : Math.min(1200, window.innerWidth * 0.9);
+                                    const containerHeight = isMobile ? window.innerHeight * 0.7 : Math.min(900, window.innerHeight * 0.8);
                                     
                                     // Calculate scale to fit entirely within container
                                     // Use a slightly smaller scale factor to ensure nothing gets cut off
@@ -1030,6 +1031,9 @@
             
             // Function to load projects
             async function loadProjects(category, projectIdToOpen = null) {
+                // Get URL params for later use
+                const urlParams = new URLSearchParams(window.location.search);
+                
                 // Show loading spinner
                 const portfolioGrid = document.getElementById('portfolio-grid');
                 const noProjects = document.getElementById('no-projects');
@@ -1265,11 +1269,18 @@
                         // Apply animations
                         animateProjectCards();
                         
-                        // If there's a project to open automatically, do it now
+                        // Keep track of the project in case we need it later, but don't auto-open it
+                        // Store projectToOpen in a global variable for future reference
                         if (projectToOpen && projectToOpen.fileUrl) {
-                            setTimeout(() => {
-                                showFileInModal(projectToOpen.fileUrl, projectToOpen.fileName);
-                            }, 500); // Small delay to ensure everything is loaded
+                            window.cachedProjectToOpen = projectToOpen;
+                            console.log('Project ready to be opened manually:', projectToOpen.fileName);
+                            
+                            // Update URL without triggering auto-open
+                            if (urlParams.has('project')) {
+                                const url = new URL(window.location.href);
+                                url.searchParams.delete('project');
+                                window.history.replaceState({}, '', url);
+                            }
                         }
                     } else {
                         // Show no projects message
@@ -1924,8 +1935,8 @@
         .modal-content {
             background-color: #fff;
             height: 100vh;
-            width: 65%;
-            max-width: 800px;
+            width: 100%; /* Increased for fullscreen */
+            max-width: 100%; /* Increased for fullscreen */
             position: relative;
             margin: 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
@@ -2082,20 +2093,40 @@
             .modal-content {
                 width: 100%;
                 height: 100vh;
-                max-width: none;
+                max-width: 100%;
                 max-height: 100vh;
                 border-radius: 0;
                 margin: 0;
+                transform: translateX(-100%);
+                animation: slideIn 0.4s forwards;
             }
             
             #file-viewer-container {
-                min-height: auto;
-                padding: 10px;
+                min-height: calc(100vh - 120px);
+                padding: 0;
             }
             
             .flipbook-nav button {
-                width: 36px;
-                height: 36px;
+                width: 40px;
+                height: 40px;
+                opacity: 0.9;
+            }
+            
+            #prev-page-btn {
+                left: 10px;
+            }
+            
+            #next-page-btn {
+                right: 10px;
+            }
+            
+            #flipbook-wrapper {
+                min-height: calc(100vh - 120px);
+                padding: 0;
+            }
+            
+            #flipbook .page {
+                padding: 5px;
             }
             
             #flipbook-wrapper {
@@ -2217,38 +2248,46 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 20px;
+            padding: 0;
         }
         
         .flipbook-nav button {
-            position: relative;
-            background-color: rgba(0, 0, 0, 0.5);
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
             pointer-events: auto;
-            opacity: 0.7;
-            margin: 0 10px;
+            opacity: 0.8;
+            z-index: 200;
         }
         
-        /* Modal content size adjustments */
-        .modal-body {
-            min-height: 600px;
-            padding: 0;
-            overflow: auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        .flipbook-nav button:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+            opacity: 1;
+            transform: scale(1.1);
         }
         
-        /* Ensure the file viewer takes up enough space */
+        #prev-page-btn {
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        #next-page-btn {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Updated file viewer container for fullscreen */
         #file-viewer-container {
             width: 100%;
             flex: 1;
@@ -2256,249 +2295,116 @@
             flex-direction: column;
             position: relative;
             overflow: visible;
-            padding: 10px;
+            padding: 0;
             box-sizing: border-box;
-            min-height: 650px;
+            min-height: calc(100vh - 120px);
         }
         
-        /* Image sizing in the smaller modal */
-        #file-image {
-            max-width: 90%;
-            max-height: calc(100vh - 200px);
-            object-fit: contain;
-            margin: 0 auto;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            transform-origin: center;
-        }
-        
-        /* Image preview quality improvements */
-        .modal img {
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            backface-visibility: hidden; /* Fix for some blurring on transform */
-        }
-        
-        /* Admin-style file viewer styling */
-        .file-info-bar {
-            padding: 10px 15px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-        }
-        
-        .file-type-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #dc3545;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            margin-right: 15px;
-        }
-        
-        .file-actions {
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px 15px;
-            border-top: 1px solid #eee;
-            gap: 10px;
-        }
-        
-        .file-action-button {
-            padding: 6px 12px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .file-action-button:hover {
-            background-color: #e9ecef;
-            border-color: #ccc;
-        }
-        
-        .modal-loading {
+        /* Enhanced flipbook styles for full screen */
+        #flipbook-wrapper {
+            height: 100%;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.8);
-            z-index: 5;
-        }
-        
-        .modal-loading .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        
-        .modal-loading p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Reset para o slideshow */
-        .hero-slideshow {
+            flex: 1;
+            width: 100%;
             position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            padding: 0; /* Removed padding */
+            min-height: calc(100vh - 120px); /* Full viewport height minus header/footer */
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: visible;
         }
         
-        .hero-slide {
-            position: absolute;
-            top: 0;
-            left: 0;
+        #flipbook {
             width: 100%;
             height: 100%;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            transform: none !important;
-            z-index: 0;
-        }
-        
-        .hero-slide.active {
-            opacity: 1;
+            flex: 1;
+            margin: 0 auto;
+            display: none;
+            position: relative;
             z-index: 1;
         }
         
-        /* Remover todos os estilos que podem interferir */
-        .hero-slide.slide-enter-next,
-        .hero-slide.slide-enter-prev,
-        .hero-slide.slide-exit-next,
-        .hero-slide.slide-exit-prev,
-        .hero-slide.temp-active {
-            animation: none !important;
-            transform: none !important;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            #file-viewer-modal {
-                padding: 0;
-            }
-            
-            .modal-content {
-                animation: slideUpMobile 0.3s forwards;
-                transform: translateY(100%);
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                max-width: 100%;
-                height: 100%;
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            @keyframes slideUpMobile {
-                to { transform: translateY(0); }
-            }
-            
-            .modal.closing .modal-content {
-                animation: slideDownMobile 0.3s forwards;
-            }
-            
-            @keyframes slideDownMobile {
-                from { transform: translateY(0); }
-                to { transform: translateY(100%); }
-            }
-            
-            #flipbook .page, #flipbook-pages .page {
-                padding: 5px;
-            }
-            
-            .file-action-button {
-                padding: 5px 10px;
-                font-size: 0.8rem;
-            }
-            
-            .flipbook-nav button {
-                transform: scale(0.9);
-            }
-        }
-        
-        /* Video player styles */
-        #video-wrapper {
-            width: 100%;
-            height: 100%;
+        #flipbook .page {
+            background-color: white;
+            background-size: 100% 100%;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
-            max-width: 95%;
-            margin: 0 auto;
         }
         
-        #video-player {
+        .flipbook-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-height: calc(100vh - 200px);
-            background-color: #000;
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .video-controls {
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
             display: flex;
-            justify-content: flex-end;
-            width: 100%;
-            padding: 10px 0;
-            gap: 10px;
-        }
-        
-        .video-control-button {
-            padding: 6px 12px;
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            color: #333;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 5px;
+            padding: 0;
         }
         
-        .video-control-button:hover {
-            background-color: #e9ecef;
-            border-color: #ccc;
+        .flipbook-nav button {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            pointer-events: auto;
+            opacity: 0.8;
+            z-index: 200;
         }
         
-        .modal img {
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            backface-visibility: hidden;
+        .flipbook-nav button:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        
+        .flipbook-nav button:disabled {
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+        
+        #prev-page-btn {
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        #next-page-btn {
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Updated file viewer container for fullscreen */
+        #file-viewer-container {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: visible;
+            padding: 0;
+            box-sizing: border-box;
+            min-height: calc(100vh - 120px);
         }
     </style>
 </body>

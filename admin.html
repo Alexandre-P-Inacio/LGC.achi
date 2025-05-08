@@ -1110,10 +1110,66 @@
             text-align: center;
         }
 
+        /* Projects table container with improved scrolling */
         .projects-table-container {
-            padding-right: 40px !important;
-            overflow-x: auto !important;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+            margin-bottom: 20px;
         }
+
+        /* Additional responsive adjustments for tablet mode */
+        @media (max-width: 1024px) {
+            .table-responsive {
+                border: 0;
+                margin-bottom: 15px;
+            }
+            
+            .projects-table-container {
+                overflow-x: auto;
+                padding-bottom: 10px; /* Add space for scrollbar */
+                margin-left: -15px;
+                margin-right: -15px;
+                padding-left: 15px;
+                padding-right: 15px;
+                width: calc(100% + 30px);
+            }
+            
+            .projects-table {
+                min-width: 900px; /* Ensure table has minimum width to enable scrolling */
+                margin-bottom: 0;
+            }
+            
+            /* Prevent text wrapping in table cells for better horizontal scrolling */
+            .projects-table th, 
+            .projects-table td {
+                white-space: nowrap;
+            }
+            
+            /* Fix for action buttons on mobile */
+            .action-button {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Ensure drop shadows don't get cut off */
+            .admin-section {
+                overflow: visible;
+            }
+        }
+
+        /* Fix for mobile view */
+        @media (max-width: 576px) {
+            .projects-table-container {
+                margin-left: -15px;
+                margin-right: -15px;
+                width: calc(100% + 30px);
+            }
+
+            .projects-table {
+                min-width: 800px;
+            }
+        }
+
         .projects-table td:last-child, .projects-table th:last-child {
             padding-right: 32px !important;
         }
@@ -1248,6 +1304,78 @@
             font-size: 12px;
             margin-right: 10px;
         }
+
+        /* Table responsive class */
+        .table-responsive {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Projects table container with improved scrolling */
+        .projects-table-container {
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch; /* For smooth scrolling on iOS */
+            margin-bottom: 20px;
+        }
+
+        /* Additional responsive adjustments for tablet mode */
+        @media (max-width: 1024px) {
+            .table-responsive {
+                border: 0;
+                margin-bottom: 15px;
+            }
+            
+            .projects-table-container {
+                overflow-x: auto;
+                padding-bottom: 10px; /* Add space for scrollbar */
+                margin-left: -15px;
+                margin-right: -15px;
+                padding-left: 15px;
+                padding-right: 15px;
+                width: calc(100% + 30px);
+            }
+            
+            .projects-table {
+                min-width: 900px; /* Ensure table has minimum width to enable scrolling */
+                margin-bottom: 0;
+            }
+            
+            /* Prevent text wrapping in table cells for better horizontal scrolling */
+            .projects-table th, 
+            .projects-table td {
+                white-space: nowrap;
+            }
+            
+            /* Fix for action buttons on mobile */
+            .action-button {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Ensure drop shadows don't get cut off */
+            .admin-section {
+                overflow: visible;
+            }
+        }
+
+        /* Fix for mobile view */
+        @media (max-width: 576px) {
+            .projects-table-container {
+                margin-left: -15px;
+                margin-right: -15px;
+                width: calc(100% + 30px);
+            }
+
+            .projects-table {
+                min-width: 800px;
+            }
+        }
+
+        .projects-table td:last-child, .projects-table th:last-child {
+            padding-right: 32px !important;
+        }
     </style>
 </head>
 <body onload="checkAdminAccess(); updateStats(); loadProjects(); loadUsers();">
@@ -1337,7 +1465,7 @@
                 </div>
             </div>
 
-            <div class="projects-table-container">
+            <div class="table-responsive projects-table-container">
                 <table class="projects-table">
                     <thead>
                         <tr>
@@ -1386,7 +1514,7 @@
                 </div>
             </div>
 
-            <div class="projects-table-container">
+            <div class="table-responsive projects-table-container">
                 <table class="projects-table">
                     <thead>
                         <tr>

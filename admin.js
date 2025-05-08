@@ -2927,16 +2927,20 @@ if (!document.getElementById('users-table-no-scroll')) {
     const style = document.createElement('style');
     style.id = 'users-table-no-scroll';
     style.innerHTML = `
-      .projects-table-container, #users-container, .projects-table {
-        overflow: hidden !important;
+      #users-container, .users-table {
         max-width: 100% !important;
       }
       .projects-table {
         table-layout: fixed;
         width: 100%;
       }
+      .projects-table-container {
+        overflow-x: auto !important;
+        max-width: 100% !important;
+        -webkit-overflow-scrolling: touch;
+      }
       .admin-section {
-        overflow-x: hidden !important;
+        overflow: visible !important;
       }
     `;
     document.head.appendChild(style);
@@ -3298,3 +3302,128 @@ async function insertSystemNotification(receiverUsername, content, projectId = n
         return { success: false, error: e };
     }
 }
+
+// Toggle featured status of a project
+async function toggleFeaturedStatus(projectId, setFeatured) {
+    try {
+        showLoadingIndicator('Updating featured status...');
+        
+        // Update the project's is_featured status
+        const { data, error } = await supabase
+            .from('projects')
+            .update({ is_featured: setFeatured })
+            .eq('id', projectId)
+            .select();
+        
+        hideLoadingIndicator();
+        
+        if (error) {
+            console.error('Error toggling featured status:', error);
+            showNotification('Failed to update featured status', 'error');
+            return;
+        }
+        
+        // Show success notification
+        const message = setFeatured ? 
+            'Project set as featured successfully!' : 
+            'Project removed from featured successfully!';
+        showNotification(message, 'success');
+        
+        // Reload projects to update UI
+        loadProjects(currentPage, getCurrentFilters());
+        
+        // Update stats if stats elements exist
+        if (document.getElementById('total-projects')) {
+            updateStats();
+        }
+        
+    } catch (err) {
+        hideLoadingIndicator();
+        console.error('Error in toggleFeaturedStatus:', err);
+        showNotification('An error occurred while updating featured status', 'error');
+    }
+}
+
+// Initialize scroll buttons functionality
+function initScrollButtons() {
+    const leftBtn = document.getElementById('scroll-left');
+    const rightBtn = document.getElementById('scroll-right');
+    const container = document.querySelector('.project-carousel-wrapper');
+    
+    if (!leftBtn || !rightBtn || !container) return;
+    
+    console.log('Initializing scroll buttons');
+    
+    // Make buttons visible
+    leftBtn.style.display = 'flex';
+    rightBtn.style.display = 'flex';
+    
+    // Default left button disabled at start position
+    leftBtn.disabled = true;
+    leftBtn.style.opacity = '0.5';
+    
+    // Scroll amount per click (width of one card + margin)
+    const scrollAmount = 300;
+    
+    // Scroll left
+    leftBtn.addEventListener('click', () => {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+    
+    // Scroll right
+    rightBtn.addEventListener('click', () => {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+    
+    // Update button states on scroll
+    container.addEventListener('scroll', () => {
+        const scrollPosition = container.scrollLeft;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        
+        // Enable/disable buttons based on scroll position
+        leftBtn.disabled = scrollPosition <= 0;
+        leftBtn.style.opacity = scrollPosition <= 0 ? '0.5' : '1';
+        
+        rightBtn.disabled = scrollPosition >= maxScroll - 10; // 10px buffer
+        rightBtn.style.opacity = scrollPosition >= maxScroll - 10 ? '0.5' : '1';
+    });
+}
+
+// Initialize horizontal table scrolling
+function initTableScrolling() {
+    // Find all table containers
+    const tableContainers = document.querySelectorAll('.projects-table-container');
+    
+    tableContainers.forEach(container => {
+        // Force overflow-x to auto
+        container.style.overflowX = 'auto';
+        
+        // Find the table inside
+        const table = container.querySelector('.projects-table');
+        if (table) {
+            // Ensure table has enough width to trigger scrolling on smaller screens
+            if (window.innerWidth < 1200) {
+                // Set min-width based on column count
+                const columnCount = table.querySelectorAll('th').length;
+                const minColumnWidth = 150; // minimum width per column in pixels
+                table.style.minWidth = (columnCount * minColumnWidth) + 'px';
+            }
+        }
+    });
+}
+
+// Call the function when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Other initialization code...
+    
+    // Initialize scroll buttons
+    setTimeout(initScrollButtons, 1000); // Delay to ensure elements are loaded
+    
+    // Initialize table scrolling
+    initTableScrolling();
+    
+    // Re-initialize on window resize
+    window.addEventListener('resize', function() {
+        initTableScrolling();
+    });
+});

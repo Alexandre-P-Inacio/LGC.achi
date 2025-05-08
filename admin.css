@@ -459,16 +459,16 @@ nav {
 
 /* Projects table */
 .projects-table-container {
-    overflow-x: auto;
-    background: white;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 20px;
+    position: relative;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    margin-top: 1.5rem;
-    position: relative;
-    max-width: 100%; /* Ensure it doesn't exceed the viewport width */
 }
 
 .projects-table {
+    min-width: 1000px; /* Ensure table has enough width to trigger scrolling */
     width: 100%;
     border-collapse: collapse;
     border-spacing: 0;
@@ -2057,5 +2057,72 @@ html, body {
     
     #users-container .action-button i {
         font-size: 16px !important;
+    }
+}
+
+/* Scroll Buttons Styling */
+.scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    border: 1px solid #ddd;
+    color: #333;
+    display: flex !important; /* Force display them */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    opacity: 1 !important; /* Force full opacity */
+}
+
+.scroll-btn:hover {
+    background-color: #f8f8f8;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.scroll-btn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed;
+    background-color: #f5f5f5;
+}
+
+.scroll-left {
+    left: 0;
+}
+
+.scroll-right {
+    right: 0;
+}
+
+/* Make sure the container has position: relative for absolute positioning to work */
+.project-carousel, #featured-projects-container {
+    position: relative;
+    overflow: hidden;
+    padding: 0 50px; /* Add padding to make room for the buttons */
+}
+
+/* Hide scroll-btn.hidden class explicitly */
+.scroll-btn.hidden {
+    display: none !important;
+}
+
+/* Visual indicator for horizontal scrolling on smaller screens */
+@media (max-width: 1200px) {
+    .projects-table-container:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 20px;
+        background: linear-gradient(to right, transparent, rgba(0,0,0,0.05));
+        pointer-events: none;
+        z-index: 1;
     }
 }
