@@ -1077,36 +1077,47 @@
                 document.querySelectorAll('.view-project-btn').forEach(button => {
                     button.addEventListener('click', function(e) {
                         e.preventDefault();
-                        
                         const fileUrl = this.getAttribute('data-file-url');
                         const fileName = this.getAttribute('data-file-name');
+                        const projectId = this.getAttribute('data-project-id');
                         
                         if (fileUrl) {
+                            // Show file directly in modal
                             showFileInModal(fileUrl, fileName);
                         } else {
-                            alert('No file available for this project');
+                            // Fallback to the portfolios page if no file is available
+                            window.location.href = `portfolios.html?project=${projectId}`;
                         }
                     });
                 });
+                
+                // Hide right button if 3 or fewer projects
+                if (featuredProjects.length <= 3) {
+                    document.getElementById('scroll-right').classList.add('hidden');
+                }
+                
+                // Initialize carousel functionality
+                initCarousel();
                 
                 // Force reset scroll position to start
                 if (carouselWrapper) {
                     carouselWrapper.scrollLeft = 0;
                 }
                 
-                // Dispatch event for translation system
-                document.dispatchEvent(new CustomEvent('projectsLoaded'));
-                
-                console.log('Featured projects fully loaded and event handlers attached');
             } catch (error) {
-                console.error('Error loading featured projects:', error);
+                console.error('Error in loadFeaturedProjects:', error);
                 const projectsContainer = document.getElementById('featured-projects-container');
                 projectsContainer.innerHTML = `
-                    <div class="error-message">
-                        <h3>Error Loading Projects</h3>
-                        <p>${error.message || 'An unexpected error occurred'}</p>
-                    </div>
+                    <p class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Failed to load featured projects. Please try again later.<br>
+                        <small>Error: ${error.message}</small>
+                    </p>
                 `;
+                
+                // Hide scroll buttons if error
+                document.getElementById('scroll-left').classList.add('hidden');
+                document.getElementById('scroll-right').classList.add('hidden');
             }
         }
         
