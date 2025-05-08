@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="client-dashboard.css">
+    <link rel="stylesheet" href="language-selector.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         /* Custom styles for navbar in contact page */
@@ -297,6 +298,7 @@
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
     <script src="client-dashboard.js" defer></script>
+    <script src="language-selector.js" defer></script>
 </head>
 <body>
     <header>
@@ -624,8 +626,16 @@
             const subject = document.getElementById('subject').value;
             const message = document.getElementById('message').value;
             
-            // Success message
-            alert(`Thank you ${name}! Your message has been sent successfully. We will get back to you soon.`);
+            // Get current language
+            const currentLang = localStorage.getItem('selectedLanguage') || 'en';
+            
+            // Get translations for the current language
+            const translations = window.translations && window.translations[currentLang] ? 
+                                 window.translations[currentLang] : 
+                                 {'form-success': 'Thank you! Your message has been sent successfully. We will get back to you soon.'};
+            
+            // Success message with translation
+            alert(translations['form-success']);
             
             // Reset form
             this.reset();

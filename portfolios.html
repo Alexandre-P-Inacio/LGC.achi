@@ -1016,6 +1016,9 @@
                     const categoryName = categoryButton ? categoryButton.textContent : formatCategoryName(category);
                     filterInfo.textContent = `Showing projects in ${categoryName}`;
                 }
+                
+                // Dispatch event for translation system
+                document.dispatchEvent(new CustomEvent('portfolioFiltered'));
             }
             
             // Format category name for display
@@ -1282,10 +1285,12 @@
                                 window.history.replaceState({}, '', url);
                             }
                         }
+                        
+                        // Dispatch event for translation system
+                        document.dispatchEvent(new CustomEvent('projectsLoaded'));
                     } else {
                         // Show no projects message
-                        noProjects.style.display = 'flex';
-                        portfolioGrid.innerHTML = '';
+                        noProjects.style.display = 'block';
                     }
                 } catch (error) {
                     console.error('Error loading projects:', error);
@@ -1295,6 +1300,36 @@
                             <p>Error loading projects: ${error.message || 'Please try again later.'}</p>
                         </div>
                     `;
+                }
+                
+                // After projects are loaded and the DOM is updated
+                
+                // Clear loading spinner
+                portfolioGrid.innerHTML = '';
+                
+                console.log('Projects loaded:', projects.length);
+                
+                // Check if projects were found
+                if (projects && projects.length > 0) {
+                    // Variable to track if we need to open a project
+                    let projectToOpen = null;
+                    
+                    // Display projects
+                    projects.forEach(project => {
+                        // Create project card
+                        const card = document.createElement('div');
+                        card.className = 'portfolio-card';
+                        
+                        // ... existing code ...
+                    });
+                    
+                    // ... existing code for showing project details ...
+                    
+                    // Dispatch event for translation system
+                    document.dispatchEvent(new CustomEvent('projectsLoaded'));
+                } else {
+                    // Show no projects message
+                    noProjects.style.display = 'block';
                 }
             }
             
