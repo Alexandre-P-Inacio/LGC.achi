@@ -13,7 +13,7 @@
     <style>
         /* Custom styles for navbar in contact page */
         .nav-links a {
-            font-size: 1.0rem; /* Increased font size for navbar links */
+            font-size: 1.2rem; /* Increased font size for navbar links */
         }
         
         /* Adjust spacing between navbar items */
@@ -289,33 +289,13 @@
                 font-size: 1.1rem;
             }
         }
-        
-        /* Footer credits styling */
-        .footer-credits {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            opacity: 0.8;
-        }
-        
-        .footer-credits a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-        
-        .footer-credits a:hover {
-            text-decoration: underline;
-            opacity: 1;
-        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
         window.supabase = supabase;
     </script>
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
-    <script src="navigation.js"></script>
     <script src="client-dashboard.js" defer></script>
     <script src="language-selector.js" defer></script>
 </head>
@@ -636,18 +616,6 @@
             </div>
         </div>
     </div>
-
-    <footer>
-        <div class="footer-content">
-            <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
-            <div class="footer-credits">
-                <p>Powered by 
-                    <a href="https://www.linkedin.com/in/alexandre-in%C3%A1cio-56ab342a4/" target="_blank" rel="noopener noreferrer">Alexandre Inácio</a> & 
-                    <a href="https://www.linkedin.com/in/pedro-jesus-9b3336333/" target="_blank" rel="noopener noreferrer">Pedro Jesus</a>
-                </p>
-            </div>
-        </div>
-    </footer>
 
     <script>
         document.getElementById('contactForm').addEventListener('submit', function(e) {

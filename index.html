@@ -593,42 +593,6 @@
                 display: none;
             }
         }
-        
-        /* Fix for mobile view */
-        @media (max-width: 576px) {
-            .projects-table-container {
-                margin-left: -15px;
-                margin-right: -15px;
-                width: calc(100% + 30px);
-            }
-
-            .projects-table {
-                min-width: 800px;
-            }
-        }
-
-        .projects-table td:last-child, .projects-table th:last-child {
-            padding-right: 32px !important;
-        }
-        
-        /* Footer credits styling */
-        .footer-credits {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            opacity: 0.8;
-        }
-        
-        .footer-credits a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-        
-        .footer-credits a:hover {
-            text-decoration: underline;
-            opacity: 1;
-        }
     </style>
 </head>
 <body>
@@ -831,12 +795,6 @@
                 <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
             </div>
             <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
-            <div class="footer-credits">
-                <p>Powered by 
-                    <a href="https://www.linkedin.com/in/alexandre-in%C3%A1cio-56ab342a4/" target="_blank" rel="noopener noreferrer">Alexandre Inácio</a> & 
-                    <a href="https://www.linkedin.com/in/pedro-jesus-9b3336333/" target="_blank" rel="noopener noreferrer">Pedro Jesus</a>
-                </p>
-            </div>
         </div>
     </footer>
     
@@ -973,12 +931,11 @@
                 
                 console.log('Fetching featured projects from database...');
                 
-                // Fetch featured projects from the database - ordered by featured_order first, then created_at
+                // Fetch featured projects from the database
                 const { data: featuredProjects, error } = await window.supabase
                     .from('projects')
                     .select('*')
                     .eq('is_featured', true)
-                    .order('featured_order', { ascending: true, nullsLast: true })
                     .order('created_at', { ascending: false });
                 
                 if (error) {

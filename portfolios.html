@@ -8,18 +8,54 @@
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="client-dashboard.css">
-    <link rel="stylesheet" href="language-selector.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Load Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- jQuery required for Turn.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Turn.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <!-- PDF.js for PDF processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js worker
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                console.log('PDF.js worker configured');
+            } else {
+                console.error('PDF.js library not loaded');
+            }
+        });
+    </script>
     
-    <!-- Then load other scripts -->
+    <!-- Load Supabase first -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="image-utils.js"></script>
+    <script>
+        // Initialize the Supabase client
+        const supabaseUrl = 'https://pwsgmskiamkpzgtlaikm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3c2dtc2tpYW1rcHpndGxhaWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNzM5NzIsImV4cCI6MjA1OTk0OTk3Mn0.oYGnYIpOUteNha2V1EoyhgxDA1XFfzxTjY8jAbSyLmI';
+    
+        // Initialize Supabase client globally
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+                    window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+                    console.log('Supabase client initialized successfully');
+                } else {
+                    console.error('Supabase library loaded but createClient not available');
+                }
+            } catch (error) {
+                console.error('Error initializing Supabase client:', error);
+            }
+        });
+    </script>
+    
+    <!-- Load other scripts -->
     <script src="auth.js" defer></script>
     <script src="animation.js" defer></script>
     <script src="navigation.js"></script>
     <script src="client-dashboard.js" defer></script>
-    <script src="language-selector.js" defer></script>
 </head>
 <body>
     <header>
@@ -204,13 +240,12 @@
 
     <footer>
         <div class="footer-content">
-            <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
-            <div class="footer-credits">
-                <p>Powered by 
-                    <a href="https://www.linkedin.com/in/alexandre-in%C3%A1cio-56ab342a4/" target="_blank" rel="noopener noreferrer">Alexandre Inácio</a> & 
-                    <a href="https://www.linkedin.com/in/pedro-jesus-9b3336333/" target="_blank" rel="noopener noreferrer">Pedro Jesus</a>
-                </p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/lgcarchi/"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/profile.php?id=100094347141527"><i class="fab fa-facebook"></i></a>
+                <a href="https://twitter.com/ingegneria_lgc"><i class="fab fa-twitter"></i></a>
             </div>
+            <p>&copy; 2025 Architecture Portfolio. All rights reserved.</p>
         </div>
     </footer>
     
@@ -2426,25 +2461,6 @@
             padding: 0;
             box-sizing: border-box;
             min-height: calc(100vh - 120px);
-        }
-        
-        /* Footer credits styling */
-        .footer-credits {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            opacity: 0.8;
-        }
-        
-        .footer-credits a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-        
-        .footer-credits a:hover {
-            text-decoration: underline;
-            opacity: 1;
         }
     </style>
 </body>

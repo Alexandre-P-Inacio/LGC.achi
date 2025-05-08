@@ -250,7 +250,7 @@ async function loadProjects(page = 1, filters = {}) {
         // Prepare query
         let query = supabase
             .from('projects')
-            .select('id, name, category, status, file_url, created_at, is_featured, featured_order', { count: 'exact' })
+            .select('id, name, category, status, file_url, created_at, is_featured', { count: 'exact' })
             .order('created_at', { ascending: false });
         
         // Apply filters on the server side when possible
@@ -443,11 +443,6 @@ function updateProjectsTable(projects) {
         // Check if project is featured
         const isFeatured = project.is_featured === true;
         
-        // Get featured order if available
-        const featuredOrder = project.featured_order !== undefined && project.featured_order !== null 
-            ? project.featured_order 
-            : '';
-            
         if (isMobile) {
             // MOBILE: Build mobile row HTML
             tableHTML += `
@@ -462,10 +457,7 @@ function updateProjectsTable(projects) {
                                 <button class="action-button edit-button" onclick="window.location.href='project-form.html?id=${project.id}'" title="Edit"><i class="fas fa-edit"></i></button>
                                 <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
                                 <button class="action-button share-button" onclick="showShareModal('${project.id}', '${safeProjectName}')" title="Share Access"><i class="fas fa-share-alt"></i></button>
-                                <button class="action-button star-button ${isFeatured ? 'featured' : ''}" onclick="showFeaturedPositionModal('${project.id}', ${isFeatured})" title="${isFeatured ? 'Featured position: ' + featuredOrder : 'Add to Featured'}">
-                                    <i class="fas fa-star"></i>
-                                    ${isFeatured && featuredOrder ? `<strong class="star-number">${featuredOrder}</strong>` : ''}
-                                </button>
+                                <button class="action-button star-button ${isFeatured ? 'featured' : ''}" onclick="toggleFeaturedStatus('${project.id}', ${!isFeatured})" title="${isFeatured ? 'Remove from Featured' : 'Add to Featured'}"><i class="fas fa-star"></i></button>
                             </div>
                         </div>
                         <div class="project-details" style="display: none; padding-top: 15px; border-top: 1px solid #eee; margin-top: 15px;">
@@ -506,12 +498,7 @@ function updateProjectsTable(projects) {
                             <button class="action-button edit-button" onclick="window.location.href='project-form.html?id=${project.id}'" title="Edit"><i class="fas fa-edit"></i></button>
                             <button class="action-button delete-button" onclick="deleteProject('${project.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
                             <button class="action-button share-button" onclick="showShareModal('${project.id}', '${safeProjectName}')" title="Share Access"><i class="fas fa-share-alt"></i></button>
-                            <div class="featured-actions">
-                                <button class="action-button star-button ${isFeatured ? 'featured' : ''}" onclick="showFeaturedPositionModal('${project.id}', ${isFeatured})" title="${isFeatured ? 'Featured position: ' + featuredOrder : 'Add to Featured'}">
-                                    <i class="fas fa-star"></i>
-                                    ${isFeatured && featuredOrder ? `<strong class="star-number">${featuredOrder}</strong>` : ''}
-                                </button>
-                            </div>
+                            <button class="action-button star-button ${isFeatured ? 'featured' : ''}" onclick="toggleFeaturedStatus('${project.id}', ${!isFeatured})" title="${isFeatured ? 'Remove from Featured' : 'Add to Featured'}"><i class="fas fa-star"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -3266,25 +3253,14 @@ async function insertSystemNotification(receiverUsername, content, projectId = n
 }
 
 // Toggle featured status of a project
-async function toggleFeaturedStatus(projectId, setFeatured, order = null) {
+async function toggleFeaturedStatus(projectId, setFeatured) {
     try {
         showLoadingIndicator('Updating featured status...');
-        
-        // Prepare the update data
-        const updateData = { is_featured: setFeatured };
-        
-        // Add featured_order if provided
-        if (order !== null) {
-            updateData.featured_order = order;
-        } else if (!setFeatured) {
-            // If removing from featured, set featured_order to null
-            updateData.featured_order = null;
-        }
         
         // Update the project's is_featured status
         const { data, error } = await supabase
             .from('projects')
-            .update(updateData)
+            .update({ is_featured: setFeatured })
             .eq('id', projectId)
             .select();
         
@@ -3292,27 +3268,14 @@ async function toggleFeaturedStatus(projectId, setFeatured, order = null) {
         
         if (error) {
             console.error('Error toggling featured status:', error);
-            
-            // Special handling for unique constraint violation
-            if (error.code === '23505') { // PostgreSQL unique constraint violation code
-                showNotification('That position is already taken. Please choose another position.', 'error');
-            } else {
-                showNotification('Failed to update featured status', 'error');
-            }
+            showNotification('Failed to update featured status', 'error');
             return;
         }
         
-        // Prepare success message
-        let message;
-        if (setFeatured) {
-            message = order !== null ? 
-                `Project set as featured #${order} successfully!` : 
-                'Project set as featured successfully!';
-        } else {
-            message = 'Project removed from featured successfully!';
-        }
-        
         // Show success notification
+        const message = setFeatured ? 
+            'Project set as featured successfully!' : 
+            'Project removed from featured successfully!';
         showNotification(message, 'success');
         
         // Reload projects to update UI
@@ -3413,89 +3376,3 @@ document.addEventListener('DOMContentLoaded', function() {
         initTableScrolling();
     });
 });
-
-// Show featured position modal
-async function showFeaturedPositionModal(projectId, isCurrentlyFeatured) {
-    try {
-        // If it's already featured and we click it, remove from featured
-        if (isCurrentlyFeatured) {
-            const confirmed = confirm('Do you want to remove this project from featured?');
-            if (confirmed) {
-                await toggleFeaturedStatus(projectId, false);
-            }
-            return;
-        }
-        
-        // Set project ID in hidden field
-        document.getElementById('featured-project-id').value = projectId;
-        
-        // Get already used positions to mark them as unavailable
-        showLoadingIndicator('Loading available positions...');
-        
-        const { data: featuredProjects, error } = await supabase
-            .from('projects')
-            .select('id, featured_order')
-            .eq('is_featured', true)
-            .not('id', 'eq', projectId);
-            
-        hideLoadingIndicator();
-        
-        if (error) {
-            console.error('Error fetching featured projects:', error);
-            showNotification('Failed to load available positions', 'error');
-            return;
-        }
-        
-        // Create a map of used positions
-        const usedPositions = {};
-        featuredProjects.forEach(project => {
-            if (project.featured_order) {
-                usedPositions[project.featured_order] = project.id;
-            }
-        });
-        
-        // Mark buttons as used or available and add position numbers to them
-        const positionButtons = document.querySelectorAll('.position-button');
-        positionButtons.forEach(button => {
-            const position = parseInt(button.getAttribute('data-position'));
-            
-            // Reset button state
-            button.classList.remove('used', 'selected');
-            button.disabled = false;
-            button.innerHTML = position; // Show position number clearly
-            
-            // Check if this position is already taken
-            if (usedPositions[position]) {
-                button.classList.add('used');
-                button.disabled = true;
-                button.title = 'This position is already in use';
-            } else {
-                button.title = 'Select this position';
-                
-                // Add click event to set featured position
-                button.onclick = async function() {
-                    // Visual feedback - mark as selected
-                    positionButtons.forEach(btn => btn.classList.remove('selected'));
-                    this.classList.add('selected');
-                    
-                    const position = parseInt(this.getAttribute('data-position'));
-                    await toggleFeaturedStatus(projectId, true, position);
-                    closeFeaturedPositionModal();
-                };
-            }
-        });
-        
-        // Show the modal
-        document.getElementById('featured-position-modal').style.display = 'block';
-        
-    } catch (err) {
-        hideLoadingIndicator();
-        console.error('Error showing featured position modal:', err);
-        showNotification('An error occurred while preparing the position selection', 'error');
-    }
-}
-
-// Close the featured position modal
-function closeFeaturedPositionModal() {
-    document.getElementById('featured-position-modal').style.display = 'none';
-}
