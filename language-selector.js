@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'View Project',
             'view-details': 'View Details',
             'footer-copyright': '© 2025 Architecture Portfolio. All rights reserved.',
+            'footer-credits': 'Powered by',
             'practices-title': 'Practices',
             'select-practice': 'Select a practice area below',
             'all-categories': 'All Categories',
@@ -91,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Ver Proyecto',
             'view-details': 'Ver Detalles',
             'footer-copyright': '© 2025 Portafolio de Arquitectura. Todos los derechos reservados.',
+            'footer-credits': 'Desarrollado por',
             'practices-title': 'Prácticas',
             'select-practice': 'Seleccione un área de práctica a continuación',
             'all-categories': 'Todas las Categorías',
@@ -150,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Voir le Projet',
             'view-details': 'Voir les Détails',
             'footer-copyright': "© 2025 Portfolio d'Architecture. Tous droits réservés.",
+            'footer-credits': 'Propulsé par',
             'practices-title': 'Pratiques',
             'select-practice': 'Sélectionnez un domaine de pratique ci-dessous',
             'all-categories': 'Toutes les Catégories',
@@ -209,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Ver Projeto',
             'view-details': 'Ver Detalhes',
             'footer-copyright': '© 2025 Portfólio de Arquitetura. Todos os direitos reservados.',
+            'footer-credits': 'Desenvolvido por',
             'practices-title': 'Práticas',
             'select-practice': 'Selecione uma área de prática abaixo',
             'all-categories': 'Todas as Categorias',
@@ -268,6 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Projekt ansehen',
             'view-details': 'Details ansehen',
             'footer-copyright': '© 2025 Architektur-Portfolio. Alle Rechte vorbehalten.',
+            'footer-credits': 'Powered by',
             'practices-title': 'Praktiken',
             'select-practice': 'Wählen Sie unten einen Praxisbereich aus',
             'all-categories': 'Alle Kategorien',
@@ -327,6 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': '查看项目',
             'view-details': '查看详情',
             'footer-copyright': '© 2025 建筑作品集。保留所有权利。',
+            'footer-credits': '技术支持',
             'practices-title': '业务领域',
             'select-practice': '请在下方选择业务领域',
             'all-categories': '所有类别',
@@ -386,6 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'Visualizza Progetto',
             'view-details': 'Visualizza Dettagli',
             'footer-copyright': '© 2025 Portfolio di Architettura. Tutti i diritti riservati.',
+            'footer-credits': 'Realizzato da',
             'practices-title': 'Pratiche',
             'select-practice': "Seleziona un'area di pratica qui sotto",
             'all-categories': 'Tutte le Categorie',
@@ -445,6 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'view-project': 'عرض المشروع',
             'view-details': 'عرض التفاصيل',
             'footer-copyright': '© 2025 معرض أعمال الهندسة المعمارية. جميع الحقوق محفوظة.',
+            'footer-credits': 'بواسطة',
             'practices-title': 'مجالات العمل',
             'select-practice': 'اختر مجال عمل أدناه',
             'all-categories': 'جميع الفئات',
@@ -504,9 +512,14 @@ document.addEventListener('DOMContentLoaded', function() {
         '.show-more-text': 'show-more',
         '.show-less-text': 'show-less',
         '.view-project-btn': 'view-project',
+<<<<<<< Updated upstream
         '.view-button': 'view-project',
         '.view-project-button': 'view-details',
         '.footer-content p': 'footer-copyright',
+=======
+        '.footer-content > p:first-of-type': 'footer-copyright',
+        '.footer-credits p': 'footer-credits',
+>>>>>>> Stashed changes
         '.dashboard-popup-header h2': 'practices-title',
         '.dashboard-popup-content p': 'select-practice',
         '.filter-button[data-filter="all"]': 'all-categories',
@@ -544,9 +557,31 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.forEach(element => {
                 // Only translate if we have a translation
                 if (currentTranslations[key]) {
+<<<<<<< Updated upstream
                     // Special handling for filter-dropdown-btn to keep the icon
                     if (selector === '.filter-dropdown-btn') {
                         element.innerHTML = `${currentTranslations[key]} <i class="fas fa-chevron-down"></i>`;
+=======
+                    // Special handling for footer credits to preserve the links
+                    if (key === 'footer-credits') {
+                        // Find all text nodes in the element
+                        const walker = document.createTreeWalker(
+                            element,
+                            NodeFilter.SHOW_TEXT,
+                            null,
+                            false
+                        );
+                        
+                        let textNode;
+                        // Find first non-empty text node (should be "Powered by")
+                        while (textNode = walker.nextNode()) {
+                            if (textNode.nodeValue.trim()) {
+                                // Replace just the "Powered by" text while preserving whitespace
+                                textNode.nodeValue = textNode.nodeValue.replace(/Powered by|Desarrollado por|Propulsé par|Desenvolvido por|Realizzato da|技术支持|بواسطة/, currentTranslations[key]);
+                                break;
+                            }
+                        }
+>>>>>>> Stashed changes
                     } else {
                         element.innerText = currentTranslations[key];
                     }
@@ -638,14 +673,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Add click event for language selection
                 option.addEventListener('click', function() {
+                    // Skip if already the current language
+                    if (lang.code === currentLangCode) {
+                        languageSelector.classList.remove('active');
+                        return;
+                    }
+                    
                     // Update button with selected language
                     languageButton.innerHTML = `<img src="${lang.flag}" alt="${lang.name}">`;
                     
                     // Close dropdown
                     languageSelector.classList.remove('active');
                     
-                    // Handle language change
-                    changeLanguage(lang.code);
+                    // Handle language change - with user interaction flag set to true
+                    changeLanguage(lang.code, true);
                 });
                 
                 dropdown.appendChild(option);
@@ -715,13 +756,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Initialize with stored language or default
             const savedLanguage = localStorage.getItem('selectedLanguage');
             if (savedLanguage) {
-                changeLanguage(savedLanguage);
+                // Apply translations without reloading (false = not user-initiated)
+                changeLanguage(savedLanguage, false);
             }
         }
     }, 300);
     
     // Function to change language
-    function changeLanguage(langCode) {
+    function changeLanguage(langCode, isUserAction) {
         // Store selected language
         localStorage.setItem('selectedLanguage', langCode);
         
@@ -729,6 +771,11 @@ document.addEventListener('DOMContentLoaded', function() {
         applyTranslations(langCode);
         
         console.log(`Language changed to: ${langCode}`);
+        
+        // Reload the page ONLY if this is a user-initiated action, not on page load
+        if (isUserAction === true) {
+            window.location.reload();
+        }
     }
 
     // Make changeLanguage accessible globally
