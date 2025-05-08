@@ -645,6 +645,7 @@ nav {
     position: relative;
     z-index: 2;
     transition: all 0.25s ease;
+    display: inline-block !important; /* Forçar exibição do ícone */
 }
 
 /* Action button hover animation */

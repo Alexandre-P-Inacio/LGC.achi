@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="assets/LGC LOGO.png">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="language-selector.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- jQuery required for Turn.js -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -24,6 +25,7 @@
     </script>
     <script src="auth.js" defer></script>
     <script src="admin.js" defer></script>
+    <script src="language-selector-admin.js" defer></script>
     <style>
         :root {
             --primary-color: #333;
@@ -1385,6 +1387,37 @@
 
         .star-button.featured .fa-star {
             color: #FFD700; /* Gold/yellow color for featured projects */
+        }
+
+        /* Language selector styles for admin dashboard */
+        .lang-selector-wrapper {
+            display: flex;
+            align-items: center;
+            margin-left: auto; /* Empurra para a direita */
+        }
+        
+        .mobile-language-selector {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+        
+        .mobile-language-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .mobile-language-option img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 3px;
         }
     </style>
 </head>

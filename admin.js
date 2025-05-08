@@ -151,6 +151,11 @@ function updateTimestamp() {
     }
 }
 
+// Dispatch event for translation system
+function dispatchContentLoadedEvent() {
+    document.dispatchEvent(new CustomEvent('adminContentLoaded'));
+}
+
 // Update stats
 async function updateStats() {
     try {
@@ -313,6 +318,12 @@ async function loadProjects(page = 1, filters = {}) {
         
         // Update pagination controls
         updatePagination(page, totalPages);
+        
+        // Update last modified timestamp
+        updateTimestamp();
+        
+        // Dispatch event for translation system
+        dispatchContentLoadedEvent();
         
         hideLoadingIndicator();
 
@@ -2012,6 +2023,11 @@ async function loadUsers(page = 1, filters = {}) {
         
         // Update pagination controls
         updatePagination(page, totalPages, 'users');
+        
+        // Dispatch event for translation system
+        dispatchContentLoadedEvent();
+        
+        hideLoadingIndicator();
 
     } catch (err) {
         console.error('Error in loadUsers:', err);
